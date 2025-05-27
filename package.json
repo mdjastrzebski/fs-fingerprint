@@ -1,22 +1,24 @@
 {
-  "name": "@mdjdev/ts-lib-template",
-  "version": "0.1.0",
-  "description": "TypeScript-based library template.",
+  "name": "fs-fingerprint",
+  "version": "0.0.1",
+  "description": "Filesystem-based fingerprinting library for node",
   "type": "module",
   "keywords": [
-    "typescript",
-    "template"
+    "fingerprint",
+    "filesystem",
+    "cache",
+    "caching"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mdjastrzebski/ts-lib-template.git"
+    "url": "git+https://github.com/mdjastrzebski/fs-fingerprint.git"
   },
   "author": "Maciej Jastrzębski",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mdjastrzebski/ts-lib-template/issues"
+    "url": "https://github.com/mdjastrzebski/fs-fingerprint/issues"
   },
-  "homepage": "https://github.com/mdjastrzebski/ts-lib-template#readme",
+  "homepage": "https://github.com/mdjastrzebski/fs-fingerprint#readme",
   "main": "dist/index.js",
   "exports": {
     "types": "./dist/index.d.ts",
@@ -26,9 +28,6 @@
   "files": [
     "dist"
   ],
-  "bin": {
-    "bin": "./bin.js"
-  },
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
