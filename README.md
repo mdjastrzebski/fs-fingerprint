@@ -20,15 +20,18 @@ Perfect for building intelligent caching solutions that automatically invalidate
 2. Start fingerprinting:
 
 ```
-import { generateFingerprint } from 'fs-fingerprint';
+import { calculateFingerprint } from 'fs-fingerprint';
 
-const { hash } = generateFingerprint({
+const { hash } = calculateFingerprint({
     sources: [
-        sourceFolder('ios'),
-        sourceFolder('node_modules'),
-        sourceFile('package.json'),
+        directorySource('ios'),
+        fileSource('package.json'),
     ],
+    ignorePaths: [
+        'node_modules/'
+    ]
 });
+```
 
 ## Contributing
 
@@ -41,4 +44,7 @@ MIT 💝
 ---
 
 Made with 💻 and ☕️ by [MDJ](https://x.com/mdj_dev/)
+
+```
+
 ```
