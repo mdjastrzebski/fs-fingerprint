@@ -49,7 +49,7 @@ test("hash file source", () => {
   `);
 });
 
-test.only("excludes ignored paths", () => {
+test("excludes ignored paths", () => {
   writeFile("test1.txt", "Hello, world!");
   writeFile("test2.txt", "Hello, there!");
   writeFile("test3.md", "Hello, other!");
