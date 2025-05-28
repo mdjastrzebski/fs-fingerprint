@@ -28,7 +28,7 @@ const { hash } = calculateFingerprint({
         fileSource('package.json'),
     ],
     ignorePaths: [
-        'node_modules'
+        'node_modules/'
     ]
 });
 ```
