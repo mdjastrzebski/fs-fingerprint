@@ -6,7 +6,7 @@ import type {
   FingerprintDirectorySource,
   FingerprintSourceHash,
 } from "../types.js";
-import { matchesIgnorePath, mergeSourceHashes } from "../utils.js";
+import { matchesExcludePath, mergeSourceHashes } from "../utils.js";
 import { fileSource, hashFileSource } from "./file.js";
 
 export function directorySource(path: string): FingerprintDirectorySource {
@@ -22,7 +22,7 @@ export function hashDirectorySource(
   source: FingerprintDirectorySource
 ): FingerprintSourceHash {
   const pathWithRoot = join(config.rootDir, source.path);
-  if (matchesIgnorePath(pathWithRoot, config.ignorePaths)) {
+  if (matchesExcludePath(source.path, config.excludes)) {
     return { source, hash: null, children: [] };
   }
 

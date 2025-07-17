@@ -8,7 +8,7 @@ import { directorySource, hashDirectorySource } from "../directory.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "directory-test"),
-  ignorePaths: [],
+  excludes: [],
   hashAlgorithm: "sha1",
 };
 
@@ -100,7 +100,7 @@ test("hash directory excludes ignored paths", () => {
 
   const config2: FingerprintConfig = {
     ...config,
-    ignorePaths: ["**/ignored", "*.md"],
+    excludes: ["**/ignored", "*.md"],
   };
 
   const fingerprint = hashDirectorySource(config2, directorySource("test-dir"));
@@ -157,7 +157,7 @@ test("hash directory handles negative ignore paths", () => {
 
   const config2: FingerprintConfig = {
     ...config,
-    ignorePaths: ["ignore/*"],
+    excludes: ["ignore/*"],
   };
 
   const fingerprint = hashDirectorySource(config2, directorySource("."));

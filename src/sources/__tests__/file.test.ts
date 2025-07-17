@@ -8,7 +8,7 @@ import { fileSource, hashFileSource } from "../file.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "file-test"),
-  ignorePaths: [],
+  excludes: [],
   hashAlgorithm: "sha1",
 };
 
@@ -56,7 +56,7 @@ test("excludes ignored paths", () => {
 
   const config2: FingerprintConfig = {
     ...config,
-    ignorePaths: ["test2.txt", "*.md"],
+    excludes: ["test2.txt", "*.md"],
   };
 
   const fingerprint1 = hashFileSource(config2, fileSource("test1.txt"));
