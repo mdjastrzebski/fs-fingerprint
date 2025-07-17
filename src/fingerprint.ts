@@ -9,7 +9,7 @@ import { matchesExcludePath, matchesIncludePath, mergeSourceHashes } from "./uti
 export function calculateFingerprint(args: FingerprintArgs): FingerprintHash {
   const config = {
     rootDir: args.rootDir,
-    excludes: args.excludes,
+    exclude: args.exclude,
     hashAlgorithm: args.hashAlgorithm,
   };
 
@@ -21,13 +21,13 @@ export function calculateFingerprint(args: FingerprintArgs): FingerprintHash {
   for (const entry of entries) {
     const entryPath = entry.name;
     
-    // Skip if doesn't match includes pattern
-    if (!matchesIncludePath(entryPath, args.includes)) {
+    // Skip if doesn't match include pattern
+    if (!matchesIncludePath(entryPath, args.include)) {
       continue;
     }
     
-    // Skip if matches excludes pattern
-    if (matchesExcludePath(entryPath, args.excludes)) {
+    // Skip if matches exclude pattern
+    if (matchesExcludePath(entryPath, args.exclude)) {
       continue;
     }
     

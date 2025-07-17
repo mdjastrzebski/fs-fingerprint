@@ -33,14 +33,14 @@ export function mergeSourceHashes(
   };
 }
 
-export function matchesExcludePath(path: string, excludes?: readonly string[]): boolean {
-  if (!excludes) {
+export function matchesExcludePath(path: string, exclude?: readonly string[]): boolean {
+  if (!exclude) {
     return false;
   }
 
-  return micromatch.isMatch(path, excludes);
+  return micromatch.isMatch(path, exclude);
 }
 
-export function matchesIncludePath(path: string, includes: readonly string[]): boolean {
-  return micromatch.isMatch(path, includes);
+export function matchesIncludePath(path: string, include: readonly string[]): boolean {
+  return micromatch.isMatch(path, include);
 }

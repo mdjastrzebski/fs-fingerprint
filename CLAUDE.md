@@ -25,7 +25,7 @@ This is a TypeScript library that generates filesystem fingerprints for caching 
 - `calculateFingerprint()` - Primary function that takes glob patterns and returns a hash
 
 **Type System**: `src/types.ts`
-- `FingerprintArgs` - Configuration with includes/excludes patterns and extraSources
+- `FingerprintArgs` - Configuration with include/exclude patterns and extraSources
 - `FingerprintSource` - Union type for content, file, and directory sources
 - `FingerprintHash` - Final result with hash and source metadata
 
@@ -40,7 +40,7 @@ This is a TypeScript library that generates filesystem fingerprints for caching 
 
 ### Key Design Patterns
 
-1. **Glob-based File Discovery**: Uses includes/excludes patterns to automatically discover files and directories
+1. **Glob-based File Discovery**: Uses include/exclude patterns to automatically discover files and directories
 2. **Source Strategy Pattern**: Different source types (content, file, directory) are handled by dedicated modules
 3. **Recursive Directory Processing**: Directory sources recursively process subdirectories and files
 4. **Exclude Path Support**: Uses micromatch for glob-based path filtering
@@ -58,6 +58,6 @@ This is a TypeScript library that generates filesystem fingerprints for caching 
 - Uses ES modules (`"type": "module"`) with NodeNext module resolution
 - Requires Node.js >= 20.0.0
 - All paths are relative to `rootDir` configuration
-- Includes/excludes patterns use glob syntax processed by micromatch
-- Only top-level files and directories matching `includes` patterns are processed
-- Files and directories matching `excludes` patterns are ignored recursively
+- Include/exclude patterns use glob syntax processed by micromatch
+- Only top-level files and directories matching `include` patterns are processed
+- Files and directories matching `exclude` patterns are ignored recursively

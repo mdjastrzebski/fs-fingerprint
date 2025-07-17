@@ -7,7 +7,7 @@ import { contentSource, hashContentSource } from "../content.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "content-test"),
-  excludes: [],
+  exclude: [],
   hashAlgorithm: "sha1",
 };
 

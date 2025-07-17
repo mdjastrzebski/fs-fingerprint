@@ -17,7 +17,7 @@ export function hashFileSource(
   source: FingerprintFileSource
 ): FingerprintSourceHash {
   const pathWithRoot = join(config.rootDir, source.path);
-  if (matchesExcludePath(source.path, config.excludes)) {
+  if (matchesExcludePath(source.path, config.exclude)) {
     return { source, hash: null };
   }
 

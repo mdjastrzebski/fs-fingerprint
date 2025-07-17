@@ -2,15 +2,15 @@ export type HashAlgorithm = "sha1" | "sha256" | "sha512";
 
 export type FingerprintArgs = {
   rootDir: string;
-  includes: string[];
-  excludes?: string[];
+  include: string[];
+  exclude?: string[];
   extraSources?: FingerprintContentSource[];
   hashAlgorithm?: HashAlgorithm;
 };
 
 export type FingerprintConfig = {
   rootDir: string;
-  excludes?: string[];
+  exclude?: string[];
   hashAlgorithm?: HashAlgorithm;
 };
 
@@ -44,13 +44,13 @@ export type FingerprintContentSourceHash = {
 
 export type FingerprintFileSourceHash = {
   source: FingerprintFileSource;
-  /** null when the file matches any of `excludes` */
+  /** null when the file matches any of `exclude` */
   hash: string | null;
 };
 
 export type FingerprintDirectorySourceHash = {
   source: FingerprintDirectorySource;
-  /** null when the directory matches any of `excludes` */
+  /** null when the directory matches any of `exclude` */
   hash: string | null;
   children: FingerprintSourceHash[];
 };
