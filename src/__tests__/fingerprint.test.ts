@@ -25,11 +25,9 @@ test("calculate fingerprint", () => {
 
   const fingerprint = calculateFingerprint({
     rootDir,
-    include: ["test*.txt", "test-dir"],
     extraSources: [contentSource("test4", "Consectetur adipiscing elit")],
     hashAlgorithm: "sha1",
   });
-
   expect(fingerprint.hash).toMatchInlineSnapshot(`"65a2bfbacf6bb805cd3144c03cb4dd2e2806e0a8"`);
 
   const fingerprint2 = calculateFingerprint({
@@ -48,7 +46,6 @@ test("calculate fingerprint with exclude", () => {
 
   const fingerprint = calculateFingerprint({
     rootDir,
-    include: ["*"],
     exclude: ["ignore", "*.md"],
     hashAlgorithm: "sha1",
   });

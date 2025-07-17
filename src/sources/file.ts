@@ -12,7 +12,7 @@ export function fileSource(path: string): FingerprintFileSource {
   };
 }
 
-export function hashFileSource(
+export function hashFile(
   config: FingerprintConfig,
   source: FingerprintFileSource
 ): FingerprintSourceHash {

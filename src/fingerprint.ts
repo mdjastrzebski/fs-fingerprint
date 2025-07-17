@@ -2,7 +2,7 @@ import { readdirSync } from "node:fs";
 
 import { hashContentSource } from "./sources/content.js";
 import { directorySource, hashDirectorySource } from "./sources/directory.js";
-import { fileSource, hashFileSource } from "./sources/file.js";
+import { fileSource, hashFile } from "./sources/file.js";
 import type { FingerprintArgs, FingerprintHash, FingerprintSourceHash } from "./types.js";
 import { matchesAnyPattern, mergeSourceHashes } from "./utils.js";
 
@@ -32,7 +32,7 @@ export function calculateFingerprint(args: FingerprintArgs): FingerprintHash {
     }
 
     if (entry.isFile()) {
-      const hash = hashFileSource(config, fileSource(entryPath));
+      const hash = hashFile(config, fileSource(entryPath));
       if (hash.hash !== null) {
         sourceHashes.push(hash);
       }

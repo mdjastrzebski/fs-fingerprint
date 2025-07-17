@@ -7,7 +7,7 @@ import type {
   FingerprintSourceHash,
 } from "../types.js";
 import { matchesAnyPattern, mergeSourceHashes } from "../utils.js";
-import { fileSource, hashFileSource } from "./file.js";
+import { fileSource, hashFile } from "./file.js";
 
 export function directorySource(path: string): FingerprintDirectorySource {
   return {
@@ -31,7 +31,7 @@ export function hashDirectorySource(
     .map((entry) => {
       if (entry.isFile()) {
         const filePath = join(source.path, entry.name);
-        return hashFileSource(config, fileSource(filePath));
+        return hashFile(config, fileSource(filePath));
       } else if (entry.isDirectory()) {
         const dirPath = join(source.path, entry.name);
         return hashDirectorySource(config, directorySource(dirPath));
