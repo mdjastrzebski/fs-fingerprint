@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import type { FingerprintConfig, FingerprintFileSource, FingerprintSourceHash } from "../types.js";
-import { hashContent, matchesExcludePath } from "../utils.js";
+import { hashContent, matchesAnyPattern } from "../utils.js";
 
 export function fileSource(path: string): FingerprintFileSource {
   return {
@@ -17,7 +17,7 @@ export function hashFileSource(
   source: FingerprintFileSource
 ): FingerprintSourceHash {
   const pathWithRoot = join(config.rootDir, source.path);
-  if (matchesExcludePath(source.path, config.exclude)) {
+  if (matchesAnyPattern(source.path, config.exclude)) {
     return { source, hash: null };
   }
 

@@ -4,7 +4,7 @@ import { hashContentSource } from "./sources/content.js";
 import { directorySource, hashDirectorySource } from "./sources/directory.js";
 import { fileSource, hashFileSource } from "./sources/file.js";
 import type { FingerprintArgs, FingerprintHash, FingerprintSourceHash } from "./types.js";
-import { matchesExcludePath, matchesIncludePath, mergeSourceHashes } from "./utils.js";
+import { matchesAnyPattern, mergeSourceHashes } from "./utils.js";
 
 export function calculateFingerprint(args: FingerprintArgs): FingerprintHash {
   const config = {
@@ -17,20 +17,20 @@ export function calculateFingerprint(args: FingerprintArgs): FingerprintHash {
 
   // Process top-level entries in rootDir
   const entries = readdirSync(args.rootDir, { withFileTypes: true });
-  
+
   for (const entry of entries) {
     const entryPath = entry.name;
-    
+
     // Skip if doesn't match include pattern
-    if (!matchesIncludePath(entryPath, args.include)) {
+    if (args.include && !matchesAnyPattern(entryPath, args.include)) {
       continue;
     }
-    
+
     // Skip if matches exclude pattern
-    if (matchesExcludePath(entryPath, args.exclude)) {
+    if (matchesAnyPattern(entryPath, args.exclude)) {
       continue;
     }
-    
+
     if (entry.isFile()) {
       const hash = hashFileSource(config, fileSource(entryPath));
       if (hash.hash !== null) {
