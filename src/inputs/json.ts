@@ -1,43 +1,35 @@
 import type { FingerprintConfig, FingerprintJsonHash, FingerprintJsonInput } from "../types.js";
 import { hashContent } from "../utils.js";
 
-export function jsonInput(key: string, data: unknown): FingerprintJsonInput {
+export function calculateJsonHash(
+  input: FingerprintJsonInput,
+  config: FingerprintConfig
+): FingerprintJsonHash {
+  const normalizedData = normalizeObject(input.json);
+  const jsonString = JSON.stringify(normalizedData);
+
   return {
     type: "json",
-    key: `json:${key}`,
-    data,
+    key: `json:${input.key}`,
+    hash: hashContent(config, jsonString),
+    json: normalizedData,
   };
 }
 
-function normalizeJson(value: unknown): unknown {
+function normalizeObject<T>(value: T): T {
   if (value === null || typeof value !== "object") {
     return value;
   }
 
   if (Array.isArray(value)) {
-    return value.map(normalizeJson);
+    return value.map(normalizeObject) as T;
   }
 
-  const obj = value as Record<string, unknown>;
-  const sortedKeys = Object.keys(obj).sort();
-  const normalized: Record<string, unknown> = {};
-
+  const sortedKeys = Object.keys(value).sort();
+  const result: Record<string, unknown> = {};
   for (const key of sortedKeys) {
-    normalized[key] = normalizeJson(obj[key]);
+    result[key] = normalizeObject((value as Record<string, unknown>)[key]);
   }
 
-  return normalized;
-}
-
-export function hashJson(
-  config: FingerprintConfig,
-  input: FingerprintJsonInput
-): FingerprintJsonHash {
-  const normalizedData = normalizeJson(input.data);
-  const jsonString = JSON.stringify(normalizedData);
-
-  return {
-    ...input,
-    hash: hashContent(config, jsonString),
-  };
+  return result as T;
 }

@@ -3,7 +3,7 @@ import path from "node:path";
 import { expect, test } from "vitest";
 
 import type { FingerprintConfig } from "../../types.js";
-import { contentInput, hashContentInput } from "../content.js";
+import { calculateContentHash } from "../content.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "content-test"),
@@ -11,8 +11,9 @@ const config: FingerprintConfig = {
   hashAlgorithm: "sha1",
 };
 
-test("hash content input", () => {
-  const fingerprint = hashContentInput(config, contentInput("test", "Hello, world!"));
+test("calculateContentHash", () => {
+  const input = { key: "test", content: "Hello, world!" };
+  const fingerprint = calculateContentHash(input, config);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "content": "Hello, world!",

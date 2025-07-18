@@ -4,7 +4,7 @@ import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
 import type { FingerprintConfig } from "../../types.js";
-import { hashFile } from "../file.js";
+import { calculateFileHash } from "../file.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "file-test"),
@@ -23,7 +23,7 @@ beforeEach(() => {
 test("hash file input", () => {
   writeFile("test.txt", "Hello, world!");
 
-  const fingerprint = hashFile("test.txt", config);
+  const fingerprint = calculateFileHash("test.txt", config);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
@@ -34,7 +34,7 @@ test("hash file input", () => {
   `);
 
   writeFile("test.txt", "Hello, there!");
-  const fingerprint2 = hashFile("test.txt", config);
+  const fingerprint2 = calculateFileHash("test.txt", config);
   expect(fingerprint2).toMatchInlineSnapshot(`
     {
       "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
@@ -55,7 +55,7 @@ test("excludes ignored paths", () => {
     exclude: ["test2.txt", "*.md"],
   };
 
-  const fingerprint1 = hashFile("test1.txt", config2);
+  const fingerprint1 = calculateFileHash("test1.txt", config2);
   expect(fingerprint1).toMatchInlineSnapshot(`
     {
       "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
@@ -65,10 +65,10 @@ test("excludes ignored paths", () => {
     }
   `);
 
-  const fingerprint2 = hashFile("test2.txt", config2);
+  const fingerprint2 = calculateFileHash("test2.txt", config2);
   expect(fingerprint2).toMatchInlineSnapshot(`null`);
 
-  const fingerprint3 = hashFile("test3.md", config2);
+  const fingerprint3 = calculateFileHash("test3.md", config2);
   expect(fingerprint3).toMatchInlineSnapshot(`null`);
 });
 

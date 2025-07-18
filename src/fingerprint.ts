@@ -1,9 +1,9 @@
 import { readdirSync } from "node:fs";
 
-import { hashContentInput } from "./inputs/content.js";
-import { hashDirectoryInput } from "./inputs/directory.js";
-import { hashFile } from "./inputs/file.js";
-import { hashJson } from "./inputs/json.js";
+import { calculateContentHash } from "./inputs/content.js";
+import { calculateDirectoryHash } from "./inputs/directory.js";
+import { calculateFileHash } from "./inputs/file.js";
+import { calculateJsonHash } from "./inputs/json.js";
 import type { FingerprintInputHash, FingerprintOptions, FingerprintResult } from "./types.js";
 import { matchesAnyPattern, mergeInputHashes } from "./utils.js";
 
@@ -35,12 +35,12 @@ export function calculateFingerprint(
     }
 
     if (entry.isFile()) {
-      const hash = hashFile(entryPath, config);
+      const hash = calculateFileHash(entryPath, config);
       if (hash !== null) {
         inputHashes.push(hash);
       }
     } else if (entry.isDirectory()) {
-      const hash = hashDirectoryInput(entryPath, config);
+      const hash = calculateDirectoryHash(entryPath, config);
       if (hash !== null) {
         inputHashes.push(hash);
       }
@@ -49,17 +49,17 @@ export function calculateFingerprint(
 
   // Process extraInputs (content and json inputs)
   if (options?.extraInputs) {
-    for (const extraInput of options.extraInputs) {
+    for (const input of options.extraInputs) {
       let hash: FingerprintInputHash;
-      
-      if (extraInput.type === "content") {
-        hash = hashContentInput(config, extraInput);
-      } else if (extraInput.type === "json") {
-        hash = hashJson(config, extraInput);
+
+      if ("content" in input) {
+        hash = calculateContentHash(input, config);
+      } else if ("json" in input) {
+        hash = calculateJsonHash(input, config);
       } else {
-        throw new Error(`Unsupported extraInput type: ${(extraInput as { type: string }).type}`);
+        throw new Error(`Unsupported extraInput type: ${JSON.stringify(input, null, 2)}`);
       }
-      
+
       inputHashes.push(hash);
     }
   }

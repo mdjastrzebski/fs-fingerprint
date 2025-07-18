@@ -4,8 +4,6 @@ import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
 import { calculateFingerprint } from "../fingerprint.js";
-import { contentInput } from "../inputs/content.js";
-import { jsonInput } from "../inputs/json.js";
 
 const rootDir = path.join(os.tmpdir(), "fingerprint-test");
 
@@ -26,8 +24,8 @@ test("calculate fingerprint", () => {
 
   const fingerprint = calculateFingerprint(rootDir, {
     extraInputs: [
-      contentInput("test4", "Consectetur adipiscing elit"),
-      jsonInput("test5", { foo: "bar", baz: 123 }),
+      { key: "test4", content: "Consectetur adipiscing elit" },
+      { key: "test5", json: { foo: "bar", baz: 123 } },
     ],
     hashAlgorithm: "sha1",
   });
@@ -36,8 +34,8 @@ test("calculate fingerprint", () => {
   const fingerprint2 = calculateFingerprint(rootDir, {
     include: ["test*.txt", "test-dir"],
     extraInputs: [
-      jsonInput("test5", { baz: 123, foo: "bar" }),
-      contentInput("test4", "Consectetur adipiscing elit"),
+      { key: "test5", json: { baz: 123, foo: "bar" } },
+      { key: "test4", content: "Consectetur adipiscing elit" },
     ],
     hashAlgorithm: "sha1",
   });
