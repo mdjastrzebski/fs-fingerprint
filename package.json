@@ -34,6 +34,7 @@
     "lint": "eslint",
     "test": "vitest",
     "validate": "pnpm typecheck && pnpm lint && pnpm test --no-watch",
+    "bench": "tsx benchmarks/fingerprint.bench.ts",
     "release": "release-it"
   },
   "devDependencies": {
