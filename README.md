@@ -10,7 +10,7 @@ Perfect for building intelligent caching solutions that automatically invalidate
 
 ## Features
 
-- Generate fingerprints from files, directories, JSON data (coming soon), and any other content.
+- Generate fingerprints from files, directories, JSON data, and any other content.
 - Fast change detection for build systems and caches
 - Simple, intuitive TypeScript API
 
