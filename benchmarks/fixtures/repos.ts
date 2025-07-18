@@ -99,7 +99,7 @@ export class RepoManager {
       try {
         const path = await this.setupRepo(config);
         repoPaths.set(config.name, path);
-      } catch (error) {
+      } catch {
         console.error(`Failed to setup ${config.name}, skipping...`);
       }
     }

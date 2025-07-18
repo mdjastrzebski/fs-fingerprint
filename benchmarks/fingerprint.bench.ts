@@ -7,6 +7,16 @@ import { RepoManager } from "./fixtures/repos.js";
 
 const isBaseline = process.argv.includes("--baseline");
 
+interface PerformanceStats {
+  benchmarks: BenchmarkResult[];
+}
+interface BenchmarkResult {
+  name: string;
+  latency: { p50: number; mad: number; min: number; max: number; p99: number; samples: number };
+  throughput: { p50: number; mad: number; min: number; max: number; p99: number; samples: number };
+  totalTime: number;
+}
+
 async function runBenchmarks(): Promise<void> {
   const repoManager = new RepoManager();
   const repoPaths = await repoManager.setupAllRepos();
@@ -19,54 +29,60 @@ async function runBenchmarks(): Promise<void> {
 
   // Lodash benchmarks
   if (repoPaths.has("lodash")) {
-    const lodashPath = repoPaths.get("lodash")!;
-
-    bench.add("lodash", () => {
-      calculateFingerprint(lodashPath);
-    });
+    const lodashPath = repoPaths.get("lodash");
+    if (lodashPath) {
+      bench.add("lodash", () => {
+        calculateFingerprint(lodashPath);
+      });
+    }
   }
 
   // Express benchmarks
   if (repoPaths.has("express")) {
-    const expressPath = repoPaths.get("express")!;
-    bench.add("express", () => {
-      calculateFingerprint(expressPath);
-    });
+    const expressPath = repoPaths.get("express");
+    if (expressPath) {
+      bench.add("express", () => {
+        calculateFingerprint(expressPath);
+      });
+    }
   }
 
   // React benchmarks
   if (repoPaths.has("react")) {
-    const reactPath = repoPaths.get("react")!;
-
-    bench.add("react", () => {
-      calculateFingerprint(reactPath);
-    });
-
-    bench.add("react (packages only)", () => {
-      calculateFingerprint(reactPath, {
-        include: ["packages/**"],
+    const reactPath = repoPaths.get("react");
+    if (reactPath) {
+      bench.add("react", () => {
+        calculateFingerprint(reactPath);
       });
-    });
+
+      bench.add("react (packages only)", () => {
+        calculateFingerprint(reactPath, {
+          include: ["packages/**"],
+        });
+      });
+    }
   }
 
   // React Native benchmarks
   if (repoPaths.has("react-native")) {
-    const reactNativePath = repoPaths.get("react-native")!;
-    bench.add("react-native", () => {
-      calculateFingerprint(reactNativePath);
-    });
-
-    bench.add("react-native (null hash)", () => {
-      calculateFingerprint(reactNativePath, {
-        hashAlgorithm: "null",
+    const reactNativePath = repoPaths.get("react-native");
+    if (reactNativePath) {
+      bench.add("react-native", () => {
+        calculateFingerprint(reactNativePath);
       });
-    });
 
-    bench.add("react-native (JS/TS only)", () => {
-      calculateFingerprint(reactNativePath, {
-        include: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+      bench.add("react-native (null hash)", () => {
+        calculateFingerprint(reactNativePath, {
+          hashAlgorithm: "null",
+        });
       });
-    });
+
+      bench.add("react-native (JS/TS only)", () => {
+        calculateFingerprint(reactNativePath, {
+          include: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+        });
+      });
+    }
   }
 
   console.log("⏱️  Running benchmarks...");
@@ -115,7 +131,7 @@ async function runBenchmarks(): Promise<void> {
   const benchmarkDir = ".benchmark";
   try {
     mkdirSync(benchmarkDir, { recursive: true });
-  } catch (error) {
+  } catch {
     // Directory might already exist
   }
 
@@ -126,51 +142,63 @@ async function runBenchmarks(): Promise<void> {
   writeFileSync(filepath, JSON.stringify(jsonOutput, null, 2));
   console.log(`\n📝 Results written to ${filepath}`);
 
-  // If not baseline mode, compare with baseline if it exists
-  if (!isBaseline) {
-    const baselineFilepath = join(benchmarkDir, "baseline.json");
-    if (existsSync(baselineFilepath)) {
-      try {
-        const baselineContent = readFileSync(baselineFilepath, "utf8");
-        const baselineData = JSON.parse(baselineContent);
-
-        console.log("\n📊 Performance Comparison (vs baseline):");
-
-        const comparisonTable = jsonOutput.benchmarks.map((current) => {
-          const baseline = baselineData.benchmarks.find((b: any) => b.name === current.name);
-
-          if (!baseline) {
-            return {
-              "Task name": current.name,
-              "Baseline latency (ms)": "N/A",
-              "Current latency (ms)": current.latency.p50?.toFixed(2) || "N/A",
-              "Change (ms)": "N/A",
-            };
-          }
-
-          const latencyChange = current.latency.p50! - baseline.latency.p50;
-          const latencyChangePercent = (latencyChange / baseline.latency.p50) * 100;
-
-          return {
-            "Task name": current.name,
-            "Baseline latency (ms)": baseline.latency.p50.toFixed(2),
-            "Current latency (ms)": current.latency.p50!.toFixed(2),
-            "Change (ms)": `${latencyChange > 0 ? "+" : ""}${latencyChange.toFixed(2)} (${
-              latencyChangePercent > 0 ? "+" : ""
-            }${latencyChangePercent.toFixed(1)}%)`,
-          };
-        });
-
-        console.table(comparisonTable);
-      } catch (error) {
-        console.log("\n⚠️  Could not load baseline data for comparison");
-      }
-    } else {
-      console.log(
-        "\n⚠️  No baseline data found. Run with --baseline flag first to create baseline."
-      );
-    }
+  if (isBaseline) {
+    console.log(`\n📝 Baseline written to ${filepath}`);
+    return;
   }
+
+  // If not baseline mode, compare with baseline if it exists
+  const baselineFilepath = join(benchmarkDir, "baseline.json");
+  if (!existsSync(baselineFilepath)) {
+    console.error(
+      "\n⚠️  No baseline data found. Run with --baseline flag first to create baseline."
+    );
+    return;
+  }
+
+  const baselineData = loadBaselineStats(baselineFilepath);
+  console.log("\n📊 Performance Comparison (vs baseline):");
+
+  const comparisonTable = jsonOutput.benchmarks.map((current) => {
+    const baseline = baselineData.benchmarks.find(
+      (b: { name: string; latency: { p50: number } }) => b.name === current.name
+    );
+
+    if (!baseline) {
+      return {
+        "Task name": current.name,
+        "Baseline latency (ms)": "N/A",
+        "Current latency (ms)": current.latency.p50?.toFixed(2) || "N/A",
+        "Change (ms)": "N/A",
+      };
+    }
+
+    const currentLatency = current.latency.p50;
+    const baselineLatency = baseline.latency.p50;
+
+    if (!currentLatency || !baselineLatency) {
+      return {
+        "Task name": current.name,
+        "Baseline latency (ms)": baselineLatency?.toFixed(2) || "N/A",
+        "Current latency (ms)": currentLatency?.toFixed(2) || "N/A",
+        "Change (ms)": "N/A",
+      };
+    }
+
+    const latencyChange = currentLatency - baselineLatency;
+    const latencyChangePercent = (latencyChange / baselineLatency) * 100;
+
+    return {
+      "Task name": current.name,
+      "Baseline latency (ms)": baselineLatency.toFixed(2),
+      "Current latency (ms)": currentLatency.toFixed(2),
+      "Change (ms)": `${latencyChange > 0 ? "+" : ""}${latencyChange.toFixed(2)} (${
+        latencyChangePercent > 0 ? "+" : ""
+      }${latencyChangePercent.toFixed(1)}%)`,
+    };
+  });
+
+  console.table(comparisonTable);
 }
 
 // Run benchmarks if this file is executed directly
@@ -179,3 +207,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export { runBenchmarks };
+
+function loadBaselineStats(baselineFilepath: string): PerformanceStats {
+  const baselineContent = readFileSync(baselineFilepath, "utf8");
+  return JSON.parse(baselineContent);
+}

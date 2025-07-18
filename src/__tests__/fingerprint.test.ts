@@ -4,7 +4,7 @@ import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
 import { calculateFingerprint } from "../fingerprint.js";
-import { FingerprintInputHash } from "../types.js";
+import type { FingerprintInputHash } from "../types.js";
 
 const rootDir = path.join(os.tmpdir(), "fingerprint-test");
 
