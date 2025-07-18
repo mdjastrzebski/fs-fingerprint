@@ -4,11 +4,11 @@ import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
 import type { FingerprintConfig } from "../../types.js";
-import { fileSource, hashFileSource } from "../file.js";
+import { hashFile } from "../file.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "file-test"),
-  ignorePaths: [],
+  exclude: [],
   hashAlgorithm: "sha1",
 };
 
@@ -20,31 +20,27 @@ beforeEach(() => {
   fs.mkdirSync(config.rootDir, { recursive: true });
 });
 
-test("hash file source", () => {
+test("hash file input", () => {
   writeFile("test.txt", "Hello, world!");
 
-  const fingerprint = hashFileSource(config, fileSource("test.txt"));
+  const fingerprint = hashFile("test.txt", config);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-      "source": {
-        "key": "file:test.txt",
-        "path": "test.txt",
-        "type": "file",
-      },
+      "key": "file:test.txt",
+      "path": "test.txt",
+      "type": "file",
     }
   `);
 
   writeFile("test.txt", "Hello, there!");
-  const fingerprint2 = hashFileSource(config, fileSource("test.txt"));
+  const fingerprint2 = hashFile("test.txt", config);
   expect(fingerprint2).toMatchInlineSnapshot(`
     {
       "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
-      "source": {
-        "key": "file:test.txt",
-        "path": "test.txt",
-        "type": "file",
-      },
+      "key": "file:test.txt",
+      "path": "test.txt",
+      "type": "file",
     }
   `);
 });
@@ -56,44 +52,24 @@ test("excludes ignored paths", () => {
 
   const config2: FingerprintConfig = {
     ...config,
-    ignorePaths: ["test2.txt", "*.md"],
+    exclude: ["test2.txt", "*.md"],
   };
 
-  const fingerprint1 = hashFileSource(config2, fileSource("test1.txt"));
+  const fingerprint1 = hashFile("test1.txt", config2);
   expect(fingerprint1).toMatchInlineSnapshot(`
     {
       "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-      "source": {
-        "key": "file:test1.txt",
-        "path": "test1.txt",
-        "type": "file",
-      },
+      "key": "file:test1.txt",
+      "path": "test1.txt",
+      "type": "file",
     }
   `);
 
-  const fingerprint2 = hashFileSource(config2, fileSource("test2.txt"));
-  expect(fingerprint2).toMatchInlineSnapshot(`
-    {
-      "hash": null,
-      "source": {
-        "key": "file:test2.txt",
-        "path": "test2.txt",
-        "type": "file",
-      },
-    }
-  `);
+  const fingerprint2 = hashFile("test2.txt", config2);
+  expect(fingerprint2).toMatchInlineSnapshot(`null`);
 
-  const fingerprint3 = hashFileSource(config2, fileSource("test3.md"));
-  expect(fingerprint3).toMatchInlineSnapshot(`
-    {
-      "hash": null,
-      "source": {
-        "key": "file:test3.md",
-        "path": "test3.md",
-        "type": "file",
-      },
-    }
-  `);
+  const fingerprint3 = hashFile("test3.md", config2);
+  expect(fingerprint3).toMatchInlineSnapshot(`null`);
 });
 
 function writeFile(filePath: string, content: string) {

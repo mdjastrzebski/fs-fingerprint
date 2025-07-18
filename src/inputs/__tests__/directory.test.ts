@@ -4,11 +4,11 @@ import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
 import type { FingerprintConfig } from "../../types.js";
-import { directorySource, hashDirectorySource } from "../directory.js";
+import { hashDirectoryInput } from "../directory.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "directory-test"),
-  ignorePaths: [],
+  exclude: [],
   hashAlgorithm: "sha1",
 };
 
@@ -20,37 +20,33 @@ beforeEach(() => {
   fs.mkdirSync(config.rootDir, { recursive: true });
 });
 
-test("hash directory source", () => {
+test("hash directory input", () => {
   writeFile("test-dir/test.txt", "Hello, world!");
 
-  const fingerprint = hashDirectorySource(config, directorySource("test-dir"));
+  const fingerprint = hashDirectoryInput("test-dir", config);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "children": [
         {
           "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-          "source": {
-            "key": "file:test-dir/test.txt",
-            "path": "test-dir/test.txt",
-            "type": "file",
-          },
+          "key": "file:test-dir/test.txt",
+          "path": "test-dir/test.txt",
+          "type": "file",
         },
       ],
       "hash": "b0525e564d1cc96ceb59b55150e30f51bb0600c9",
-      "source": {
-        "key": "directory:test-dir",
-        "path": "test-dir",
-        "type": "directory",
-      },
+      "key": "directory:test-dir",
+      "path": "test-dir",
+      "type": "directory",
     }
   `);
 });
 
-test("hash directory source with nesting", () => {
+test("hash directory input with nesting", () => {
   writeFile("test-dir/test.txt", "Hello, world!");
   writeFile("test-dir/nested/test.txt", "Hello, there!");
 
-  const fingerprint = hashDirectorySource(config, directorySource("test-dir"));
+  const fingerprint = hashDirectoryInput("test-dir", config);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "children": [
@@ -58,35 +54,27 @@ test("hash directory source with nesting", () => {
           "children": [
             {
               "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
-              "source": {
-                "key": "file:test-dir/nested/test.txt",
-                "path": "test-dir/nested/test.txt",
-                "type": "file",
-              },
+              "key": "file:test-dir/nested/test.txt",
+              "path": "test-dir/nested/test.txt",
+              "type": "file",
             },
           ],
           "hash": "e765acb113f5393fe1baa2f0d9bb1e8de1d04523",
-          "source": {
-            "key": "directory:test-dir/nested",
-            "path": "test-dir/nested",
-            "type": "directory",
-          },
+          "key": "directory:test-dir/nested",
+          "path": "test-dir/nested",
+          "type": "directory",
         },
         {
           "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-          "source": {
-            "key": "file:test-dir/test.txt",
-            "path": "test-dir/test.txt",
-            "type": "file",
-          },
+          "key": "file:test-dir/test.txt",
+          "path": "test-dir/test.txt",
+          "type": "file",
         },
       ],
       "hash": "53abd16e171d5374d110a5e6756be51e01def412",
-      "source": {
-        "key": "directory:test-dir",
-        "path": "test-dir",
-        "type": "directory",
-      },
+      "key": "directory:test-dir",
+      "path": "test-dir",
+      "type": "directory",
     }
   `);
 });
@@ -100,10 +88,10 @@ test("hash directory excludes ignored paths", () => {
 
   const config2: FingerprintConfig = {
     ...config,
-    ignorePaths: ["**/ignored", "*.md"],
+    exclude: ["**/ignored", "*.md"],
   };
 
-  const fingerprint = hashDirectorySource(config2, directorySource("test-dir"));
+  const fingerprint = hashDirectoryInput("test-dir", config2);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "children": [
@@ -111,43 +99,33 @@ test("hash directory excludes ignored paths", () => {
           "children": [
             {
               "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
-              "source": {
-                "key": "file:test-dir/nested/test.txt",
-                "path": "test-dir/nested/test.txt",
-                "type": "file",
-              },
+              "key": "file:test-dir/nested/test.txt",
+              "path": "test-dir/nested/test.txt",
+              "type": "file",
             },
           ],
           "hash": "e765acb113f5393fe1baa2f0d9bb1e8de1d04523",
-          "source": {
-            "key": "directory:test-dir/nested",
-            "path": "test-dir/nested",
-            "type": "directory",
-          },
+          "key": "directory:test-dir/nested",
+          "path": "test-dir/nested",
+          "type": "directory",
         },
         {
           "hash": "ac1b00033bb1fee6c174dcedbed0cf1994b02b47",
-          "source": {
-            "key": "file:test-dir/test.md",
-            "path": "test-dir/test.md",
-            "type": "file",
-          },
+          "key": "file:test-dir/test.md",
+          "path": "test-dir/test.md",
+          "type": "file",
         },
         {
           "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-          "source": {
-            "key": "file:test-dir/test.txt",
-            "path": "test-dir/test.txt",
-            "type": "file",
-          },
+          "key": "file:test-dir/test.txt",
+          "path": "test-dir/test.txt",
+          "type": "file",
         },
       ],
       "hash": "7a306094610251c40f467a8c3cd418b75295b1e8",
-      "source": {
-        "key": "directory:test-dir",
-        "path": "test-dir",
-        "type": "directory",
-      },
+      "key": "directory:test-dir",
+      "path": "test-dir",
+      "type": "directory",
     }
   `);
 });
@@ -157,19 +135,25 @@ test("hash directory handles negative ignore paths", () => {
 
   const config2: FingerprintConfig = {
     ...config,
-    ignorePaths: ["ignore/*"],
+    exclude: ["ignore/*"],
   };
 
-  const fingerprint = hashDirectorySource(config2, directorySource("."));
+  const fingerprint = hashDirectoryInput(".", config2);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
-      "children": [],
-      "hash": null,
-      "source": {
-        "key": "directory:.",
-        "path": ".",
-        "type": "directory",
-      },
+      "children": [
+        {
+          "children": [],
+          "hash": "(null)",
+          "key": "directory:ignore",
+          "path": "ignore",
+          "type": "directory",
+        },
+      ],
+      "hash": "f74d721c23a3d631e1e39e3d41ef1888fe727bf8",
+      "key": "directory:.",
+      "path": ".",
+      "type": "directory",
     }
   `);
 });

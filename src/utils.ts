@@ -1,9 +1,8 @@
 import { createHash } from "node:crypto";
 import micromatch from "micromatch";
 
-import type { FingerprintConfig, FingerprintHash, FingerprintSourceHash } from "./types.js";
-
-const DEFAULT_HASH_ALGORITHM = "sha1";
+import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
+import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
 
 export function hashContent(config: FingerprintConfig, content: string) {
   const hasher = createHash(config.hashAlgorithm ?? DEFAULT_HASH_ALGORITHM);
@@ -11,32 +10,37 @@ export function hashContent(config: FingerprintConfig, content: string) {
   return hasher.digest("hex");
 }
 
-export function mergeSourceHashes(
+export function mergeInputHashes(
   config: FingerprintConfig,
-  hashes: readonly FingerprintSourceHash[]
-): FingerprintHash {
+  hashes: readonly FingerprintInputHash[]
+): FingerprintResult {
+  if (hashes.length === 0) {
+    return {
+      hash: EMPTY_HASH,
+      inputs: [],
+    };
+  }
+
   const sortedHashes = [...hashes].sort((a, b) => {
-    return a.source.key.localeCompare(b.source.key);
+    return a.key.localeCompare(b.key);
   });
 
   const hasher = createHash(config.hashAlgorithm ?? DEFAULT_HASH_ALGORITHM);
-  for (const sourceHash of sortedHashes) {
-    if (sourceHash.hash != null) {
-      hasher.update(sourceHash.source.key);
-      hasher.update(sourceHash.hash);
-    }
+  for (const inputHash of sortedHashes) {
+    hasher.update(inputHash.key);
+    hasher.update(inputHash.hash);
   }
 
   return {
     hash: hasher.digest("hex"),
-    sources: sortedHashes,
+    inputs: sortedHashes,
   };
 }
 
-export function matchesIgnorePath(path: string, ignorePaths?: readonly string[]): boolean {
-  if (!ignorePaths) {
+export function matchesAnyPattern(path: string, patterns?: readonly string[]): boolean {
+  if (!patterns) {
     return false;
   }
 
-  return micromatch.isMatch(path, ignorePaths);
+  return micromatch.isMatch(path, patterns);
 }
