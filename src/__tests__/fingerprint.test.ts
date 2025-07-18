@@ -4,7 +4,6 @@ import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
 import { calculateFingerprint } from "../fingerprint.js";
-import { contentInput } from "../inputs/content.js";
 
 const rootDir = path.join(os.tmpdir(), "fingerprint-test");
 
@@ -24,14 +23,20 @@ test("calculate fingerprint", () => {
   writeFile("test-dir/nested/test.txt", "Sed do eiusmod tempor");
 
   const fingerprint = calculateFingerprint(rootDir, {
-    extraInputs: [contentInput("test4", "Consectetur adipiscing elit")],
+    extraInputs: [
+      { key: "test4", content: "Consectetur adipiscing elit" },
+      { key: "test5", json: { foo: "bar", baz: 123 } },
+    ],
     hashAlgorithm: "sha1",
   });
-  expect(fingerprint.hash).toMatchInlineSnapshot(`"65a2bfbacf6bb805cd3144c03cb4dd2e2806e0a8"`);
+  expect(fingerprint.hash).toMatchInlineSnapshot(`"20b1d4f8f1816d008445f024dfd7b39521b8fecd"`);
 
   const fingerprint2 = calculateFingerprint(rootDir, {
     include: ["test*.txt", "test-dir"],
-    extraInputs: [contentInput("test4", "Consectetur adipiscing elit")],
+    extraInputs: [
+      { key: "test5", json: { baz: 123, foo: "bar" } },
+      { key: "test4", content: "Consectetur adipiscing elit" },
+    ],
     hashAlgorithm: "sha1",
   });
   expect(fingerprint2.hash).toEqual(fingerprint.hash);

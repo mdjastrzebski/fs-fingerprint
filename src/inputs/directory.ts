@@ -3,9 +3,9 @@ import { join } from "node:path";
 
 import type { FingerprintConfig, FingerprintDirectoryHash } from "../types.js";
 import { matchesAnyPattern, mergeInputHashes } from "../utils.js";
-import { hashFile } from "./file.js";
+import { calculateFileHash } from "./file.js";
 
-export function hashDirectoryInput(
+export function calculateDirectoryHash(
   path: string,
   config: FingerprintConfig
 ): FingerprintDirectoryHash | null {
@@ -19,10 +19,10 @@ export function hashDirectoryInput(
     .map((entry) => {
       if (entry.isFile()) {
         const filePath = join(path, entry.name);
-        return hashFile(filePath, config);
+        return calculateFileHash(filePath, config);
       } else if (entry.isDirectory()) {
         const dirPath = join(path, entry.name);
-        return hashDirectoryInput(dirPath, config);
+        return calculateDirectoryHash(dirPath, config);
       } else {
         console.warn(`fs-fingerprint: skipping ${entry.name} in ${path}`);
         return null;
@@ -34,8 +34,8 @@ export function hashDirectoryInput(
   return {
     type: "directory",
     key: `directory:${path}`,
-    path,
     hash: merged.hash,
+    path,
     children: merged.inputs,
   };
 }

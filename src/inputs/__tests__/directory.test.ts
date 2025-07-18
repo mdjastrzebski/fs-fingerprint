@@ -4,7 +4,7 @@ import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
 import type { FingerprintConfig } from "../../types.js";
-import { hashDirectoryInput } from "../directory.js";
+import { calculateDirectoryHash } from "../directory.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "directory-test"),
@@ -23,7 +23,7 @@ beforeEach(() => {
 test("hash directory input", () => {
   writeFile("test-dir/test.txt", "Hello, world!");
 
-  const fingerprint = hashDirectoryInput("test-dir", config);
+  const fingerprint = calculateDirectoryHash("test-dir", config);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "children": [
@@ -46,7 +46,7 @@ test("hash directory input with nesting", () => {
   writeFile("test-dir/test.txt", "Hello, world!");
   writeFile("test-dir/nested/test.txt", "Hello, there!");
 
-  const fingerprint = hashDirectoryInput("test-dir", config);
+  const fingerprint = calculateDirectoryHash("test-dir", config);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "children": [
@@ -91,7 +91,7 @@ test("hash directory excludes ignored paths", () => {
     exclude: ["**/ignored", "*.md"],
   };
 
-  const fingerprint = hashDirectoryInput("test-dir", config2);
+  const fingerprint = calculateDirectoryHash("test-dir", config2);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "children": [
@@ -138,7 +138,7 @@ test("hash directory handles negative ignore paths", () => {
     exclude: ["ignore/*"],
   };
 
-  const fingerprint = hashDirectoryInput(".", config2);
+  const fingerprint = calculateDirectoryHash(".", config2);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "children": [
