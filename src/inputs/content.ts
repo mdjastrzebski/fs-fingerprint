@@ -1,8 +1,4 @@
-import type {
-  FingerprintConfig,
-  FingerprintContentInput,
-  FingerprintInputHash,
-} from "../types.js";
+import type { FingerprintConfig, FingerprintContentInput, FingerprintInputHash } from "../types.js";
 import { hashContent } from "../utils.js";
 
 export function contentInput(key: string, content: string): FingerprintContentInput {
@@ -18,7 +14,7 @@ export function hashContentInput(
   input: FingerprintContentInput
 ): FingerprintInputHash {
   return {
-    input,
+    ...input,
     hash: hashContent(config, input.content),
   };
 }

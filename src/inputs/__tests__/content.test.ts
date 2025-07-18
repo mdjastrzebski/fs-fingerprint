@@ -15,12 +15,10 @@ test("hash content input", () => {
   const fingerprint = hashContentInput(config, contentInput("test", "Hello, world!"));
   expect(fingerprint).toMatchInlineSnapshot(`
     {
+      "content": "Hello, world!",
       "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-      "input": {
-        "content": "Hello, world!",
-        "key": "content:test",
-        "type": "content",
-      },
+      "key": "content:test",
+      "type": "content",
     }
   `);
 });

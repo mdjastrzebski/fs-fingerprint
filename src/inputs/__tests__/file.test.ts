@@ -27,11 +27,9 @@ test("hash file input", () => {
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-      "input": {
-        "key": "file:test.txt",
-        "path": "test.txt",
-        "type": "file",
-      },
+      "key": "file:test.txt",
+      "path": "test.txt",
+      "type": "file",
     }
   `);
 
@@ -40,11 +38,9 @@ test("hash file input", () => {
   expect(fingerprint2).toMatchInlineSnapshot(`
     {
       "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
-      "input": {
-        "key": "file:test.txt",
-        "path": "test.txt",
-        "type": "file",
-      },
+      "key": "file:test.txt",
+      "path": "test.txt",
+      "type": "file",
     }
   `);
 });
@@ -63,37 +59,17 @@ test("excludes ignored paths", () => {
   expect(fingerprint1).toMatchInlineSnapshot(`
     {
       "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-      "input": {
-        "key": "file:test1.txt",
-        "path": "test1.txt",
-        "type": "file",
-      },
+      "key": "file:test1.txt",
+      "path": "test1.txt",
+      "type": "file",
     }
   `);
 
   const fingerprint2 = hashFile(config2, fileInput("test2.txt"));
-  expect(fingerprint2).toMatchInlineSnapshot(`
-    {
-      "hash": null,
-      "input": {
-        "key": "file:test2.txt",
-        "path": "test2.txt",
-        "type": "file",
-      },
-    }
-  `);
+  expect(fingerprint2).toMatchInlineSnapshot(`null`);
 
   const fingerprint3 = hashFile(config2, fileInput("test3.md"));
-  expect(fingerprint3).toMatchInlineSnapshot(`
-    {
-      "hash": null,
-      "input": {
-        "key": "file:test3.md",
-        "path": "test3.md",
-        "type": "file",
-      },
-    }
-  `);
+  expect(fingerprint3).toMatchInlineSnapshot(`null`);
 });
 
 function writeFile(filePath: string, content: string) {

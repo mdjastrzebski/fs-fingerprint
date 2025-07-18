@@ -29,19 +29,15 @@ test("hash directory input", () => {
       "children": [
         {
           "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-          "input": {
-            "key": "file:test-dir/test.txt",
-            "path": "test-dir/test.txt",
-            "type": "file",
-          },
+          "key": "file:test-dir/test.txt",
+          "path": "test-dir/test.txt",
+          "type": "file",
         },
       ],
       "hash": "b0525e564d1cc96ceb59b55150e30f51bb0600c9",
-      "input": {
-        "key": "directory:test-dir",
-        "path": "test-dir",
-        "type": "directory",
-      },
+      "key": "directory:test-dir",
+      "path": "test-dir",
+      "type": "directory",
     }
   `);
 });
@@ -58,35 +54,27 @@ test("hash directory input with nesting", () => {
           "children": [
             {
               "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
-              "input": {
-                "key": "file:test-dir/nested/test.txt",
-                "path": "test-dir/nested/test.txt",
-                "type": "file",
-              },
+              "key": "file:test-dir/nested/test.txt",
+              "path": "test-dir/nested/test.txt",
+              "type": "file",
             },
           ],
           "hash": "e765acb113f5393fe1baa2f0d9bb1e8de1d04523",
-          "input": {
-            "key": "directory:test-dir/nested",
-            "path": "test-dir/nested",
-            "type": "directory",
-          },
+          "key": "directory:test-dir/nested",
+          "path": "test-dir/nested",
+          "type": "directory",
         },
         {
           "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-          "input": {
-            "key": "file:test-dir/test.txt",
-            "path": "test-dir/test.txt",
-            "type": "file",
-          },
+          "key": "file:test-dir/test.txt",
+          "path": "test-dir/test.txt",
+          "type": "file",
         },
       ],
       "hash": "53abd16e171d5374d110a5e6756be51e01def412",
-      "input": {
-        "key": "directory:test-dir",
-        "path": "test-dir",
-        "type": "directory",
-      },
+      "key": "directory:test-dir",
+      "path": "test-dir",
+      "type": "directory",
     }
   `);
 });
@@ -111,43 +99,33 @@ test("hash directory excludes ignored paths", () => {
           "children": [
             {
               "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
-              "input": {
-                "key": "file:test-dir/nested/test.txt",
-                "path": "test-dir/nested/test.txt",
-                "type": "file",
-              },
+              "key": "file:test-dir/nested/test.txt",
+              "path": "test-dir/nested/test.txt",
+              "type": "file",
             },
           ],
           "hash": "e765acb113f5393fe1baa2f0d9bb1e8de1d04523",
-          "input": {
-            "key": "directory:test-dir/nested",
-            "path": "test-dir/nested",
-            "type": "directory",
-          },
+          "key": "directory:test-dir/nested",
+          "path": "test-dir/nested",
+          "type": "directory",
         },
         {
           "hash": "ac1b00033bb1fee6c174dcedbed0cf1994b02b47",
-          "input": {
-            "key": "file:test-dir/test.md",
-            "path": "test-dir/test.md",
-            "type": "file",
-          },
+          "key": "file:test-dir/test.md",
+          "path": "test-dir/test.md",
+          "type": "file",
         },
         {
           "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-          "input": {
-            "key": "file:test-dir/test.txt",
-            "path": "test-dir/test.txt",
-            "type": "file",
-          },
+          "key": "file:test-dir/test.txt",
+          "path": "test-dir/test.txt",
+          "type": "file",
         },
       ],
       "hash": "7a306094610251c40f467a8c3cd418b75295b1e8",
-      "input": {
-        "key": "directory:test-dir",
-        "path": "test-dir",
-        "type": "directory",
-      },
+      "key": "directory:test-dir",
+      "path": "test-dir",
+      "type": "directory",
     }
   `);
 });
@@ -163,13 +141,19 @@ test("hash directory handles negative ignore paths", () => {
   const fingerprint = hashDirectoryInput(config2, directoryInput("."));
   expect(fingerprint).toMatchInlineSnapshot(`
     {
-      "children": [],
-      "hash": null,
-      "input": {
-        "key": "directory:.",
-        "path": ".",
-        "type": "directory",
-      },
+      "children": [
+        {
+          "children": [],
+          "hash": "(null)",
+          "key": "directory:ignore",
+          "path": "ignore",
+          "type": "directory",
+        },
+      ],
+      "hash": "f74d721c23a3d631e1e39e3d41ef1888fe727bf8",
+      "key": "directory:.",
+      "path": ".",
+      "type": "directory",
     }
   `);
 });

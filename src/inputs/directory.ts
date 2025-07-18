@@ -1,10 +1,11 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 
+import { EMPTY_HASH } from "../constants.js";
 import type {
   FingerprintConfig,
+  FingerprintDirectoryHash,
   FingerprintDirectoryInput,
-  FingerprintInputHash,
 } from "../types.js";
 import { matchesAnyPattern, mergeInputHashes } from "../utils.js";
 import { fileInput, hashFile } from "./file.js";
@@ -20,10 +21,10 @@ export function directoryInput(path: string): FingerprintDirectoryInput {
 export function hashDirectoryInput(
   config: FingerprintConfig,
   input: FingerprintDirectoryInput
-): FingerprintInputHash {
+): FingerprintDirectoryHash | null {
   const pathWithRoot = join(config.rootDir, input.path);
   if (matchesAnyPattern(input.path, config.exclude)) {
-    return { input, hash: null, children: [] };
+    return null;
   }
 
   const entries = readdirSync(pathWithRoot, { withFileTypes: true });
@@ -40,16 +41,15 @@ export function hashDirectoryInput(
         return null;
       }
     })
-    .filter((entry) => entry != null)
-    .filter((entry) => entry.hash != null);
+    .filter((entry) => entry != null);
 
   if (entryHashes.length === 0) {
-    return { input, hash: null, children: [] };
+    return { ...input, hash: EMPTY_HASH, children: [] };
   }
 
   const merged = mergeInputHashes(config, entryHashes);
   return {
-    input,
+    ...input,
     hash: merged.hash,
     children: merged.inputs,
   };

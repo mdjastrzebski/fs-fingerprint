@@ -13,17 +13,6 @@ export type FingerprintConfig = {
   hashAlgorithm?: HashAlgorithm;
 };
 
-export type FingerprintInput =
-  | FingerprintContentInput
-  | FingerprintFileInput
-  | FingerprintDirectoryInput;
-
-export type FingerprintContentInput = {
-  type: "content";
-  key: string;
-  content: string;
-};
-
 export type FingerprintFileInput = {
   type: "file";
   key: string;
@@ -36,30 +25,31 @@ export type FingerprintDirectoryInput = {
   path: string;
 };
 
-export type FingerprintContentInputHash = {
-  input: FingerprintContentInput;
+export interface FingerprintContentInput {
+  type: "content";
+  key: string;
+  content: string;
+}
+
+export interface FingerprintFileHash extends FingerprintFileInput {
   hash: string;
-};
+}
 
-export type FingerprintFileInputHash = {
-  input: FingerprintFileInput;
-  /** null when the file matches any of `exclude` */
-  hash: string | null;
-};
-
-export type FingerprintDirectoryInputHash = {
-  input: FingerprintDirectoryInput;
-  /** null when the directory matches any of `exclude` */
-  hash: string | null;
+export interface FingerprintDirectoryHash extends FingerprintDirectoryInput {
+  hash: string;
   children: FingerprintInputHash[];
-};
+}
+
+export interface FingerprintContentHash extends FingerprintContentInput {
+  hash: string;
+}
 
 export type FingerprintInputHash =
-  | FingerprintContentInputHash
-  | FingerprintFileInputHash
-  | FingerprintDirectoryInputHash;
+  | FingerprintContentHash
+  | FingerprintFileHash
+  | FingerprintDirectoryHash;
 
-export type FingerprintHash = {
+export type FingerprintResult = {
   hash: string;
   inputs: FingerprintInputHash[];
 };
