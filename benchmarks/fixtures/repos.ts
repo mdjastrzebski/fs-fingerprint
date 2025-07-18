@@ -12,28 +12,28 @@ export const BENCHMARK_REPOS: RepoConfig[] = [
   {
     name: "lodash",
     url: "https://github.com/lodash/lodash.git",
-    description: "Popular utility library (~200 JS files)"
+    description: "Popular utility library (~200 JS files)",
   },
   {
     name: "express",
-    url: "https://github.com/expressjs/express.git", 
-    description: "Fast, unopinionated web framework (~500 files)"
+    url: "https://github.com/expressjs/express.git",
+    description: "Fast, unopinionated web framework (~500 files)",
   },
   {
     name: "react-native",
     url: "https://github.com/facebook/react-native.git",
-    description: "React Native framework (~5000+ files)"
+    description: "React Native framework (~5000+ files)",
   },
   {
     name: "react",
     url: "https://github.com/facebook/react.git",
-    description: "React JavaScript library monorepo (~2000+ files)"
+    description: "React JavaScript library monorepo (~2000+ files)",
   },
 ];
 
 export class RepoManager {
   private reposDir: string;
-  
+
   constructor(baseDir: string = join(process.cwd(), "benchmarks", "repos")) {
     this.reposDir = baseDir;
     mkdirSync(this.reposDir, { recursive: true });
@@ -44,38 +44,27 @@ export class RepoManager {
    */
   async setupRepo(config: RepoConfig): Promise<string> {
     const repoPath = join(this.reposDir, config.name);
-    
-    if (existsSync(repoPath)) {
-      console.log(`📦 Updating ${config.name}...`);
-      try {
-        // Try to update existing repo
-        execSync(`git -C "${repoPath}" fetch origin`, { stdio: 'pipe' });
-        execSync(`git -C "${repoPath}" reset --hard origin/HEAD`, { stdio: 'pipe' });
-        execSync(`git -C "${repoPath}" clean -fd`, { stdio: 'pipe' });
-      } catch (error) {
-        console.log(`⚠️  Failed to update ${config.name}, re-cloning...`);
-        rmSync(repoPath, { recursive: true });
-        return this.cloneRepo(config);
-      }
-    } else {
+
+    if (!existsSync(repoPath)) {
+      console.log(`⚠️  Failed to update ${config.name}, re-cloning...`);
       return this.cloneRepo(config);
     }
-    
+
     return repoPath;
   }
 
   private cloneRepo(config: RepoConfig): string {
     const repoPath = join(this.reposDir, config.name);
-    
+
     console.log(`📥 Cloning ${config.name} (${config.description})...`);
-    
+
     try {
       const cloneCmd = `git clone --depth=1 "${config.url}" "${repoPath}"`;
-      execSync(cloneCmd, { stdio: 'pipe' });
-      
+      execSync(cloneCmd, { stdio: "pipe" });
+
       // Remove git history to save space
-      rmSync(join(repoPath, '.git'), { recursive: true, force: true });
-      
+      rmSync(join(repoPath, ".git"), { recursive: true, force: true });
+
       console.log(`✅ ${config.name} cloned successfully`);
       return repoPath;
     } catch (error) {
@@ -103,9 +92,9 @@ export class RepoManager {
    */
   async setupAllRepos(): Promise<Map<string, string>> {
     const repoPaths = new Map<string, string>();
-    
+
     console.log("🚀 Setting up benchmark repositories...");
-    
+
     for (const config of BENCHMARK_REPOS) {
       try {
         const path = await this.setupRepo(config);
@@ -114,7 +103,7 @@ export class RepoManager {
         console.error(`Failed to setup ${config.name}, skipping...`);
       }
     }
-    
+
     return repoPaths;
   }
 
@@ -132,6 +121,6 @@ export class RepoManager {
    * Get repository configuration by name
    */
   getRepoConfig(name: string): RepoConfig | undefined {
-    return BENCHMARK_REPOS.find(repo => repo.name === name);
+    return BENCHMARK_REPOS.find((repo) => repo.name === name);
   }
 }
