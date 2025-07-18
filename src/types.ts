@@ -1,16 +1,15 @@
 export type HashAlgorithm = "sha1" | "sha256" | "sha512";
 
-export type FingerprintArgs = {
-  rootDir: string;
-  include?: string[];
-  exclude?: string[];
+export type FingerprintOptions = {
+  include?: readonly string[];
+  exclude?: readonly string[];
   extraSources?: FingerprintContentSource[];
   hashAlgorithm?: HashAlgorithm;
 };
 
 export type FingerprintConfig = {
   rootDir: string;
-  exclude?: string[];
+  exclude?: readonly string[];
   hashAlgorithm?: HashAlgorithm;
 };
 

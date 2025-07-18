@@ -23,15 +23,13 @@ test("calculate fingerprint", () => {
   writeFile("test-dir/test.txt", "Hello, there!");
   writeFile("test-dir/nested/test.txt", "Sed do eiusmod tempor");
 
-  const fingerprint = calculateFingerprint({
-    rootDir,
+  const fingerprint = calculateFingerprint(rootDir, {
     extraSources: [contentSource("test4", "Consectetur adipiscing elit")],
     hashAlgorithm: "sha1",
   });
   expect(fingerprint.hash).toMatchInlineSnapshot(`"65a2bfbacf6bb805cd3144c03cb4dd2e2806e0a8"`);
 
-  const fingerprint2 = calculateFingerprint({
-    rootDir,
+  const fingerprint2 = calculateFingerprint(rootDir, {
     include: ["test*.txt", "test-dir"],
     extraSources: [contentSource("test4", "Consectetur adipiscing elit")],
     hashAlgorithm: "sha1",
@@ -44,16 +42,13 @@ test("calculate fingerprint with exclude", () => {
   writeFile("test2.md", "Should be ignored");
   writeFile("ignore/test.txt", "Should be ignored");
 
-  const fingerprint = calculateFingerprint({
-    rootDir,
+  const fingerprint = calculateFingerprint(rootDir, {
     exclude: ["ignore", "*.md"],
     hashAlgorithm: "sha1",
   });
-
   expect(fingerprint.hash).toMatchInlineSnapshot(`"142fa232afb866d394ab59fef182fd20ac591989"`);
 
-  const fingerprint2 = calculateFingerprint({
-    rootDir,
+  const fingerprint2 = calculateFingerprint(rootDir, {
     include: ["*"],
     exclude: ["ignore", "*.md", "*.txt"],
     hashAlgorithm: "sha1",
