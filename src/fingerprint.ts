@@ -3,6 +3,7 @@ import { readdirSync } from "node:fs";
 import { hashContentInput } from "./inputs/content.js";
 import { hashDirectoryInput } from "./inputs/directory.js";
 import { hashFile } from "./inputs/file.js";
+import { hashJson } from "./inputs/json.js";
 import type { FingerprintInputHash, FingerprintOptions, FingerprintResult } from "./types.js";
 import { matchesAnyPattern, mergeInputHashes } from "./utils.js";
 
@@ -46,10 +47,19 @@ export function calculateFingerprint(
     }
   }
 
-  // Process extraInputs (content inputs)
+  // Process extraInputs (content and json inputs)
   if (options?.extraInputs) {
     for (const extraInput of options.extraInputs) {
-      const hash = hashContentInput(config, extraInput);
+      let hash: FingerprintInputHash;
+      
+      if (extraInput.type === "content") {
+        hash = hashContentInput(config, extraInput);
+      } else if (extraInput.type === "json") {
+        hash = hashJson(config, extraInput);
+      } else {
+        throw new Error(`Unsupported extraInput type: ${(extraInput as { type: string }).type}`);
+      }
+      
       inputHashes.push(hash);
     }
   }

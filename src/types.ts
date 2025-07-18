@@ -3,7 +3,7 @@ export type HashAlgorithm = "sha1" | "sha256" | "sha512";
 export type FingerprintOptions = {
   include?: readonly string[];
   exclude?: readonly string[];
-  extraInputs?: FingerprintContentInput[];
+  extraInputs?: FingerprintInput[];
   hashAlgorithm?: HashAlgorithm;
 };
 
@@ -31,6 +31,12 @@ export interface FingerprintContentInput {
   content: string;
 }
 
+export interface FingerprintJsonInput {
+  type: "json";
+  key: string;
+  data: unknown;
+}
+
 export interface FingerprintFileHash extends FingerprintFileInput {
   hash: string;
 }
@@ -44,8 +50,19 @@ export interface FingerprintContentHash extends FingerprintContentInput {
   hash: string;
 }
 
+export interface FingerprintJsonHash extends FingerprintJsonInput {
+  hash: string;
+}
+
+export type FingerprintInput =
+  | FingerprintContentInput
+  | FingerprintJsonInput
+  | FingerprintFileInput
+  | FingerprintDirectoryInput;
+
 export type FingerprintInputHash =
   | FingerprintContentHash
+  | FingerprintJsonHash
   | FingerprintFileHash
   | FingerprintDirectoryHash;
 
