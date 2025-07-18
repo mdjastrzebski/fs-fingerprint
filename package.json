@@ -58,6 +58,7 @@
     "access": "public"
   },
   "dependencies": {
-    "micromatch": "^4.0.8"
+    "micromatch": "^4.0.8",
+    "xxhash-wasm": "^1.1.0"
   }
 }

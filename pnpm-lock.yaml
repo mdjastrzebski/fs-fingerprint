@@ -11,6 +11,9 @@ importers:
       micromatch:
         specifier: ^4.0.8
         version: 4.0.8
+      xxhash-wasm:
+        specifier: ^1.1.0
+        version: 1.1.0
     devDependencies:
       '@eslint/js':
         specifier: ^9.22.0
@@ -2352,6 +2355,9 @@ packages:
     resolution: {integrity: sha512-GCPAHLvrIH13+c0SuacwvRYj2SxJXQ4kaVTT5xgL3kPrz56XxkF21IGhjSE1+W0aw7gpBWRGXLCPnPby6lSpmQ==}
     engines: {node: '>=12'}
 
+  xxhash-wasm@1.1.0:
+    resolution: {integrity: sha512-147y/6YNh+tlp6nd/2pWq38i9h6mz/EuQ6njIrmW8D1BS5nCqs0P6DG+m6zTGnNz5I+uhZ0SHxBs9BsPrwcKDA==}
+
   yargs-parser@21.1.1:
     resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
     engines: {node: '>=12'}
@@ -4598,6 +4604,8 @@ snapshots:
   wrappy@1.0.2: {}
 
   xdg-basedir@5.1.0: {}
+
+  xxhash-wasm@1.1.0: {}
 
   yargs-parser@21.1.1: {}
 
