@@ -2,6 +2,7 @@ import { Bench } from "tinybench";
 
 import { calculateFingerprint } from "../src/fingerprint.js";
 import { RepoManager } from "./fixtures/repos.js";
+import { FingerprintResult } from "../src/types.js";
 
 async function runBenchmarks(): Promise<void> {
   const repoManager = new RepoManager();
@@ -48,7 +49,6 @@ async function runBenchmarks(): Promise<void> {
   // React Native benchmarks
   if (repoPaths.has("react-native")) {
     const reactNativePath = repoPaths.get("react-native")!;
-
     bench.add("react-native", () => {
       calculateFingerprint(reactNativePath);
     });
@@ -60,7 +60,7 @@ async function runBenchmarks(): Promise<void> {
     });
   }
 
-  console.log("⚡ Running benchmarks...");
+  console.log("⏱️  Running benchmarks...");
   await bench.run();
 
   console.log("\n📊 Benchmark Results:");
