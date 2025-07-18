@@ -4,7 +4,11 @@ import micromatch from "micromatch";
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
 
-export function hashContent(config: FingerprintConfig, content: string) {
+export function hashContent(content: string, config: FingerprintConfig) {
+  if (config.hashAlgorithm === "null") {
+    return EMPTY_HASH;
+  }
+
   const hasher = createHash(config.hashAlgorithm ?? DEFAULT_HASH_ALGORITHM);
   hasher.update(content);
   return hasher.digest("hex");
@@ -25,6 +29,13 @@ export function mergeInputHashes(
     return a.key.localeCompare(b.key);
   });
 
+  if (config.hashAlgorithm === "null") {
+    return {
+      hash: EMPTY_HASH,
+      inputs: sortedHashes,
+    };
+  }
+
   const hasher = createHash(config.hashAlgorithm ?? DEFAULT_HASH_ALGORITHM);
   for (const inputHash of sortedHashes) {
     hasher.update(inputHash.key);
@@ -42,5 +53,5 @@ export function matchesAnyPattern(path: string, patterns?: readonly string[]): b
     return false;
   }
 
-  return micromatch.isMatch(path, patterns);
+  return patterns.some((pattern) => micromatch.isMatch(path, pattern));
 }

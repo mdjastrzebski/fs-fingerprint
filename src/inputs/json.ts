@@ -11,7 +11,7 @@ export function calculateJsonHash(
   return {
     type: "json",
     key: `json:${input.key}`,
-    hash: hashContent(config, jsonString),
+    hash: hashContent(jsonString, config),
     json: normalizedData,
   };
 }

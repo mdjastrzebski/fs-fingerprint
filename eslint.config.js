@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
-    ignores: ["dist/"],
+    ignores: ["dist/", "benchmarks/repos/"],
   },
   {
     languageOptions: { globals: globals.node },

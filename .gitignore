@@ -22,3 +22,7 @@ node_modules/
 dist/
 *.tgz
 
+# Benchmarks
+benchmarks/repos/
+.benchmark/
+

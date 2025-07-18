@@ -4,6 +4,7 @@ import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
 import { calculateFingerprint } from "../fingerprint.js";
+import type { FingerprintInputHash } from "../types.js";
 
 const rootDir = path.join(os.tmpdir(), "fingerprint-test");
 
@@ -80,9 +81,42 @@ test("calculate fingerprint with exclude", () => {
   `);
 });
 
+test("calculate fingerprint with deep include matches", () => {
+  writeFile("test1.txt", "Hello, world!");
+  writeFile("test2.txt", "Lorem Ipsum");
+  writeFile("test3.txt", "Dolor sit amet");
+  writeFile("test-dir/test.txt", "Hello, there!");
+  writeFile("test-dir/nested/test.txt", "Sed do eiusmod tempor");
+
+  const fingerprint = calculateFingerprint(rootDir, {
+    include: ["**/*.txt"],
+    hashAlgorithm: "sha1",
+  });
+  expect(fingerprint.hash).toMatchInlineSnapshot(`"83c476200e37b80326a232c7320c6cc971c48563"`);
+  expect(flattenInputs(fingerprint.inputs)).toHaveLength(7);
+});
+
 function writeFile(filePath: string, content: string) {
   const absoluteFilePath = path.join(rootDir, filePath);
   const absoluteDirPath = path.dirname(absoluteFilePath);
   fs.mkdirSync(absoluteDirPath, { recursive: true });
   fs.writeFileSync(absoluteFilePath, content);
+}
+
+function flattenInputs(inputs: FingerprintInputHash[]): { key: string; hash: string }[] {
+  const result = inputs.flatMap((input) => {
+    const simpleInput = {
+      key: input.key,
+      hash: input.hash,
+    };
+
+    if (input.type === "directory") {
+      return [simpleInput, ...flattenInputs(input.children)];
+    }
+
+    return [simpleInput];
+  });
+
+  result.sort((a, b) => a.key.localeCompare(b.key));
+  return result;
 }
