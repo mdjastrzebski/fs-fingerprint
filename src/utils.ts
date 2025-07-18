@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import micromatch from "micromatch";
 
-import type { FingerprintConfig, FingerprintHash, FingerprintSourceHash } from "./types.js";
+import type { FingerprintConfig, FingerprintHash, FingerprintInputHash } from "./types.js";
 
 const DEFAULT_HASH_ALGORITHM = "sha1";
 
@@ -11,25 +11,25 @@ export function hashContent(config: FingerprintConfig, content: string) {
   return hasher.digest("hex");
 }
 
-export function mergeSourceHashes(
+export function mergeInputHashes(
   config: FingerprintConfig,
-  hashes: readonly FingerprintSourceHash[]
+  hashes: readonly FingerprintInputHash[]
 ): FingerprintHash {
   const sortedHashes = [...hashes].sort((a, b) => {
-    return a.source.key.localeCompare(b.source.key);
+    return a.input.key.localeCompare(b.input.key);
   });
 
   const hasher = createHash(config.hashAlgorithm ?? DEFAULT_HASH_ALGORITHM);
-  for (const sourceHash of sortedHashes) {
-    if (sourceHash.hash != null) {
-      hasher.update(sourceHash.source.key);
-      hasher.update(sourceHash.hash);
+  for (const inputHash of sortedHashes) {
+    if (inputHash.hash != null) {
+      hasher.update(inputHash.input.key);
+      hasher.update(inputHash.hash);
     }
   }
 
   return {
     hash: hasher.digest("hex"),
-    sources: sortedHashes,
+    inputs: sortedHashes,
   };
 }
 

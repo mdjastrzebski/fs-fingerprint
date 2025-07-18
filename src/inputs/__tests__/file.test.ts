@@ -4,7 +4,7 @@ import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
 import type { FingerprintConfig } from "../../types.js";
-import { fileSource, hashFile } from "../file.js";
+import { fileInput, hashFile } from "../file.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "file-test"),
@@ -20,14 +20,14 @@ beforeEach(() => {
   fs.mkdirSync(config.rootDir, { recursive: true });
 });
 
-test("hash file source", () => {
+test("hash file input", () => {
   writeFile("test.txt", "Hello, world!");
 
-  const fingerprint = hashFile(config, fileSource("test.txt"));
+  const fingerprint = hashFile(config, fileInput("test.txt"));
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-      "source": {
+      "input": {
         "key": "file:test.txt",
         "path": "test.txt",
         "type": "file",
@@ -36,11 +36,11 @@ test("hash file source", () => {
   `);
 
   writeFile("test.txt", "Hello, there!");
-  const fingerprint2 = hashFile(config, fileSource("test.txt"));
+  const fingerprint2 = hashFile(config, fileInput("test.txt"));
   expect(fingerprint2).toMatchInlineSnapshot(`
     {
       "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
-      "source": {
+      "input": {
         "key": "file:test.txt",
         "path": "test.txt",
         "type": "file",
@@ -59,11 +59,11 @@ test("excludes ignored paths", () => {
     exclude: ["test2.txt", "*.md"],
   };
 
-  const fingerprint1 = hashFile(config2, fileSource("test1.txt"));
+  const fingerprint1 = hashFile(config2, fileInput("test1.txt"));
   expect(fingerprint1).toMatchInlineSnapshot(`
     {
       "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-      "source": {
+      "input": {
         "key": "file:test1.txt",
         "path": "test1.txt",
         "type": "file",
@@ -71,11 +71,11 @@ test("excludes ignored paths", () => {
     }
   `);
 
-  const fingerprint2 = hashFile(config2, fileSource("test2.txt"));
+  const fingerprint2 = hashFile(config2, fileInput("test2.txt"));
   expect(fingerprint2).toMatchInlineSnapshot(`
     {
       "hash": null,
-      "source": {
+      "input": {
         "key": "file:test2.txt",
         "path": "test2.txt",
         "type": "file",
@@ -83,11 +83,11 @@ test("excludes ignored paths", () => {
     }
   `);
 
-  const fingerprint3 = hashFile(config2, fileSource("test3.md"));
+  const fingerprint3 = hashFile(config2, fileInput("test3.md"));
   expect(fingerprint3).toMatchInlineSnapshot(`
     {
       "hash": null,
-      "source": {
+      "input": {
         "key": "file:test3.md",
         "path": "test3.md",
         "type": "file",

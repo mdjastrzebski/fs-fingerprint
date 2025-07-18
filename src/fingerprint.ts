@@ -1,10 +1,10 @@
 import { readdirSync } from "node:fs";
 
-import { hashContentSource } from "./sources/content.js";
-import { directorySource, hashDirectorySource } from "./sources/directory.js";
-import { fileSource, hashFile } from "./sources/file.js";
-import type { FingerprintHash, FingerprintOptions, FingerprintSourceHash } from "./types.js";
-import { matchesAnyPattern, mergeSourceHashes } from "./utils.js";
+import { hashContentInput } from "./inputs/content.js";
+import { directoryInput, hashDirectoryInput } from "./inputs/directory.js";
+import { fileInput, hashFile } from "./inputs/file.js";
+import type { FingerprintHash, FingerprintInputHash, FingerprintOptions } from "./types.js";
+import { matchesAnyPattern, mergeInputHashes } from "./utils.js";
 
 export function calculateFingerprint(
   rootDir: string,
@@ -16,7 +16,7 @@ export function calculateFingerprint(
     hashAlgorithm: options?.hashAlgorithm,
   };
 
-  const sourceHashes: FingerprintSourceHash[] = [];
+  const inputHashes: FingerprintInputHash[] = [];
 
   // Process top-level entries in rootDir
   const entries = readdirSync(rootDir, { withFileTypes: true });
@@ -34,25 +34,25 @@ export function calculateFingerprint(
     }
 
     if (entry.isFile()) {
-      const hash = hashFile(config, fileSource(entryPath));
+      const hash = hashFile(config, fileInput(entryPath));
       if (hash.hash !== null) {
-        sourceHashes.push(hash);
+        inputHashes.push(hash);
       }
     } else if (entry.isDirectory()) {
-      const hash = hashDirectorySource(config, directorySource(entryPath));
+      const hash = hashDirectoryInput(config, directoryInput(entryPath));
       if (hash.hash !== null) {
-        sourceHashes.push(hash);
+        inputHashes.push(hash);
       }
     }
   }
 
-  // Process extraSources (content sources)
-  if (options?.extraSources) {
-    for (const extraSource of options.extraSources) {
-      const hash = hashContentSource(config, extraSource);
-      sourceHashes.push(hash);
+  // Process extraInputs (content inputs)
+  if (options?.extraInputs) {
+    for (const extraInput of options.extraInputs) {
+      const hash = hashContentInput(config, extraInput);
+      inputHashes.push(hash);
     }
   }
 
-  return mergeSourceHashes(config, sourceHashes);
+  return mergeInputHashes(config, inputHashes);
 }

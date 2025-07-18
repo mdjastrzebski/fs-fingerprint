@@ -3,7 +3,7 @@ export type HashAlgorithm = "sha1" | "sha256" | "sha512";
 export type FingerprintOptions = {
   include?: readonly string[];
   exclude?: readonly string[];
-  extraSources?: FingerprintContentSource[];
+  extraInputs?: FingerprintContentInput[];
   hashAlgorithm?: HashAlgorithm;
 };
 
@@ -13,53 +13,53 @@ export type FingerprintConfig = {
   hashAlgorithm?: HashAlgorithm;
 };
 
-export type FingerprintSource =
-  | FingerprintContentSource
-  | FingerprintFileSource
-  | FingerprintDirectorySource;
+export type FingerprintInput =
+  | FingerprintContentInput
+  | FingerprintFileInput
+  | FingerprintDirectoryInput;
 
-export type FingerprintContentSource = {
+export type FingerprintContentInput = {
   type: "content";
   key: string;
   content: string;
 };
 
-export type FingerprintFileSource = {
+export type FingerprintFileInput = {
   type: "file";
   key: string;
   path: string;
 };
 
-export type FingerprintDirectorySource = {
+export type FingerprintDirectoryInput = {
   type: "directory";
   key: string;
   path: string;
 };
 
-export type FingerprintContentSourceHash = {
-  source: FingerprintContentSource;
+export type FingerprintContentInputHash = {
+  input: FingerprintContentInput;
   hash: string;
 };
 
-export type FingerprintFileSourceHash = {
-  source: FingerprintFileSource;
+export type FingerprintFileInputHash = {
+  input: FingerprintFileInput;
   /** null when the file matches any of `exclude` */
   hash: string | null;
 };
 
-export type FingerprintDirectorySourceHash = {
-  source: FingerprintDirectorySource;
+export type FingerprintDirectoryInputHash = {
+  input: FingerprintDirectoryInput;
   /** null when the directory matches any of `exclude` */
   hash: string | null;
-  children: FingerprintSourceHash[];
+  children: FingerprintInputHash[];
 };
 
-export type FingerprintSourceHash =
-  | FingerprintContentSourceHash
-  | FingerprintFileSourceHash
-  | FingerprintDirectorySourceHash;
+export type FingerprintInputHash =
+  | FingerprintContentInputHash
+  | FingerprintFileInputHash
+  | FingerprintDirectoryInputHash;
 
 export type FingerprintHash = {
   hash: string;
-  sources: FingerprintSourceHash[];
+  inputs: FingerprintInputHash[];
 };
