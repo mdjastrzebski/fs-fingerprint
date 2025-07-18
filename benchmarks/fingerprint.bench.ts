@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { Bench } from "tinybench";
 
@@ -125,6 +125,52 @@ async function runBenchmarks(): Promise<void> {
 
   writeFileSync(filepath, JSON.stringify(jsonOutput, null, 2));
   console.log(`\n📝 Results written to ${filepath}`);
+
+  // If not baseline mode, compare with baseline if it exists
+  if (!isBaseline) {
+    const baselineFilepath = join(benchmarkDir, "baseline.json");
+    if (existsSync(baselineFilepath)) {
+      try {
+        const baselineContent = readFileSync(baselineFilepath, "utf8");
+        const baselineData = JSON.parse(baselineContent);
+
+        console.log("\n📊 Performance Comparison (vs baseline):");
+
+        const comparisonTable = jsonOutput.benchmarks.map((current) => {
+          const baseline = baselineData.benchmarks.find((b: any) => b.name === current.name);
+
+          if (!baseline) {
+            return {
+              "Task name": current.name,
+              "Baseline latency (ms)": "N/A",
+              "Current latency (ms)": current.latency.p50?.toFixed(2) || "N/A",
+              "Change (ms)": "N/A",
+            };
+          }
+
+          const latencyChange = current.latency.p50! - baseline.latency.p50;
+          const latencyChangePercent = (latencyChange / baseline.latency.p50) * 100;
+
+          return {
+            "Task name": current.name,
+            "Baseline latency (ms)": baseline.latency.p50.toFixed(2),
+            "Current latency (ms)": current.latency.p50!.toFixed(2),
+            "Change (ms)": `${latencyChange > 0 ? "+" : ""}${latencyChange.toFixed(2)} (${
+              latencyChangePercent > 0 ? "+" : ""
+            }${latencyChangePercent.toFixed(1)}%)`,
+          };
+        });
+
+        console.table(comparisonTable);
+      } catch (error) {
+        console.log("\n⚠️  Could not load baseline data for comparison");
+      }
+    } else {
+      console.log(
+        "\n⚠️  No baseline data found. Run with --baseline flag first to create baseline."
+      );
+    }
+  }
 }
 
 // Run benchmarks if this file is executed directly
