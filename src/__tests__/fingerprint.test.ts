@@ -47,16 +47,29 @@ test("calculate fingerprint with exclude", () => {
     hashAlgorithm: "sha1",
   });
   expect(fingerprint.hash).toMatchInlineSnapshot(`"142fa232afb866d394ab59fef182fd20ac591989"`);
+  expect(fingerprint).toMatchInlineSnapshot(`
+    {
+      "hash": "142fa232afb866d394ab59fef182fd20ac591989",
+      "inputs": [
+        {
+          "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
+          "key": "file:test1.txt",
+          "path": "test1.txt",
+          "type": "file",
+        },
+      ],
+    }
+  `);
 
   const fingerprint2 = calculateFingerprint(rootDir, {
     include: ["*"],
     exclude: ["ignore", "*.md", "*.txt"],
     hashAlgorithm: "sha1",
   });
-  expect(fingerprint2.hash).toMatchInlineSnapshot(`"da39a3ee5e6b4b0d3255bfef95601890afd80709"`);
+  expect(fingerprint2.hash).toMatchInlineSnapshot(`"(null)"`);
   expect(fingerprint2).toMatchInlineSnapshot(`
     {
-      "hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "hash": "(null)",
       "inputs": [],
     }
   `);

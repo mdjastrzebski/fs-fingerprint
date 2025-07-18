@@ -1,8 +1,8 @@
 import { readdirSync } from "node:fs";
 
 import { hashContentInput } from "./inputs/content.js";
-import { directoryInput, hashDirectoryInput } from "./inputs/directory.js";
-import { fileInput, hashFile } from "./inputs/file.js";
+import { hashDirectoryInput } from "./inputs/directory.js";
+import { hashFile } from "./inputs/file.js";
 import type { FingerprintInputHash, FingerprintOptions, FingerprintResult } from "./types.js";
 import { matchesAnyPattern, mergeInputHashes } from "./utils.js";
 
@@ -34,12 +34,12 @@ export function calculateFingerprint(
     }
 
     if (entry.isFile()) {
-      const hash = hashFile(config, fileInput(entryPath));
+      const hash = hashFile(entryPath, config);
       if (hash !== null) {
         inputHashes.push(hash);
       }
     } else if (entry.isDirectory()) {
-      const hash = hashDirectoryInput(config, directoryInput(entryPath));
+      const hash = hashDirectoryInput(entryPath, config);
       if (hash !== null) {
         inputHashes.push(hash);
       }

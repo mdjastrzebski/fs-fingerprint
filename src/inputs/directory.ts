@@ -1,29 +1,16 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 
-import { EMPTY_HASH } from "../constants.js";
-import type {
-  FingerprintConfig,
-  FingerprintDirectoryHash,
-  FingerprintDirectoryInput,
-} from "../types.js";
+import type { FingerprintConfig, FingerprintDirectoryHash } from "../types.js";
 import { matchesAnyPattern, mergeInputHashes } from "../utils.js";
-import { fileInput, hashFile } from "./file.js";
-
-export function directoryInput(path: string): FingerprintDirectoryInput {
-  return {
-    type: "directory",
-    key: `directory:${path}`,
-    path,
-  };
-}
+import { hashFile } from "./file.js";
 
 export function hashDirectoryInput(
-  config: FingerprintConfig,
-  input: FingerprintDirectoryInput
+  path: string,
+  config: FingerprintConfig
 ): FingerprintDirectoryHash | null {
-  const pathWithRoot = join(config.rootDir, input.path);
-  if (matchesAnyPattern(input.path, config.exclude)) {
+  const pathWithRoot = join(config.rootDir, path);
+  if (matchesAnyPattern(path, config.exclude)) {
     return null;
   }
 
@@ -31,25 +18,23 @@ export function hashDirectoryInput(
   const entryHashes = entries
     .map((entry) => {
       if (entry.isFile()) {
-        const filePath = join(input.path, entry.name);
-        return hashFile(config, fileInput(filePath));
+        const filePath = join(path, entry.name);
+        return hashFile(filePath, config);
       } else if (entry.isDirectory()) {
-        const dirPath = join(input.path, entry.name);
-        return hashDirectoryInput(config, directoryInput(dirPath));
+        const dirPath = join(path, entry.name);
+        return hashDirectoryInput(dirPath, config);
       } else {
-        console.warn(`fs-fingerprint: skipping ${entry.name} in ${input.path}`);
+        console.warn(`fs-fingerprint: skipping ${entry.name} in ${path}`);
         return null;
       }
     })
     .filter((entry) => entry != null);
 
-  if (entryHashes.length === 0) {
-    return { ...input, hash: EMPTY_HASH, children: [] };
-  }
-
   const merged = mergeInputHashes(config, entryHashes);
   return {
-    ...input,
+    type: "directory",
+    key: `directory:${path}`,
+    path,
     hash: merged.hash,
     children: merged.inputs,
   };
