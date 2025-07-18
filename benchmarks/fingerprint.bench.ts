@@ -1,7 +1,11 @@
+import { mkdirSync, writeFileSync } from "fs";
+import { join } from "path";
 import { Bench } from "tinybench";
 
 import { calculateFingerprint } from "../src/fingerprint.js";
 import { RepoManager } from "./fixtures/repos.js";
+
+const isBaseline = process.argv.includes("--baseline");
 
 async function runBenchmarks(): Promise<void> {
   const repoManager = new RepoManager();
@@ -81,6 +85,46 @@ async function runBenchmarks(): Promise<void> {
       Samples: task.result?.latency.samples.length,
     }))
   );
+
+  // Write machine-readable JSON output
+  const jsonOutput = {
+    timestamp: new Date().toISOString(),
+    benchmarks: bench.tasks.map((task) => ({
+      name: task.name,
+      latency: {
+        p50: task.result?.latency.p50,
+        mad: task.result?.latency.mad,
+        min: task.result?.latency.min,
+        max: task.result?.latency.max,
+        p99: task.result?.latency.p99,
+        samples: task.result?.latency.samples.length,
+      },
+      throughput: {
+        p50: task.result?.throughput?.p50,
+        mad: task.result?.throughput?.mad,
+        min: task.result?.throughput?.min,
+        max: task.result?.throughput?.max,
+        p99: task.result?.throughput?.p99,
+        samples: task.result?.throughput.samples.length,
+      },
+      totalTime: task.result?.totalTime,
+    })),
+  };
+
+  // Ensure .benchmark directory exists
+  const benchmarkDir = ".benchmark";
+  try {
+    mkdirSync(benchmarkDir, { recursive: true });
+  } catch (error) {
+    // Directory might already exist
+  }
+
+  // Write to appropriate file based on --baseline flag
+  const filename = isBaseline ? "baseline.json" : "current.json";
+  const filepath = join(benchmarkDir, filename);
+
+  writeFileSync(filepath, JSON.stringify(jsonOutput, null, 2));
+  console.log(`\n📝 Results written to ${filepath}`);
 }
 
 // Run benchmarks if this file is executed directly
