@@ -24,17 +24,17 @@ export function calculateFingerprint(
   for (const entry of entries) {
     const entryPath = entry.name;
 
-    const shouldBeIncluded = !options?.include || matchesAnyPattern(entryPath, options.include);
-    if (!shouldBeIncluded) {
-      continue;
-    }
-
     const shouldBeExcluded = matchesAnyPattern(entryPath, options?.exclude);
     if (shouldBeExcluded) {
       continue;
     }
 
     if (entry.isFile()) {
+      const shouldBeIncluded = !options?.include || matchesAnyPattern(entryPath, options.include);
+      if (!shouldBeIncluded) {
+        continue;
+      }
+
       const hash = calculateFileHash(entryPath, config);
       if (hash !== null) {
         inputHashes.push(hash);
