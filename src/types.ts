@@ -1,4 +1,4 @@
-export type HashAlgorithm = "sha1" | "sha256" | "sha512";
+export type HashAlgorithm = "sha1" | "sha256" | "sha512" | "null";
 
 export type FingerprintOptions = {
   include?: readonly string[];

@@ -8,7 +8,7 @@ export function calculateContentHash(
   return {
     type: "content",
     key: `content:${input.key}`,
-    hash: hashContent(config, input.content),
+    hash: hashContent(input.content, config),
     content: input.content,
   };
 }

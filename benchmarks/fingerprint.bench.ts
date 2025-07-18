@@ -2,7 +2,6 @@ import { Bench } from "tinybench";
 
 import { calculateFingerprint } from "../src/fingerprint.js";
 import { RepoManager } from "./fixtures/repos.js";
-import { FingerprintResult } from "../src/types.js";
 
 async function runBenchmarks(): Promise<void> {
   const repoManager = new RepoManager();
@@ -53,6 +52,12 @@ async function runBenchmarks(): Promise<void> {
       calculateFingerprint(reactNativePath);
     });
 
+    bench.add("react-native (null hash)", () => {
+      calculateFingerprint(reactNativePath, {
+        hashAlgorithm: "null",
+      });
+    });
+
     bench.add("react-native (JS/TS only)", () => {
       calculateFingerprint(reactNativePath, {
         include: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
@@ -66,11 +71,14 @@ async function runBenchmarks(): Promise<void> {
   console.log("\n📊 Benchmark Results:");
   console.table(
     bench.table((task) => ({
-      "Task Name": task.name,
-      "ops/sec": task.result?.hz?.toFixed(2) || "N/A",
-      "Average (ms)": task.result?.mean ? (task.result.mean * 1000).toFixed(2) : "N/A",
-      Margin: task.result?.rme ? `±${task.result.rme.toFixed(2)}%` : "N/A",
-      Samples: task.result?.samples?.length || 0,
+      "Task name": task.name,
+      "Latency med (ms)": `${task.result?.latency.p50?.toFixed(
+        2
+      )} \xB1 ${task.result?.latency.mad?.toFixed(2)}`,
+      "Throughput med (ops/s)": `${task.result?.throughput?.p50?.toFixed(
+        2
+      )} \xB1 ${task.result?.throughput?.mad?.toFixed(2)}`,
+      Samples: task.result?.latency.samples.length,
     }))
   );
 }
