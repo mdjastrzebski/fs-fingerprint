@@ -10,7 +10,7 @@ Perfect for building intelligent caching solutions that automatically invalidate
 
 ## Features
 
-- Generate fingerprints from files, directories, JSON data (coming soon), and file contents
+- Generate fingerprints from files, directories, JSON data (coming soon), and any other content.
 - Fast change detection for build systems and caches
 - Simple, intuitive TypeScript API
 
@@ -22,14 +22,9 @@ Perfect for building intelligent caching solutions that automatically invalidate
 ```
 import { calculateFingerprint } from 'fs-fingerprint';
 
-const { hash } = calculateFingerprint({
-    sources: [
-        directorySource('ios'),
-        fileSource('package.json'),
-    ],
-    ignorePaths: [
-        'node_modules/'
-    ]
+const { hash } = calculateFingerprint(rootPath, {
+    include: ['ios', 'package.json'],
+    exclude: ['build']
 });
 ```
 
@@ -44,7 +39,3 @@ MIT 💝
 ---
 
 Made with 💻 and ☕️ by [MDJ](https://x.com/mdj_dev/)
-
-```
-
-```
