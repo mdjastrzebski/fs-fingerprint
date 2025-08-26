@@ -104,6 +104,8 @@ export class RepoManager {
       }
     }
 
+    console.log("🚀 Benchmark repositories setup successfully");
+
     return repoPaths;
   }
 
