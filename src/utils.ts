@@ -14,9 +14,9 @@ export function hashContent(content: string, config: FingerprintConfig) {
   return hasher.digest("hex");
 }
 
-export function mergeInputHashes(
+export function mergeHashes(
+  hashes: readonly FingerprintInputHash[],
   config: FingerprintConfig,
-  hashes: readonly FingerprintInputHash[]
 ): FingerprintResult {
   if (hashes.length === 0) {
     return {

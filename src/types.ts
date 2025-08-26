@@ -5,12 +5,16 @@ export type FingerprintOptions = {
   exclude?: readonly string[];
   extraInputs?: FingerprintInput[];
   hashAlgorithm?: HashAlgorithm;
+  maxConcurrency?: number;
 };
+
+export type AsyncWrapper = <T>(fn: () => PromiseLike<T> | T) => Promise<T>;
 
 export type FingerprintConfig = {
   rootDir: string;
   exclude?: readonly string[];
   hashAlgorithm?: HashAlgorithm;
+  asyncWrapper?: AsyncWrapper;
 };
 
 export interface FingerprintContentInput {

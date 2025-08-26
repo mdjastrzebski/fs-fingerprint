@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { Bench } from "tinybench";
 
-import { calculateFingerprint } from "../src/fingerprint.js";
+import { calculateFingerprint, calculateFingerprintSync, type FingerprintOptions } from "../src/index.js";
 import { RepoManager } from "./fixtures/repos.js";
 
 const isBaseline = process.argv.includes("--baseline");
@@ -28,61 +28,65 @@ async function runBenchmarks(): Promise<void> {
   });
 
   // Lodash benchmarks
-  if (repoPaths.has("lodash")) {
     const lodashPath = repoPaths.get("lodash");
     if (lodashPath) {
-      bench.add("lodash", () => {
-        calculateFingerprint(lodashPath);
-      });
-    }
+    bench.add("lodash-sync", () => {
+      calculateFingerprintSync(lodashPath);
+    });
+    bench.add("lodash", async () => {
+      await calculateFingerprintSync(lodashPath);
+    });
   }
 
   // Express benchmarks
-  if (repoPaths.has("express")) {
     const expressPath = repoPaths.get("express");
     if (expressPath) {
-      bench.add("express", () => {
-        calculateFingerprint(expressPath);
+      bench.add("express-sync", () => {
+        calculateFingerprintSync(expressPath);
+      });
+      bench.add("express", async () => {
+        await calculateFingerprint(expressPath);
       });
     }
-  }
-
+ 
   // React benchmarks
-  if (repoPaths.has("react")) {
     const reactPath = repoPaths.get("react");
     if (reactPath) {
-      bench.add("react", () => {
-        calculateFingerprint(reactPath);
+      bench.add("react-sync", () => {
+        calculateFingerprintSync(reactPath);
       });
-
-      bench.add("react (packages only)", () => {
-        calculateFingerprint(reactPath, {
-          include: ["packages/**"],
-        });
+      bench.add("react", async () => {
+        await calculateFingerprint(reactPath);
       });
     }
+  
+  // React Native benchmarks
+  const reactNativeOptions: FingerprintOptions = {
+    include: ["android","ios", "package.json", "README.md"],
+    exclude: ["**/node_modules/**", "**/.git/**"],
   }
 
-  // React Native benchmarks
-  if (repoPaths.has("react-native")) {
-    const reactNativePath = repoPaths.get("react-native");
-    if (reactNativePath) {
-      bench.add("react-native", () => {
-        calculateFingerprint(reactNativePath);
-      });
+  const reactNativePath = repoPaths.get("react-native");
+  if (reactNativePath) {
+    bench.add("react-native-sync", () => {
+      calculateFingerprintSync(reactNativePath, reactNativeOptions);
+    });
+    bench.add("react-native", async () => {
+      await calculateFingerprint(reactNativePath, reactNativeOptions);
+    });
 
-      bench.add("react-native (null hash)", () => {
-        calculateFingerprint(reactNativePath, {
-          hashAlgorithm: "null",
-        });
+    bench.add("react-native (null hash)-sync", () => {
+      calculateFingerprintSync(reactNativePath, {
+        ...reactNativeOptions,
+        hashAlgorithm: "null",
       });
-
-      bench.add("react-native (JS/TS only)", () => {
-        calculateFingerprint(reactNativePath, {
-          include: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
-        });
+    });
+    bench.add("react-native (null hash)", async () => {
+      await calculateFingerprint(reactNativePath, {
+        ...reactNativeOptions,
+        hashAlgorithm: "null",
       });
-    }
+    });
   }
 
   console.log("⏱️  Running benchmarks...");
