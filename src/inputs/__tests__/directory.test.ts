@@ -4,7 +4,7 @@ import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
 import type { FingerprintConfig } from "../../types.js";
-import { calculateDirectoryHash } from "../directory.js";
+import { calculateDirectoryHash, calculateDirectoryHashSync } from "../directory.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "directory-test"),
@@ -20,10 +20,12 @@ beforeEach(() => {
   fs.mkdirSync(config.rootDir, { recursive: true });
 });
 
-test("hash directory input", () => {
+test("hash directory input", async () => {
   writeFile("test-dir/test.txt", "Hello, world!");
 
-  const fingerprint = calculateDirectoryHash("test-dir", config);
+  const fingerprintSync = calculateDirectoryHashSync("test-dir", config);
+  const fingerprint = await calculateDirectoryHash("test-dir", config);
+  expect(fingerprintSync).toEqual(fingerprint);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "children": [
@@ -40,13 +42,16 @@ test("hash directory input", () => {
       "type": "directory",
     }
   `);
+  
 });
 
-test("hash directory input with nesting", () => {
+test("hash directory input with nesting", async () => {
   writeFile("test-dir/test.txt", "Hello, world!");
   writeFile("test-dir/nested/test.txt", "Hello, there!");
 
-  const fingerprint = calculateDirectoryHash("test-dir", config);
+  const fingerprintSync = calculateDirectoryHashSync("test-dir", config);
+  const fingerprint = await calculateDirectoryHash("test-dir", config);
+  expect(fingerprintSync).toEqual(fingerprint);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "children": [
@@ -79,7 +84,7 @@ test("hash directory input with nesting", () => {
   `);
 });
 
-test("hash directory excludes ignored paths", () => {
+test("hash directory excludes ignored paths", async () => {
   writeFile("test-dir/test.txt", "Hello, world!");
   writeFile("test-dir/test.md", "This should be ignored");
   writeFile("test-dir/nested/test.txt", "Hello, there!");
@@ -91,7 +96,9 @@ test("hash directory excludes ignored paths", () => {
     exclude: ["**/ignored", "*.md"],
   };
 
-  const fingerprint = calculateDirectoryHash("test-dir", config2);
+  const fingerprintSync = calculateDirectoryHashSync("test-dir", config2);
+  const fingerprint = await calculateDirectoryHash("test-dir", config2);
+  expect(fingerprintSync).toEqual(fingerprint);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "children": [
@@ -130,7 +137,7 @@ test("hash directory excludes ignored paths", () => {
   `);
 });
 
-test("hash directory handles negative ignore paths", () => {
+test("hash directory handles negative ignore paths", async () => {
   writeFile("ignore/test.md", "Hello, world!");
 
   const config2: FingerprintConfig = {
@@ -138,7 +145,9 @@ test("hash directory handles negative ignore paths", () => {
     exclude: ["ignore/*"],
   };
 
-  const fingerprint = calculateDirectoryHash(".", config2);
+  const fingerprintSync = calculateDirectoryHashSync(".", config2);
+  const fingerprint = await calculateDirectoryHash(".", config2);
+  expect(fingerprintSync).toEqual(fingerprint);
   expect(fingerprint).toMatchInlineSnapshot(`
     {
       "children": [
