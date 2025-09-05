@@ -121,6 +121,51 @@ function writeFile(filePath: string, content: string) {
   fs.writeFileSync(absoluteFilePath, content);
 }
 
+test.only("calculate fingerprint with deep include matches", async () => {
+  console.warn("calculate fingerprint with deep include matches");
+  
+  writeFile("android/test1.txt", "Hello, world!");
+  writeFile("android/test2.txt", "Lorem Ipsum");
+  writeFile("ios/test1.txt", "Dolor sit amet");
+  writeFile("src/test.txt", "Hello, there!");
+  writeFile("src/nested/test.txt", "Sed do eiusmod tempor");
+
+  const options: FingerprintOptions = {
+    include: ["android/**", "ios"],
+    hashAlgorithm: "sha1",
+  }
+
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
+  const fingerprint = await calculateFingerprint(rootDir, options);
+  
+  expect(fingerprint.hash).toMatchInlineSnapshot(`"c1ae0dedbe8859cd167187e5f78045c074f7c0ee"`);
+  expect(flattenInputs(fingerprint.inputs)).toMatchInlineSnapshot(`
+    [
+      {
+        "hash": "e8a9a74f9282bdcf9d7456c2adef6641175b5435",
+        "key": "directory:android",
+      },
+      {
+        "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
+        "key": "file:android/test1.txt",
+      },
+      {
+        "hash": "0646164d30b3bd0023a1e6878712eb1b9b15a1da",
+        "key": "file:android/test2.txt",
+      },
+      {
+        "hash": "0aaf87d04f14698bde396411889848d503226e5e",
+        "key": "directory:ios",
+      },
+      {
+        "hash": "7a967b4c4a5fdfaf7cde3a941a06b45e61e6a746",
+        "key": "file:ios/test1.txt",
+      },
+    ]
+  `);
+  expect(fingerprintSync).toEqual(fingerprint);
+});
+
 function flattenInputs(inputs: FingerprintInputHash[]): { key: string; hash: string }[] {
   const result = inputs.flatMap((input) => {
     const simpleInput = {
@@ -135,6 +180,6 @@ function flattenInputs(inputs: FingerprintInputHash[]): { key: string; hash: str
     return [simpleInput];
   });
 
-  result.sort((a, b) => a.key.localeCompare(b.key));
+  result.sort((a, b) => a.key.split(":")[1].localeCompare(b.key.split(":")[1]));
   return result;
 }

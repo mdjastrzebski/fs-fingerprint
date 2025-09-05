@@ -1,3 +1,4 @@
+import * as console from "node:console";
 import { type Dirent, readdirSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import pLimit from "p-limit";
@@ -21,13 +22,15 @@ export async function calculateFingerprint(
     hashAlgorithm: options?.hashAlgorithm,
     asyncWrapper: pLimit(options?.maxConcurrency ?? DEFAULT_CONCURRENCY)
   };
-
+  
+  console.warn("💡 options", options);
 
   const inputHashes: FingerprintInputHash[] = [];
 
   // Process top-level entries in rootDir
   const entries = await readdir(rootDir, { withFileTypes: true });
 
+  console.warn("entries", entries, options?.include);
   const entryHashes = await Promise.all(entries.map(
     entry => calculateEntryHash(entry, options?.include, config)
   ));
@@ -53,22 +56,30 @@ export async function calculateFingerprint(
   return mergeHashes(inputHashes, config);
 }
 
+
+
 async function calculateEntryHash(entry: Dirent, include: readonly string[] | undefined, config: FingerprintConfig): Promise<FingerprintInputHash | null> {
+  const shouldBeIncluded = !include || matchesAnyPattern(entry.name, include);
+  if (!shouldBeIncluded) {
+    return null;
+  }
+  
   const entryPath = entry.name;
   const shouldBeExcluded = matchesAnyPattern(entryPath, config.exclude);
+  console.warn("shouldBeExcluded", entryPath, config.exclude, matchesAnyPattern(entryPath, config.exclude));
   if (shouldBeExcluded) {
     return null;
   }
 
   if (entry.isFile()) {
-    const shouldBeIncluded = !include || matchesAnyPattern(entryPath, include);
-    if (!shouldBeIncluded) {
-      return null;
-    }
-
-    return calculateFileHash(entryPath, config);
+    const r = await calculateFileHash(entryPath, config);
+    console.warn("file", r);
+    return r;
   } else if (entry.isDirectory()) {
-    return calculateDirectoryHash(entryPath, config);
+    console.warn("isDirectory", entryPath);
+    const r = await calculateDirectoryHash(entryPath, config);
+    console.warn("dir", r);
+    return r;
   } else {
     console.warn(`fs-fingerprint: skipping ${entry.name} in ${entryPath}`);
     return null;
@@ -81,6 +92,7 @@ export function calculateFingerprintSync(
 ): FingerprintResult {
   const config = {
     rootDir,
+    include: options?.include,
     exclude: options?.exclude,
     hashAlgorithm: options?.hashAlgorithm,
   };
@@ -92,17 +104,17 @@ export function calculateFingerprintSync(
   for (const entry of entries) {
     const entryPath = entry.name;
 
+    const shouldBeIncluded = !options?.include || matchesAnyPattern(entryPath, options?.include);
+    if (!shouldBeIncluded) {
+      continue;
+    }
+
     const shouldBeExcluded = matchesAnyPattern(entryPath, options?.exclude);
     if (shouldBeExcluded) {
       continue;
     }
 
     if (entry.isFile()) {
-      const shouldBeIncluded = !options?.include || matchesAnyPattern(entryPath, options.include);
-      if (!shouldBeIncluded) {
-        continue;
-      }
-
       const hash = calculateFileHashSync(entryPath, config);
       if (hash !== null) {
         inputHashes.push(hash);

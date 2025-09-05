@@ -12,6 +12,7 @@ export type AsyncWrapper = <T>(fn: () => PromiseLike<T> | T) => Promise<T>;
 
 export type FingerprintConfig = {
   rootDir: string;
+  include?: readonly string[];
   exclude?: readonly string[];
   hashAlgorithm?: HashAlgorithm;
   asyncWrapper?: AsyncWrapper;

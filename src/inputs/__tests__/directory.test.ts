@@ -153,13 +153,13 @@ test("hash directory handles negative ignore paths", async () => {
       "children": [
         {
           "children": [],
-          "hash": "(null)",
+          "hash": "(n/a)",
           "key": "directory:ignore",
           "path": "ignore",
           "type": "directory",
         },
       ],
-      "hash": "f74d721c23a3d631e1e39e3d41ef1888fe727bf8",
+      "hash": "78bb4a6a87a586a5d22193761b6af6b265691d59",
       "key": "directory:.",
       "path": ".",
       "type": "directory",
