@@ -11,7 +11,7 @@ export async function calculateDirectoryHash(
   config: FingerprintConfig
 ): Promise<FingerprintDirectoryHash | null> {
   const pathWithRoot = join(config.rootDir, path);
-  if (matchesAnyPattern(path, config.exclude)) {
+  if (matchesAnyPattern(path, config.exclude) || config.ignoreObject?.ignores(path)) {
     return null;
   }
 
@@ -46,7 +46,7 @@ export function calculateDirectoryHashSync(
   config: FingerprintConfig
 ): FingerprintDirectoryHash | null {
   const pathWithRoot = join(config.rootDir, path);
-  if (matchesAnyPattern(path, config.exclude)) {
+  if (matchesAnyPattern(path, config.exclude) || config.ignoreObject?.ignores(path)) {
     return null;
   }
 

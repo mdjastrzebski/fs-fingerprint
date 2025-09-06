@@ -1,7 +1,8 @@
 import * as console from "node:console";
-import { type Dirent, readdirSync, type Stats, statSync } from "node:fs";
+import { type Dirent, readdirSync, readFileSync, type Stats, statSync } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
 import * as path from "node:path";
+import ignore, { type Ignore } from "ignore";
 import pLimit from "p-limit";
 
 import { calculateContentHash } from "./inputs/content.js";
@@ -26,7 +27,8 @@ export async function calculateFingerprint(
     rootDir,
     exclude: options?.exclude,
     hashAlgorithm: options?.hashAlgorithm,
-    asyncWrapper: pLimit(options?.maxConcurrency ?? DEFAULT_CONCURRENCY),
+    ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
+    asyncWrapper: pLimit(options?.maxConcurrent ?? DEFAULT_CONCURRENCY),
   };
 
   const inputHashes: FingerprintInputHash[] = [];
@@ -70,7 +72,7 @@ async function calculateEntryHashForDirent(
   config: FingerprintConfig
 ): Promise<FingerprintInputHash | null> {
   const entryPath = entry.name;
-  const shouldBeExcluded = matchesAnyPattern(entryPath, config.exclude);
+  const shouldBeExcluded = matchesAnyPattern(entryPath, config.exclude) || config.ignoreObject?.ignores(entryPath);
   if (shouldBeExcluded) {
     return null;
   }
@@ -89,7 +91,7 @@ async function calculateEntryHashForPath(
   entryPath: string,
   config: FingerprintConfig
 ): Promise<FingerprintInputHash | null> {
-  const shouldBeExcluded = matchesAnyPattern(entryPath, config.exclude);
+  const shouldBeExcluded = matchesAnyPattern(entryPath, config.exclude) || config.ignoreObject?.ignores(entryPath);
   if (shouldBeExcluded) {
     return null;
   }
@@ -117,11 +119,11 @@ export function calculateFingerprintSync(
   rootDir: string,
   options?: FingerprintOptions
 ): FingerprintResult {
-  const config = {
+  const config: FingerprintConfig = {
     rootDir,
-    include: options?.include,
     exclude: options?.exclude,
     hashAlgorithm: options?.hashAlgorithm,
+    ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
   };
 
   const inputHashes: FingerprintInputHash[] = [];
@@ -167,7 +169,7 @@ function calculateEntryHashForPathSync(
   entryPath: string,
   config: FingerprintConfig
 ): FingerprintInputHash | null {
-  const shouldBeExcluded = matchesAnyPattern(entryPath, config.exclude);
+  const shouldBeExcluded = matchesAnyPattern(entryPath, config.exclude) || config.ignoreObject?.ignores(entryPath);
   if (shouldBeExcluded) {
     return null;
   }
@@ -196,7 +198,7 @@ function calculateEntryHashForDirentSync(
   config: FingerprintConfig
 ): FingerprintInputHash | null {
   const entryPath = entry.name;
-  const shouldBeExcluded = matchesAnyPattern(entryPath, config?.exclude);
+  const shouldBeExcluded = matchesAnyPattern(entryPath, config?.exclude) || config.ignoreObject?.ignores(entryPath);
   if (shouldBeExcluded) {
     return null;
   }
@@ -211,4 +213,13 @@ function calculateEntryHashForDirentSync(
     console.warn(`fs-fingerprint: skipping ${entryPath} (not a file or directory)`);
     return null;
   }
+}
+
+function buildIgnoreObject(rootDir: string, gitIgnorePath: string | undefined): Ignore | null {
+  if (gitIgnorePath == null) {
+    return null;
+  }
+
+  const rules = readFileSync(path.join(rootDir, gitIgnorePath), "utf8")
+  return ignore().add(rules);
 }

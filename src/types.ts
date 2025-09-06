@@ -1,20 +1,42 @@
-export type HashAlgorithm = "sha1" | "sha256" | "sha512" | "null";
+import type { Ignore } from "ignore";
+
+type StringWithAutoSuggest<T> = (string & {}) | T;
+
+/** Hashing algorithm to use */
+/**
+ * Hashing algorithm to use.
+ * Common values: "sha1", "sha256", "sha512", "null", etc.
+ * TypeScript will auto-suggest these values, but any string is allowed.
+ */
+export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512" | "null">;
 
 export type FingerprintOptions = {
+  /** Paths to include (does not support globs) */
   include?: readonly string[];
+
+  /** Paths to exclude (support globs, minimatch syntax) */
   exclude?: readonly string[];
+
+  /** Extra inputs to include in the fingerprint */
   extraInputs?: FingerprintInput[];
+  
+  /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
-  maxConcurrency?: number;
+
+  /** Path (relative to rootDir) to ignore file, e.g. ".gitignore" */
+  ignoreFilePath?: string;
+
+  /** Maximum number of concurrently opened files */ 
+  maxConcurrent?: number;
 };
 
 export type AsyncWrapper = <T>(fn: () => PromiseLike<T> | T) => Promise<T>;
 
 export type FingerprintConfig = {
   rootDir: string;
-  include?: readonly string[];
   exclude?: readonly string[];
   hashAlgorithm?: HashAlgorithm;
+  ignoreObject: Ignore | null;
   asyncWrapper?: AsyncWrapper;
 };
 

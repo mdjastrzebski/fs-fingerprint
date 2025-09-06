@@ -10,7 +10,7 @@ export async function calculateFileHash(
   path: string,
   config: FingerprintConfig
 ): Promise<FingerprintFileHash | null> {
-  if (matchesAnyPattern(path, config.exclude)) {
+  if (matchesAnyPattern(path, config.exclude) || config.ignoreObject?.ignores(path)) {
     return null;
   }
 
@@ -37,7 +37,7 @@ export function calculateFileHashSync(
   path: string,
   config: FingerprintConfig
 ): FingerprintFileHash | null {
-  if (matchesAnyPattern(path, config.exclude)) {
+  if (matchesAnyPattern(path, config.exclude) || config.ignoreObject?.ignores(path)) {
     return null;
   }
 
