@@ -46,7 +46,7 @@ Main function that generates a fingerprint for filesystem entries.
 
 ```typescript
 interface FingerprintOptions {
-  include?: string[];      // Glob patterns to include (default: all)
+  include?: string[];      // Files and directories include (default: all) - NOTE: this are not glob patterns
   exclude?: string[];      // Glob patterns to exclude
   extraInputs?: FingerprintInput[];  // Additional content/JSON inputs
   hashAlgorithm?: 'sha1' | 'sha256' | 'sha512';  // Hash algorithm (default: sha256)
@@ -73,7 +73,7 @@ console.log(result.hash); // "abc123..."
 **With include/exclude patterns:**
 ```typescript
 const result = calculateFingerprint('./project', {
-  include: ['src/**', 'package.json'],
+  include: ['src', 'package.json'],
   exclude: ['**/*.test.ts', 'dist']
 });
 ```
