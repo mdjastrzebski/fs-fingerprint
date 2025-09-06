@@ -57,5 +57,5 @@ function matchesAnyPattern(path: string, patterns?: readonly string[]): boolean 
     return false;
   }
 
-  return patterns.some((pattern) => micromatch.isMatch(path, pattern));
+  return micromatch.isMatch(path, patterns);
 }
