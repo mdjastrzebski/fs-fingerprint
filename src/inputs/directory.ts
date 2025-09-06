@@ -3,18 +3,18 @@ import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 
 import type { FingerprintConfig, FingerprintDirectoryHash } from "../types.js";
-import { matchesAnyPattern, mergeHashes } from "../utils.js";
+import { isExcludedPath, mergeHashes } from "../utils.js";
 import { calculateFileHash,calculateFileHashSync } from "./file.js";
 
 export async function calculateDirectoryHash(
   path: string,
   config: FingerprintConfig
 ): Promise<FingerprintDirectoryHash | null> {
-  const pathWithRoot = join(config.rootDir, path);
-  if (matchesAnyPattern(path, config.exclude) || config.ignoreObject?.ignores(path)) {
+  if (isExcludedPath(path, config)) {
     return null;
   }
 
+  const pathWithRoot = join(config.rootDir, path);
   const entries = await readdir(pathWithRoot, { withFileTypes: true });
   const entryHashes = await Promise.all(entries
     .map((entry) => {
@@ -45,11 +45,11 @@ export function calculateDirectoryHashSync(
   path: string,
   config: FingerprintConfig
 ): FingerprintDirectoryHash | null {
-  const pathWithRoot = join(config.rootDir, path);
-  if (matchesAnyPattern(path, config.exclude) || config.ignoreObject?.ignores(path)) {
+  if (isExcludedPath(path, config)) {
     return null;
   }
 
+  const pathWithRoot = join(config.rootDir, path);
   const entries = readdirSync(pathWithRoot, { withFileTypes: true });
   const entryHashes = entries
     .map((entry) => {

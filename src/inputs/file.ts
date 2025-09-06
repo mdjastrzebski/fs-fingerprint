@@ -4,13 +4,13 @@ import { join } from "node:path";
 
 import { EMPTY_HASH } from "../constants.js";
 import type { FingerprintConfig, FingerprintFileHash } from "../types.js";
-import { hashContent, matchesAnyPattern } from "../utils.js";
+import { hashContent, isExcludedPath } from "../utils.js";
 
 export async function calculateFileHash(
   path: string,
   config: FingerprintConfig
 ): Promise<FingerprintFileHash | null> {
-  if (matchesAnyPattern(path, config.exclude) || config.ignoreObject?.ignores(path)) {
+  if (isExcludedPath(path, config)) {
     return null;
   }
 
@@ -37,7 +37,7 @@ export function calculateFileHashSync(
   path: string,
   config: FingerprintConfig
 ): FingerprintFileHash | null {
-  if (matchesAnyPattern(path, config.exclude) || config.ignoreObject?.ignores(path)) {
+  if (isExcludedPath(path, config)) {
     return null;
   }
 

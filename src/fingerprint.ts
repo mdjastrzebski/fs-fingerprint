@@ -15,7 +15,7 @@ import type {
   FingerprintOptions,
   FingerprintResult,
 } from "./types.js";
-import { matchesAnyPattern, mergeHashes } from "./utils.js";
+import { isExcludedPath, mergeHashes } from "./utils.js";
 
 const DEFAULT_CONCURRENCY = 16;
 
@@ -71,18 +71,16 @@ async function calculateEntryHashForDirent(
   entry: Dirent,
   config: FingerprintConfig
 ): Promise<FingerprintInputHash | null> {
-  const entryPath = entry.name;
-  const shouldBeExcluded = matchesAnyPattern(entryPath, config.exclude) || config.ignoreObject?.ignores(entryPath);
-  if (shouldBeExcluded) {
+  if (isExcludedPath(entry.name, config)) {
     return null;
   }
 
   if (entry.isFile()) {
-    return calculateFileHash(entryPath, config);
+    return calculateFileHash(entry.name, config);
   } else if (entry.isDirectory()) {
-    return calculateDirectoryHash(entryPath, config);
+    return calculateDirectoryHash(entry.name, config);
   } else {
-    console.warn(`fs-fingerprint: skipping ${entryPath} (not a file or directory)`);
+    console.warn(`fs-fingerprint: skipping ${entry.name} (not a file or directory)`);
     return null;
   }
 }
@@ -91,8 +89,7 @@ async function calculateEntryHashForPath(
   entryPath: string,
   config: FingerprintConfig
 ): Promise<FingerprintInputHash | null> {
-  const shouldBeExcluded = matchesAnyPattern(entryPath, config.exclude) || config.ignoreObject?.ignores(entryPath);
-  if (shouldBeExcluded) {
+  if (isExcludedPath(entryPath, config)) {
     return null;
   }
 
@@ -169,8 +166,7 @@ function calculateEntryHashForPathSync(
   entryPath: string,
   config: FingerprintConfig
 ): FingerprintInputHash | null {
-  const shouldBeExcluded = matchesAnyPattern(entryPath, config.exclude) || config.ignoreObject?.ignores(entryPath);
-  if (shouldBeExcluded) {
+  if (isExcludedPath(entryPath, config)) {
     return null;
   }
 
@@ -198,8 +194,7 @@ function calculateEntryHashForDirentSync(
   config: FingerprintConfig
 ): FingerprintInputHash | null {
   const entryPath = entry.name;
-  const shouldBeExcluded = matchesAnyPattern(entryPath, config?.exclude) || config.ignoreObject?.ignores(entryPath);
-  if (shouldBeExcluded) {
+  if (isExcludedPath(entryPath, config)) {
     return null;
   }
 

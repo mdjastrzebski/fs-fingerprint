@@ -48,7 +48,11 @@ export function mergeHashes(
   };
 }
 
-export function matchesAnyPattern(path: string, patterns?: readonly string[]): boolean {
+export function isExcludedPath(path: string, config: FingerprintConfig): boolean {
+  return matchesAnyPattern(path, config.exclude) || (config.ignoreObject?.ignores(path) ?? false);
+}
+
+function matchesAnyPattern(path: string, patterns?: readonly string[]): boolean {
   if (!patterns) {
     return false;
   }
