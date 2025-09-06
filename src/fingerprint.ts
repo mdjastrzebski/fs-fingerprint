@@ -18,6 +18,7 @@ export async function calculateFingerprint(
 ): Promise<FingerprintResult> {
   const config: FingerprintConfig = {
     rootDir,
+    include: options?.include,
     exclude: options?.exclude,
     hashAlgorithm: options?.hashAlgorithm,
     asyncWrapper: pLimit(options?.maxConcurrency ?? DEFAULT_CONCURRENCY)
@@ -28,7 +29,7 @@ export async function calculateFingerprint(
   // Process top-level entries in rootDir
   const entries = await readdir(rootDir, { withFileTypes: true });
   const entryHashes = await Promise.all(entries.map(
-    entry => calculateEntryHash(entry, options?.include, config)
+    entry => calculateEntryHash(entry, config)
   ));
   inputHashes.push(...entryHashes.filter(hash => hash != null));
 
@@ -54,8 +55,8 @@ export async function calculateFingerprint(
 
 
 
-async function calculateEntryHash(entry: Dirent, include: readonly string[] | undefined, config: FingerprintConfig): Promise<FingerprintInputHash | null> {
-  const shouldBeIncluded = !include || matchesAnyPattern(entry.name, include);
+async function calculateEntryHash(entry: Dirent, config: FingerprintConfig): Promise<FingerprintInputHash | null> {
+  const shouldBeIncluded = !config.include || config.include.includes(entry.name);
   if (!shouldBeIncluded) {
     return null;
   }
@@ -94,7 +95,7 @@ export function calculateFingerprintSync(
   for (const entry of entries) {
     const entryPath = entry.name;
 
-    const shouldBeIncluded = !options?.include || matchesAnyPattern(entryPath, options?.include);
+    const shouldBeIncluded = !options?.include || options.include.includes(entryPath);
     if (!shouldBeIncluded) {
       continue;
     }

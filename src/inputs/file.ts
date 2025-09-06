@@ -10,11 +10,6 @@ export async function calculateFileHash(
   path: string,
   config: FingerprintConfig
 ): Promise<FingerprintFileHash | null> {
-  const shouldBeIncluded = !config.include || matchesAnyPattern(path, config.include);
-  if (!shouldBeIncluded) {
-    return null;
-  }
-
   if (matchesAnyPattern(path, config.exclude)) {
     return null;
   }
@@ -42,11 +37,6 @@ export function calculateFileHashSync(
   path: string,
   config: FingerprintConfig
 ): FingerprintFileHash | null {
-  const shouldBeIncluded = !config.include || matchesAnyPattern(path, config.include);
-  if (!shouldBeIncluded) {
-    return null;
-  }
-
   if (matchesAnyPattern(path, config.exclude)) {
     return null;
   }
