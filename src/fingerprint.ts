@@ -27,7 +27,7 @@ export async function calculateFingerprint(
     rootDir,
     exclude: options?.exclude,
     hashAlgorithm: options?.hashAlgorithm,
-    ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
+    ignoreObject: buildIgnoreObject(rootDir, options?.gitIgnorePath),
     asyncWrapper: pLimit(options?.maxConcurrent ?? DEFAULT_CONCURRENCY),
   };
 
@@ -120,7 +120,7 @@ export function calculateFingerprintSync(
     rootDir,
     exclude: options?.exclude,
     hashAlgorithm: options?.hashAlgorithm,
-    ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
+    ignoreObject: buildIgnoreObject(rootDir, options?.gitIgnorePath),
   };
 
   const inputHashes: FingerprintInputHash[] = [];
@@ -210,9 +210,9 @@ function calculateEntryHashForDirentSync(
   }
 }
 
-function buildIgnoreObject(rootDir: string, gitIgnorePath: string | undefined): Ignore | null {
+function buildIgnoreObject(rootDir: string, gitIgnorePath: string | null = ".gitignore"): Ignore | undefined {
   if (gitIgnorePath == null) {
-    return null;
+    return undefined;
   }
 
   const rules = readFileSync(path.join(rootDir, gitIgnorePath), "utf8")

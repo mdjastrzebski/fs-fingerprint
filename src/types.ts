@@ -23,8 +23,11 @@ export type FingerprintOptions = {
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
 
-  /** Path (relative to rootDir) to ignore file, e.g. ".gitignore" */
-  ignoreFilePath?: string;
+  /** 
+   * Path (relative to rootDir) to ".gitignore"-like file.
+   * Defaults to ".gitignore". Set to `null` to disable.
+   */
+  gitIgnorePath?: string | null;
 
   /** Maximum number of concurrently opened files */ 
   maxConcurrent?: number;
@@ -36,7 +39,7 @@ export type FingerprintConfig = {
   rootDir: string;
   exclude?: readonly string[];
   hashAlgorithm?: HashAlgorithm;
-  ignoreObject: Ignore | null;
+  ignoreObject?: Ignore;
   asyncWrapper?: AsyncWrapper;
 };
 
