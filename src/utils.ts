@@ -49,13 +49,5 @@ export function mergeHashes(
 }
 
 export function isExcludedPath(path: string, config: FingerprintConfig): boolean {
-  return matchesAnyPattern(path, config.exclude) || (config.ignoreObject?.ignores(path) ?? false);
-}
-
-function matchesAnyPattern(path: string, patterns?: readonly string[]): boolean {
-  if (!patterns) {
-    return false;
-  }
-
-  return micromatch.isMatch(path, patterns);
+  return micromatch.isMatch(path, config.exclude ?? []) || (config.ignoreObject?.ignores(path) ?? false);
 }
