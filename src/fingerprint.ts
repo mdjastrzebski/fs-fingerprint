@@ -215,6 +215,12 @@ function buildIgnoreObject(rootDir: string, gitIgnorePath: string | null = ".git
     return undefined;
   }
 
-  const rules = readFileSync(path.join(rootDir, gitIgnorePath), "utf8")
+  let rules: string;
+  try {
+    rules = readFileSync(path.join(rootDir, gitIgnorePath), "utf8")
+  } catch {
+    return undefined;
+  }
+
   return ignore().add(rules);
 }
