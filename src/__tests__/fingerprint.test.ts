@@ -135,8 +135,10 @@ test("calculate fingerprint with exclude", async () => {
 test("calculate fingerprint with include and exclude", async () => {
   writeFile("test1.txt", "Hello, world!");
   writeFile("dir/test1.txt", "Hellow world");
-  writeFile("dir/test2.md", "Should be ignored");
-  writeFile("ignore/test.txt", "Should be ignored");
+  writeFile("dir/test3.md", "Should be ignored");
+  writeFile("dir/nested/test4.txt", "Hello, there!");
+  writeFile("dir/nested/test5.md", "Should be ignored");
+  writeFile("ignore/test6.txt", "Should be ignored");
 
   const options: FingerprintOptions = {
     include: ["test1.txt", "dir"],
@@ -148,9 +150,11 @@ test("calculate fingerprint with include and exclude", async () => {
   const fingerprint = await calculateFingerprint(rootDir, options);
   expect(fingerprintSync).toEqual(fingerprint);
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 87b870667472bf3de5e09963c5426f796ed15824
+    "Hash: 3bdc8ef3b271537e9b53f11348f64fa8fde30573
     Inputs:
-      - DIRECTORY dir - 07d9232cfda9678479c650479a5a14b873bb29bc
+      - DIRECTORY dir - 8d5a686b8f5866b2e9b89f4ae3aa5a6735fd769e
+          - DIRECTORY dir/nested - 7290c0cbea4da413147d8cdfd238b1f4c7b68642
+              - FILE dir/nested/test4.txt - f84640c76bd37e72446bc21d36613c3bb38dd788
           - FILE dir/test1.txt - 35a883d254566ac9d9a375e5d3307fb0765d9e18
       - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "

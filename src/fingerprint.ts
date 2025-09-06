@@ -173,7 +173,14 @@ function calculateEntryHashForPathSync(
   }
 
   const fullPath = path.join(config.rootDir, entryPath);
-  const entry = statSync(fullPath);
+  let entry: Stats;
+  try {
+    entry = statSync(fullPath);
+  } catch {
+    console.warn(`fs-fingerprint: skipping ${entryPath} (not exists)`);
+    return null;
+  }
+
   if (entry.isFile()) {
     return calculateFileHashSync(entryPath, config);
   } else if (entry.isDirectory()) {
