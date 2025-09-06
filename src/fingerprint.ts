@@ -23,14 +23,10 @@ export async function calculateFingerprint(
     asyncWrapper: pLimit(options?.maxConcurrency ?? DEFAULT_CONCURRENCY)
   };
   
-  console.warn("💡 options", options);
-
   const inputHashes: FingerprintInputHash[] = [];
 
   // Process top-level entries in rootDir
   const entries = await readdir(rootDir, { withFileTypes: true });
-
-  console.warn("entries", entries, options?.include);
   const entryHashes = await Promise.all(entries.map(
     entry => calculateEntryHash(entry, options?.include, config)
   ));
@@ -66,20 +62,14 @@ async function calculateEntryHash(entry: Dirent, include: readonly string[] | un
   
   const entryPath = entry.name;
   const shouldBeExcluded = matchesAnyPattern(entryPath, config.exclude);
-  console.warn("shouldBeExcluded", entryPath, config.exclude, matchesAnyPattern(entryPath, config.exclude));
   if (shouldBeExcluded) {
     return null;
   }
 
   if (entry.isFile()) {
-    const r = await calculateFileHash(entryPath, config);
-    console.warn("file", r);
-    return r;
+    return calculateFileHash(entryPath, config);
   } else if (entry.isDirectory()) {
-    console.warn("isDirectory", entryPath);
-    const r = await calculateDirectoryHash(entryPath, config);
-    console.warn("dir", r);
-    return r;
+    return calculateDirectoryHash(entryPath, config);
   } else {
     console.warn(`fs-fingerprint: skipping ${entry.name} in ${entryPath}`);
     return null;

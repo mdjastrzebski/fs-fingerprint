@@ -33,6 +33,88 @@ test("calculate fingerprint", async () => {
 
   const fingerprintSync = calculateFingerprintSync(rootDir, options);
   const fingerprint = await calculateFingerprint(rootDir, options);
+
+  expect(flattenInputs(fingerprint.inputs)).toMatchInlineSnapshot(`
+    [
+      {
+        "hash": "cd039c372dfec21b9064d34e52b6597aeb61a9d1",
+        "key": "directory:test-dir",
+      },
+      {
+        "hash": "0bc8ca4164bd8de980ae89be1e804a3ce6c26cbb",
+        "key": "directory:test-dir/nested",
+      },
+      {
+        "hash": "4c9f5860b5fe56c5c4b7636d26dc8472ebc4dbaa",
+        "key": "file:test-dir/nested/test.txt",
+      },
+      {
+        "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
+        "key": "file:test-dir/test.txt",
+      },
+      {
+        "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
+        "key": "file:test1.txt",
+      },
+      {
+        "hash": "0646164d30b3bd0023a1e6878712eb1b9b15a1da",
+        "key": "file:test2.txt",
+      },
+      {
+        "hash": "7a967b4c4a5fdfaf7cde3a941a06b45e61e6a746",
+        "key": "file:test3.txt",
+      },
+      {
+        "hash": "3167fb5210b08f623c97f57ffb4903081ba4d6a5",
+        "key": "content:test4",
+      },
+      {
+        "hash": "2e0706ddb09be38781b9b2bcc14c75d7b028ce61",
+        "key": "json:test5",
+      },
+    ]
+  `);
+  expect(flattenInputs(fingerprintSync.inputs)).toMatchInlineSnapshot(`
+    [
+      {
+        "hash": "cd039c372dfec21b9064d34e52b6597aeb61a9d1",
+        "key": "directory:test-dir",
+      },
+      {
+        "hash": "0bc8ca4164bd8de980ae89be1e804a3ce6c26cbb",
+        "key": "directory:test-dir/nested",
+      },
+      {
+        "hash": "4c9f5860b5fe56c5c4b7636d26dc8472ebc4dbaa",
+        "key": "file:test-dir/nested/test.txt",
+      },
+      {
+        "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
+        "key": "file:test-dir/test.txt",
+      },
+      {
+        "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
+        "key": "file:test1.txt",
+      },
+      {
+        "hash": "0646164d30b3bd0023a1e6878712eb1b9b15a1da",
+        "key": "file:test2.txt",
+      },
+      {
+        "hash": "7a967b4c4a5fdfaf7cde3a941a06b45e61e6a746",
+        "key": "file:test3.txt",
+      },
+      {
+        "hash": "3167fb5210b08f623c97f57ffb4903081ba4d6a5",
+        "key": "content:test4",
+      },
+      {
+        "hash": "2e0706ddb09be38781b9b2bcc14c75d7b028ce61",
+        "key": "json:test5",
+      },
+    ]
+  `);
+
   expect(fingerprintSync).toEqual(fingerprint);
   expect(fingerprint.hash).toMatchInlineSnapshot(`"20b1d4f8f1816d008445f024dfd7b39521b8fecd"`);
 
@@ -48,6 +130,7 @@ test("calculate fingerprint", async () => {
   const fingerprintSync2 = calculateFingerprintSync(rootDir, options2);
   const fingerprint2 = await calculateFingerprint(rootDir, options2);
   expect(fingerprintSync2).toEqual(fingerprint2);
+  expect(flattenInputs(fingerprint2.inputs)).toMatchInlineSnapshot();
   expect(fingerprint2).toEqual(fingerprint);
 });
 
@@ -110,7 +193,7 @@ test("calculate fingerprint with deep include matches", async () => {
   const fingerprintSync = calculateFingerprintSync(rootDir, options);
   const fingerprint = await calculateFingerprint(rootDir, options);
   expect(fingerprintSync).toEqual(fingerprint);
-  expect(fingerprint.hash).toMatchInlineSnapshot(`"83c476200e37b80326a232c7320c6cc971c48563"`);
+  expect(fingerprint.hash).toMatchInlineSnapshot(`"f252d89357cae93eb0b8c4bab6a0218a6fae8e03"`);
   expect(flattenInputs(fingerprint.inputs)).toHaveLength(7);
 });
 
@@ -121,9 +204,7 @@ function writeFile(filePath: string, content: string) {
   fs.writeFileSync(absoluteFilePath, content);
 }
 
-test.only("calculate fingerprint with deep include matches", async () => {
-  console.warn("calculate fingerprint with deep include matches");
-  
+test("calculate fingerprint with deep include matches", async () => {
   writeFile("android/test1.txt", "Hello, world!");
   writeFile("android/test2.txt", "Lorem Ipsum");
   writeFile("ios/test1.txt", "Dolor sit amet");
@@ -131,7 +212,7 @@ test.only("calculate fingerprint with deep include matches", async () => {
   writeFile("src/nested/test.txt", "Sed do eiusmod tempor");
 
   const options: FingerprintOptions = {
-    include: ["android/**", "ios"],
+    include: ["android/**", "ios/**"],
     hashAlgorithm: "sha1",
   }
 

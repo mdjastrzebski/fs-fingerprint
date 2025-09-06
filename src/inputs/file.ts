@@ -11,7 +11,6 @@ export async function calculateFileHash(
   config: FingerprintConfig
 ): Promise<FingerprintFileHash | null> {
   const shouldBeIncluded = !config.include || matchesAnyPattern(path, config.include);
-  console.warn("shouldBeIncluded", path, shouldBeIncluded, " -- ", config.include, matchesAnyPattern(path, config.include));
   if (!shouldBeIncluded) {
     return null;
   }
