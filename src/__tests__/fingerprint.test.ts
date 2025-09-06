@@ -69,7 +69,7 @@ test("calculate with include", async () => {
   writeFile("dir1/test1.txt", "Hello, world!");
   writeFile("dir1/nested/test2.txt", "Lorem Ipsum");
   writeFile("dir2/test1.txt", "Dolor sit amet");
-  writeFile("dir3/test.txt", "Hello, there!");
+  writeFile("dir3/test.txt", "Should be ignored");
   writeFile("dir3/nested/test.txt", "Sed do eiusmod tempor");
 
   const options: FingerprintOptions = {
@@ -128,6 +128,31 @@ test("calculate fingerprint with exclude", async () => {
     "Hash: b7aefca91168b26779504db21340aede606cccb9
     Inputs:
       - FILE test2.md - 7f671b304fd5b282ff7b5eaf8c761f2ff24cb3ce
+    "
+  `);
+});
+
+test("calculate fingerprint with include and exclude", async () => {
+  writeFile("test1.txt", "Hello, world!");
+  writeFile("dir/test1.txt", "Hellow world");
+  writeFile("dir/test2.md", "Should be ignored");
+  writeFile("ignore/test.txt", "Should be ignored");
+
+  const options: FingerprintOptions = {
+    include: ["test1.txt", "dir"],
+    exclude: ["**/*.md"],
+    hashAlgorithm: "sha1",
+  }
+
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
+  const fingerprint = await calculateFingerprint(rootDir, options);
+  expect(fingerprintSync).toEqual(fingerprint);
+  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
+    "Hash: 87b870667472bf3de5e09963c5426f796ed15824
+    Inputs:
+      - DIRECTORY dir - 07d9232cfda9678479c650479a5a14b873bb29bc
+          - FILE dir/test1.txt - 35a883d254566ac9d9a375e5d3307fb0765d9e18
+      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
   `);
 });
