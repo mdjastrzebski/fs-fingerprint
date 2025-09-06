@@ -50,7 +50,7 @@ interface FingerprintOptions {
   exclude?: string[];      // Glob patterns to exclude
   extraInputs?: FingerprintInput[];  // Additional inputs: content, JSON
   hashAlgorithm?: 'sha1' | 'sha256' | 'sha512';  // Hash algorithm (default: sha1)
-  ignoreFilePath?: string // Path to ignore file, e.g. ".gitignore" (relative to "rootDir")
+  gitIgnorePath?: string | null // Path to ignore file, e.g. ".gitignore" (relative to "rootDir")
 }
 ```
 

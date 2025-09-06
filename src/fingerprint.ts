@@ -5,6 +5,7 @@ import * as path from "node:path";
 import ignore, { type Ignore } from "ignore";
 import pLimit from "p-limit";
 
+import { DEFAULT_CONCURRENCY, DEFAULT_GIT_IGNORE_PATH } from "./constants.js";
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateDirectoryHash, calculateDirectoryHashSync } from "./inputs/directory.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
@@ -16,8 +17,6 @@ import type {
   FingerprintResult,
 } from "./types.js";
 import { isExcludedPath, mergeHashes } from "./utils.js";
-
-const DEFAULT_CONCURRENCY = 16;
 
 export async function calculateFingerprint(
   rootDir: string,
@@ -93,10 +92,10 @@ async function calculateEntryHashForPath(
     return null;
   }
 
-  const fullPath = path.join(config.rootDir, entryPath);
+  const pathWithRoot = path.join(config.rootDir, entryPath);
   let entry: Stats;
   try {
-    entry = await stat(fullPath);
+    entry = await stat(pathWithRoot);
   } catch {
     console.warn(`fs-fingerprint: skipping ${entryPath} (not exists)`);
     return null;
@@ -170,10 +169,10 @@ function calculateEntryHashForPathSync(
     return null;
   }
 
-  const fullPath = path.join(config.rootDir, entryPath);
+  const pathWithRoot = path.join(config.rootDir, entryPath);
   let entry: Stats;
   try {
-    entry = statSync(fullPath);
+    entry = statSync(pathWithRoot);
   } catch {
     console.warn(`fs-fingerprint: skipping ${entryPath} (not exists)`);
     return null;
@@ -193,25 +192,22 @@ function calculateEntryHashForDirentSync(
   entry: Dirent,
   config: FingerprintConfig
 ): FingerprintInputHash | null {
-  const entryPath = entry.name;
-  if (isExcludedPath(entryPath, config)) {
+  if (isExcludedPath(entry.name, config)) {
     return null;
   }
 
   if (entry.isFile()) {
-    const hash = calculateFileHashSync(entryPath, config);
-    return hash;
+    return calculateFileHashSync(entry.name, config);
   } else if (entry.isDirectory()) {
-    const hash = calculateDirectoryHashSync(entryPath, config);
-    return hash;
+    return calculateDirectoryHashSync(entry.name, config);
   } else {
-    console.warn(`fs-fingerprint: skipping ${entryPath} (not a file or directory)`);
+    console.warn(`fs-fingerprint: skipping ${entry.name} (not a file or directory)`);
     return null;
   }
 }
 
-function buildIgnoreObject(rootDir: string, gitIgnorePath: string | null = ".gitignore"): Ignore | undefined {
-  if (gitIgnorePath == null) {
+function buildIgnoreObject(rootDir: string, gitIgnorePath: string | null = DEFAULT_GIT_IGNORE_PATH): Ignore | undefined {
+  if (!gitIgnorePath) {
     return undefined;
   }
 
