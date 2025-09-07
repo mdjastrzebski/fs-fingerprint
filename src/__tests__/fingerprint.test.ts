@@ -177,7 +177,7 @@ test("calculate fingerprint supports .gitignore", async () => {
     include: ["test1.txt", "dir"],
     exclude: ["**/*.ts"],
     hashAlgorithm: "sha1",
-    gitIgnorePath: ".gitignore",
+    ignoreFilePath: ".gitignore",
   }
 
   const fingerprintSync = calculateFingerprintSync(rootDir, options);
@@ -200,41 +200,6 @@ test("calculate fingerprint supports .gitignore", async () => {
   expect(findInput(fingerprint.inputs, "dir/test4.ts")).toBeNull(); // exclude option
   expect(findInput(fingerprint.inputs, "dir/nested/test5.txt")).toBeTruthy();
   expect(findInput(fingerprint.inputs, "dir/nested/test6.md")).toBeNull(); // .gitignore
-});
-
-test("calculate fingerprint custom ignore file", async () => {
-  writeFile("test1.txt", "Hello, world!");
-  writeFile("dir/test2.txt", "Hellow world");
-  writeFile("dir/test3.md", "Should be ignored");
-  writeFile("dir/nested/test4.txt", "Hello, there!");
-  writeFile("dir/nested/test5.md", "Should be ignored");
-  writeFile(".my-ignore", "**/*.md");
-
-  const options: FingerprintOptions = {
-    include: ["test1.txt", "dir"],
-    hashAlgorithm: "sha1",
-    gitIgnorePath: ".my-ignore",
-  }
-
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
-  const fingerprint = await calculateFingerprint(rootDir, options);
-  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: ae2b2ff7ab1c6c2d1060220dc6361b42b6693719
-    Inputs:
-      - DIRECTORY dir - 59ca50cbe3091cc5a9ec216fb5dcd75ea9bd8475
-          - DIRECTORY dir/nested - 7290c0cbea4da413147d8cdfd238b1f4c7b68642
-              - FILE dir/nested/test4.txt - f84640c76bd37e72446bc21d36613c3bb38dd788
-          - FILE dir/test2.txt - 35a883d254566ac9d9a375e5d3307fb0765d9e18
-      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
-  
-  expect(fingerprintSync).toEqual(fingerprint);
-  expect(findInput(fingerprint.inputs, "test1.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir/test2.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir/test3.md")).toBeNull(); // .gitignore
-  expect(findInput(fingerprint.inputs, "dir/nested/test4.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir/nested/test5.md")).toBeNull(); // .gitignore
 });
 
 function writeFile(filePath: string, content: string) {

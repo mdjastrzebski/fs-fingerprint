@@ -25,9 +25,9 @@ export type FingerprintOptions = {
 
   /** 
    * Path (relative to rootDir) to ".gitignore"-like file.
-   * Defaults to ".gitignore". Set to `null` to disable.
+   * Note: this supports .gitignore specs, by using "ignore" npm package.
    */
-  gitIgnorePath?: string | null;
+  ignoreFilePath?: string;
 
   /** Maximum number of concurrently opened files */ 
   maxConcurrent?: number;

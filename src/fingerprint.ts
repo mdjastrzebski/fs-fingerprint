@@ -5,7 +5,7 @@ import * as path from "node:path";
 import ignore, { type Ignore } from "ignore";
 import pLimit from "p-limit";
 
-import { DEFAULT_CONCURRENCY, DEFAULT_GIT_IGNORE_PATH } from "./constants.js";
+import { DEFAULT_CONCURRENCY } from "./constants.js";
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateDirectoryHash, calculateDirectoryHashSync } from "./inputs/directory.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
@@ -26,7 +26,7 @@ export async function calculateFingerprint(
     rootDir,
     exclude: options?.exclude,
     hashAlgorithm: options?.hashAlgorithm,
-    ignoreObject: buildIgnoreObject(rootDir, options?.gitIgnorePath),
+    ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
     asyncWrapper: pLimit(options?.maxConcurrent ?? DEFAULT_CONCURRENCY),
   };
 
@@ -119,7 +119,7 @@ export function calculateFingerprintSync(
     rootDir,
     exclude: options?.exclude,
     hashAlgorithm: options?.hashAlgorithm,
-    ignoreObject: buildIgnoreObject(rootDir, options?.gitIgnorePath),
+    ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
   };
 
   const inputHashes: FingerprintInputHash[] = [];
@@ -206,14 +206,16 @@ function calculateEntryHashForDirentSync(
   }
 }
 
-function buildIgnoreObject(rootDir: string, gitIgnorePath: string | null = DEFAULT_GIT_IGNORE_PATH): Ignore | undefined {
-  if (!gitIgnorePath) {
+function buildIgnoreObject(rootDir: string, ignoreFilePath?: string): Ignore | undefined {
+  if (!ignoreFilePath) {
     return undefined;
   }
 
+  const pathWithRoot = path.join(rootDir, ignoreFilePath);
+
   let rules: string;
   try {
-    rules = readFileSync(path.join(rootDir, gitIgnorePath), "utf8")
+    rules = readFileSync(pathWithRoot, "utf8")
   } catch {
     return undefined;
   }
