@@ -48,10 +48,6 @@ export function mergeHashes(
   };
 }
 
-export function matchesAnyPattern(path: string, patterns?: readonly string[]): boolean {
-  if (!patterns) {
-    return false;
-  }
-
-  return patterns.some((pattern) => micromatch.isMatch(path, pattern));
+export function isExcludedPath(path: string, config: FingerprintConfig): boolean {
+  return micromatch.isMatch(path, config.exclude ?? []) || (config.ignoreObject?.ignores(path) ?? false);
 }

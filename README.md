@@ -46,10 +46,11 @@ Main function that generates a fingerprint for filesystem entries.
 
 ```typescript
 interface FingerprintOptions {
-  include?: string[];      // Files and directories include (default: all) - NOTE: this are not glob patterns
+  include?: string[];      // Files and directories to include (default: all) - NOTE: this are NOT a glob patterns
   exclude?: string[];      // Glob patterns to exclude
-  extraInputs?: FingerprintInput[];  // Additional content/JSON inputs
-  hashAlgorithm?: 'sha1' | 'sha256' | 'sha512';  // Hash algorithm (default: sha256)
+  extraInputs?: FingerprintInput[];  // Additional inputs: content, JSON
+  hashAlgorithm?: 'sha1' | 'sha256' | 'sha512';  // Hash algorithm (default: sha1)
+  gitIgnorePath?: string | null // Path to ignore file, e.g. ".gitignore" (relative to "rootDir")
 }
 ```
 

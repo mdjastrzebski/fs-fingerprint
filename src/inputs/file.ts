@@ -4,13 +4,15 @@ import { join } from "node:path";
 
 import { EMPTY_HASH } from "../constants.js";
 import type { FingerprintConfig, FingerprintFileHash } from "../types.js";
-import { hashContent, matchesAnyPattern } from "../utils.js";
+import { hashContent, isExcludedPath } from "../utils.js";
+
+const noopWrapper = async (fn: () => PromiseLike<string>) => fn();
 
 export async function calculateFileHash(
   path: string,
   config: FingerprintConfig
 ): Promise<FingerprintFileHash | null> {
-  if (matchesAnyPattern(path, config.exclude)) {
+  if (isExcludedPath(path, config)) {
     return null;
   }
 
@@ -23,8 +25,10 @@ export async function calculateFileHash(
     };
   }
 
+  const asyncWrapper = config.asyncWrapper ?? noopWrapper;
+
   const pathWithRoot = join(config.rootDir, path);
-  const content = config.asyncWrapper ? await config.asyncWrapper(() => readFile(pathWithRoot, "utf8")) : await readFile(pathWithRoot, "utf8");
+  const content = await asyncWrapper(() => readFile(pathWithRoot, "utf8"));
   return {
     type: "file",
     key: `file:${path}`,
@@ -37,7 +41,7 @@ export function calculateFileHashSync(
   path: string,
   config: FingerprintConfig
 ): FingerprintFileHash | null {
-  if (matchesAnyPattern(path, config.exclude)) {
+  if (isExcludedPath(path, config)) {
     return null;
   }
 
