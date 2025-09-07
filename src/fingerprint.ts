@@ -206,14 +206,16 @@ function calculateEntryHashForDirentSync(
   }
 }
 
-function buildIgnoreObject(rootDir: string, gitIgnorePath?: string): Ignore | undefined {
-  if (!gitIgnorePath) {
+function buildIgnoreObject(rootDir: string, ignoreFilePath?: string): Ignore | undefined {
+  if (!ignoreFilePath) {
     return undefined;
   }
 
+  const pathWithRoot = path.join(rootDir, ignoreFilePath);
+  
   let rules: string;
   try {
-    rules = readFileSync(path.join(rootDir, gitIgnorePath), "utf8")
+    rules = readFileSync(pathWithRoot, "utf8")
   } catch {
     return undefined;
   }
