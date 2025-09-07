@@ -5,7 +5,7 @@ import * as path from "node:path";
 import ignore, { type Ignore } from "ignore";
 import pLimit from "p-limit";
 
-import { DEFAULT_CONCURRENCY, DEFAULT_GIT_IGNORE_PATH } from "./constants.js";
+import { DEFAULT_CONCURRENCY } from "./constants.js";
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateDirectoryHash, calculateDirectoryHashSync } from "./inputs/directory.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
@@ -212,7 +212,7 @@ function buildIgnoreObject(rootDir: string, ignoreFilePath?: string): Ignore | u
   }
 
   const pathWithRoot = path.join(rootDir, ignoreFilePath);
-  
+
   let rules: string;
   try {
     rules = readFileSync(pathWithRoot, "utf8")
