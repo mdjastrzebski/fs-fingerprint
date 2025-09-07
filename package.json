@@ -1,6 +1,6 @@
 {
   "name": "fs-fingerprint",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Filesystem-based fingerprinting library for node",
   "type": "module",
   "keywords": [
