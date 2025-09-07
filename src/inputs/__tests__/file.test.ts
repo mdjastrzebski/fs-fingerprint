@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
+import { EMPTY_HASH } from "../../constants.js";
 import type { FingerprintConfig } from "../../types.js";
 import { calculateFileHash, calculateFileHashSync } from "../file.js";
 
@@ -80,6 +81,19 @@ test("excludes ignored paths", async () => {
   const fingerprint3 = await calculateFileHash("test3.md", config2);
   expect(fingerprintSync3).toEqual(fingerprint3);
   expect(fingerprint3).toMatchInlineSnapshot(`null`);
+});
+
+test("respects null hash algorithm", async () => {
+  writeFile("test.txt", "Hello, world!");
+  const config2: FingerprintConfig = {
+    ...config,
+    hashAlgorithm: "null",
+  };
+
+  const hash = await calculateFileHash("test.txt", config2);
+  const hashSync = calculateFileHashSync("test.txt", config2);
+  expect(hash).toEqual(hashSync);
+  expect(hash?.hash).toBe(EMPTY_HASH);
 });
 
 function writeFile(filePath: string, content: string) {

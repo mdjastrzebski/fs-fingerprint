@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { beforeEach, expect, test } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 
 import type { FingerprintConfig } from "../../types.js";
 import { calculateDirectoryHash, calculateDirectoryHashSync } from "../directory.js";
@@ -167,9 +167,32 @@ test("hash directory handles negative ignore paths", async () => {
   `);
 });
 
+test("calculateDirectoryHash warns for non-file/non-directory entries", async () => {
+  fs.mkdirSync(path.join(config.rootDir, "dir"));
+  const devNullPath = path.join(config.rootDir, "dir", "dev-null-link");
+  fs.symlinkSync("/dev/null", devNullPath);
+
+  const consoleWarnSpy = vi.spyOn(console, "warn");
+
+  await calculateDirectoryHash("dir", config);
+  expect(consoleWarnSpy).toHaveBeenCalledWith("fs-fingerprint: skipping dev-null-link in dir");
+});
+
+test("calculateDirectoryHashSync warns for non-file/non-directory entries", async () => {
+  fs.mkdirSync(path.join(config.rootDir, "dir"));
+  const devNullPath = path.join(config.rootDir, "dir", "dev-null-link");
+  fs.symlinkSync("/dev/null", devNullPath);
+
+  const consoleWarnSpy = vi.spyOn(console, "warn");
+
+  calculateDirectoryHashSync("dir", config);
+  expect(consoleWarnSpy).toHaveBeenCalledWith("fs-fingerprint: skipping dev-null-link in dir");
+});
+
 function writeFile(filePath: string, content: string) {
   const absoluteFilePath = path.join(config.rootDir, filePath);
   const absoluteDirPath = path.dirname(absoluteFilePath);
   fs.mkdirSync(absoluteDirPath, { recursive: true });
   fs.writeFileSync(absoluteFilePath, content);
 }
+
