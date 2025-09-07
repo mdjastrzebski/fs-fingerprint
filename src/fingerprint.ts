@@ -26,7 +26,7 @@ export async function calculateFingerprint(
     rootDir,
     exclude: options?.exclude,
     hashAlgorithm: options?.hashAlgorithm,
-    ignoreObject: buildIgnoreObject(rootDir, options?.gitIgnorePath),
+    ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
     asyncWrapper: pLimit(options?.maxConcurrent ?? DEFAULT_CONCURRENCY),
   };
 
@@ -119,7 +119,7 @@ export function calculateFingerprintSync(
     rootDir,
     exclude: options?.exclude,
     hashAlgorithm: options?.hashAlgorithm,
-    ignoreObject: buildIgnoreObject(rootDir, options?.gitIgnorePath),
+    ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
   };
 
   const inputHashes: FingerprintInputHash[] = [];
@@ -206,7 +206,7 @@ function calculateEntryHashForDirentSync(
   }
 }
 
-function buildIgnoreObject(rootDir: string, gitIgnorePath: string | null = DEFAULT_GIT_IGNORE_PATH): Ignore | undefined {
+function buildIgnoreObject(rootDir: string, gitIgnorePath?: string): Ignore | undefined {
   if (!gitIgnorePath) {
     return undefined;
   }
