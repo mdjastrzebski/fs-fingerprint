@@ -62,7 +62,7 @@ async function runBenchmarks(): Promise<void> {
   
   // React Native benchmarks
   const reactNativeOptions: FingerprintOptions = {
-    include: ["android","ios", "package.json", "README.md"],
+    include: ["packages", "package.json", "README.md"],
     exclude: ["**/node_modules/**", "**/.git/**"],
   }
 
