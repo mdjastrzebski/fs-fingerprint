@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { beforeEach, expect, test } from "vitest";
 
+import { EMPTY_HASH } from "../constants.js";
 import { calculateFingerprint, calculateFingerprintSync } from "../index.js";
 import type { FingerprintInputHash, FingerprintOptions, FingerprintResult } from "../types.js";
 import { normalizeFilePath } from "../utils.js";
@@ -190,6 +191,39 @@ test("calculate with nested include", async () => {
   expect(findInput(fingerprint.inputs, "dir3/test8.txt")).toBeNull();
 });
 
+test("calculateFingerprint default include skips .files", async () => {
+  writeFile("test1.txt");
+  writeFile("dir1/test2.txt");
+  writeFile(".test3.txt");
+  writeFile(".dir2/nested/test4.txt");
+  fs.mkdirSync(".dir3/nested", { recursive: true });
+
+  fs.mkdirSync("dir1/nested", { recursive: true });
+  const options: FingerprintOptions = {
+    hashAlgorithm: "sha1",
+  };
+
+  const fingerprint = await calculateFingerprint(rootDir, options);
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
+
+  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
+    "Hash: 6831e3390a28e6b6b422e2651b1aae517dd1de67
+    Inputs:
+      - DIRECTORY dir1/ - 16fb434985da050fb4817367e33021796d07ab85
+          - FILE dir1/test2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+    "
+  `);
+
+  expect(findInput(fingerprint.inputs, "test1.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir1/test2.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, ".test3.txt")).toBeNull();
+  expect(findInput(fingerprint.inputs, ".dir2/nested/test4.txt")).toBeNull();
+  expect(findInput(fingerprint.inputs, ".dir3/nested")).toBeNull();
+
+  expect(fingerprintSync).toEqual(fingerprint);
+});
+
 test("calculate fingerprint with exclude", async () => {
   writeFile("test1.txt");
   writeFile("test2.md");
@@ -359,6 +393,43 @@ test("calculate fingerprint supports .gitignore", async () => {
   expect(findInput(fingerprint.inputs, "dir/test4.ts")).toBeNull(); // exclude option
   expect(findInput(fingerprint.inputs, "dir/nested/test5.txt")).toBeTruthy();
   expect(findInput(fingerprint.inputs, "dir/nested/test6.md")).toBeNull(); // .gitignore
+});
+
+test("calculateFingerprint handles non-existent .gitignore", async () => {
+  writeFile("test1.txt");
+
+  const options: FingerprintOptions = {
+    hashAlgorithm: "sha1",
+    ignoreFilePath: ".gitignore",
+  };
+
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
+  const fingerprint = await calculateFingerprint(rootDir, options);
+  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
+    "Hash: 142fa232afb866d394ab59fef182fd20ac591989
+    Inputs:
+      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+    "
+  `);
+
+  expect(fingerprintSync).toEqual(fingerprint);
+  expect(findInput(fingerprint.inputs, "test1.txt")).toBeTruthy();
+});
+
+test("calculateFingerprint handles null result", async () => {
+  const options: FingerprintOptions = {
+    include: [],
+    hashAlgorithm: "sha1",
+  };
+
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
+  const fingerprint = await calculateFingerprint(rootDir, options);
+  expect(fingerprint).toEqual({
+    hash: EMPTY_HASH,
+    inputs: [],
+  });
+
+  expect(fingerprintSync).toEqual(fingerprint);
 });
 
 function writeFile(filePath: string, content: string = "Hello, world!") {
