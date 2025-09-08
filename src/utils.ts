@@ -15,7 +15,7 @@ export function hashContent(content: string, config: FingerprintConfig) {
 
 export function mergeHashes(
   hashes: readonly FingerprintInputHash[],
-  config: FingerprintConfig
+  config: FingerprintConfig,
 ): FingerprintResult | null {
   if (hashes.length === 0) {
     return null;
@@ -46,7 +46,7 @@ export function mergeHashes(
 
 export function isExcludedPath(path: string, config: FingerprintConfig): boolean {
   return Boolean(
-    config.exclude?.some((matcher) => matcher(path)) || config.ignoreObject?.ignores(path)
+    config.exclude?.some((matcher) => matcher(path)) || config.ignoreObject?.ignores(path),
   );
 }
 

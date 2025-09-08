@@ -35,10 +35,12 @@ const { hash } = calculateFingerprint(rootPath, {
 Main function that generates a fingerprint for filesystem entries.
 
 **Parameters:**
+
 - `rootDir` (string) - Root directory path to scan
 - `options` (object, optional) - Configuration options
 
 **Returns:** `FingerprintResult`
+
 - `hash` (string) - Generated fingerprint hash
 - `inputs` (array) - Array of processed input hashes
 
@@ -46,11 +48,11 @@ Main function that generates a fingerprint for filesystem entries.
 
 ```typescript
 interface FingerprintOptions {
-  include?: string[];      // Files and directories to include (default: all) - NOTE: this are NOT a glob patterns
-  exclude?: string[];      // Glob patterns to exclude
-  extraInputs?: FingerprintInput[];  // Additional inputs: content, JSON
-  hashAlgorithm?: 'sha1' | 'sha256' | 'sha512';  // Hash algorithm (default: sha1)
-  ignoreFilePath?: string // Path (relative to "rootDir") to ignore file, e.g. ".gitignore".
+  include?: string[]; // Files and directories to include (default: all) - NOTE: this are NOT a glob patterns
+  exclude?: string[]; // Glob patterns to exclude
+  extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
+  hashAlgorithm?: "sha1" | "sha256" | "sha512"; // Hash algorithm (default: sha1)
+  ignoreFilePath?: string; // Path (relative to "rootDir") to ignore file, e.g. ".gitignore".
 }
 ```
 
@@ -66,33 +68,37 @@ interface FingerprintResult {
 ### Examples
 
 **Basic usage:**
+
 ```typescript
-const result = calculateFingerprint('./src');
+const result = calculateFingerprint("./src");
 console.log(result.hash); // "abc123..."
 ```
 
 **With include/exclude patterns:**
+
 ```typescript
-const result = calculateFingerprint('./project', {
-  include: ['src', 'package.json'],
-  exclude: ['**/*.test.ts', 'dist']
+const result = calculateFingerprint("./project", {
+  include: ["src", "package.json"],
+  exclude: ["**/*.test.ts", "dist"],
 });
 ```
 
 **With extra inputs:**
+
 ```typescript
-const result = calculateFingerprint('./src', {
+const result = calculateFingerprint("./src", {
   extraInputs: [
-    { key: 'config', content: 'debug=true' },
-    { key: 'metadata', json: { version: '1.0', env: 'prod' } }
-  ]
+    { key: "config", content: "debug=true" },
+    { key: "metadata", json: { version: "1.0", env: "prod" } },
+  ],
 });
 ```
 
 **Custom hash algorithm:**
+
 ```typescript
-const result = calculateFingerprint('./src', {
-  hashAlgorithm: 'sha512'
+const result = calculateFingerprint("./src", {
+  hashAlgorithm: "sha512",
 });
 ```
 

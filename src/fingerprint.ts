@@ -21,7 +21,7 @@ import { isExcludedPath, mergeHashes } from "./utils.js";
 
 export async function calculateFingerprint(
   rootDir: string,
-  options?: FingerprintOptions
+  options?: FingerprintOptions,
 ): Promise<FingerprintResult> {
   const config: FingerprintConfig = {
     rootDir,
@@ -36,15 +36,15 @@ export async function calculateFingerprint(
   // Process top-level entries in rootDir
   if (options?.include) {
     const entryHashes = await Promise.all(
-      options.include.map((path) => calculateEntryHashForPath(path, config))
+      options.include.map((path) => calculateEntryHashForPath(path, config)),
     );
     inputHashes.push(...entryHashes.filter((hash) => hash != null));
   } else {
     const entries = await readdir(rootDir, { withFileTypes: true });
     const entryHashes = await Promise.all(
       entries.map((entry) =>
-        entry.name.startsWith(".") ? null : calculateEntryHashForDirent(entry, config)
-      )
+        entry.name.startsWith(".") ? null : calculateEntryHashForDirent(entry, config),
+      ),
     );
     inputHashes.push(...entryHashes.filter((hash) => hash != null));
   }
@@ -79,7 +79,7 @@ export async function calculateFingerprint(
 
 async function calculateEntryHashForDirent(
   entry: Dirent,
-  config: FingerprintConfig
+  config: FingerprintConfig,
 ): Promise<FingerprintInputHash | null> {
   if (isExcludedPath(entry.name, config)) {
     return null;
@@ -97,7 +97,7 @@ async function calculateEntryHashForDirent(
 
 async function calculateEntryHashForPath(
   entryPath: string,
-  config: FingerprintConfig
+  config: FingerprintConfig,
 ): Promise<FingerprintInputHash | null> {
   if (isExcludedPath(entryPath, config)) {
     return null;
@@ -124,7 +124,7 @@ async function calculateEntryHashForPath(
 
 export function calculateFingerprintSync(
   rootDir: string,
-  options?: FingerprintOptions
+  options?: FingerprintOptions,
 ): FingerprintResult {
   const config: FingerprintConfig = {
     rootDir,
@@ -184,7 +184,7 @@ export function calculateFingerprintSync(
 
 function calculateEntryHashForPathSync(
   entryPath: string,
-  config: FingerprintConfig
+  config: FingerprintConfig,
 ): FingerprintInputHash | null {
   if (isExcludedPath(entryPath, config)) {
     return null;
@@ -211,7 +211,7 @@ function calculateEntryHashForPathSync(
 
 function calculateEntryHashForDirentSync(
   entry: Dirent,
-  config: FingerprintConfig
+  config: FingerprintConfig,
 ): FingerprintInputHash | null {
   if (isExcludedPath(entry.name, config)) {
     return null;

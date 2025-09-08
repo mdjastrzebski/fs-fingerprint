@@ -3,7 +3,7 @@ import { hashContent } from "../utils.js";
 
 export function calculateContentHash(
   input: FingerprintContentInput,
-  config: FingerprintConfig
+  config: FingerprintConfig,
 ): FingerprintInputHash {
   return {
     type: "content",
