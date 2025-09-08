@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { EMPTY_HASH } from "../constants.js";
 import type { FingerprintConfig, FingerprintFileHash } from "../types.js";
-import { hashContent, isExcludedPath } from "../utils.js";
+import { hashContent, isExcludedPath, normalizeFilePath } from "../utils.js";
 
 const noopWrapper = async (fn: () => PromiseLike<string>) => fn();
 
@@ -16,12 +16,14 @@ export async function calculateFileHash(
     return null;
   }
 
+  const normalizedPath = normalizeFilePath(path);
+
   if (config.hashAlgorithm === "null") {
     return {
       type: "file",
-      key: `file:${path}`,
+      key: `file:${normalizedPath}`,
       hash: EMPTY_HASH,
-      path,
+      path: normalizedPath,
     };
   }
 
@@ -31,9 +33,9 @@ export async function calculateFileHash(
   const content = await asyncWrapper(() => readFile(pathWithRoot, "utf8"));
   return {
     type: "file",
-    key: `file:${path}`,
+    key: `file:${normalizedPath}`,
     hash: hashContent(content, config),
-    path,
+    path: normalizedPath,
   };
 }
 
@@ -45,12 +47,13 @@ export function calculateFileHashSync(
     return null;
   }
 
+  const normalizedPath = normalizeFilePath(path);
   if (config.hashAlgorithm === "null") {
     return {
       type: "file",
-      key: `file:${path}`,
+      key: `file:${normalizedPath}`,
       hash: EMPTY_HASH,
-      path,
+      path: normalizedPath,
     };
   }
 
@@ -58,8 +61,8 @@ export function calculateFileHashSync(
   const content = readFileSync(pathWithRoot, "utf8");
   return {
     type: "file",
-    key: `file:${path}`,
+    key: `file:${normalizedPath}`,
     hash: hashContent(content, config),
-    path,
+    path: normalizedPath,
   };
 }

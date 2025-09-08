@@ -16,13 +16,10 @@ export function hashContent(content: string, config: FingerprintConfig) {
 
 export function mergeHashes(
   hashes: readonly FingerprintInputHash[],
-  config: FingerprintConfig,
-): FingerprintResult {
+  config: FingerprintConfig
+): FingerprintResult | null {
   if (hashes.length === 0) {
-    return {
-      hash: EMPTY_HASH,
-      inputs: [],
-    };
+    return null;
   }
 
   const sortedHashes = [...hashes].sort((a, b) => {
@@ -49,5 +46,18 @@ export function mergeHashes(
 }
 
 export function isExcludedPath(path: string, config: FingerprintConfig): boolean {
-  return micromatch.isMatch(path, config.exclude ?? []) || (config.ignoreObject?.ignores(path) ?? false);
+  return (
+    micromatch.isMatch(path, config.exclude ?? []) || (config.ignoreObject?.ignores(path) ?? false)
+  );
+}
+
+export function normalizeFilePath(path: string): string {
+  return path.startsWith("./") ? path.slice(2) : path;
+}
+
+export function normalizeDirPath(path: string): string {
+  let result = path;
+  result = result.startsWith("./") ? result.slice(2) : result;
+  result = result.endsWith("/") ? result : `${result}/`;
+  return result;
 }
