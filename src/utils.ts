@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import micromatch from "micromatch";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
@@ -46,8 +45,8 @@ export function mergeHashes(
 }
 
 export function isExcludedPath(path: string, config: FingerprintConfig): boolean {
-  return (
-    micromatch.isMatch(path, config.exclude ?? []) || (config.ignoreObject?.ignores(path) ?? false)
+  return Boolean(
+    config.exclude?.some((matcher) => matcher(path)) || config.ignoreObject?.ignores(path)
   );
 }
 

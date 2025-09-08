@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import picomatch from "picomatch";
 import { beforeEach, expect, test } from "vitest";
 
 import { EMPTY_HASH } from "../../constants.js";
@@ -9,7 +10,6 @@ import { calculateFileHash, calculateFileHashSync } from "../file.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "file-test"),
-  exclude: [],
   hashAlgorithm: "sha1",
 };
 
@@ -21,7 +21,7 @@ beforeEach(() => {
   fs.mkdirSync(config.rootDir, { recursive: true });
 });
 
-test("hash file input", async() => {
+test("hash file input", async () => {
   writeFile("test.txt", "Hello, world!");
 
   const fingerprintSync = calculateFileHashSync("test.txt", config);
@@ -57,7 +57,7 @@ test("excludes ignored paths", async () => {
 
   const config2: FingerprintConfig = {
     ...config,
-    exclude: ["test2.txt", "*.md"],
+    exclude: ["test2.txt", "*.md"].map((pattern) => picomatch(pattern)),
   };
 
   const fingerprintSync1 = calculateFileHashSync("test1.txt", config2);

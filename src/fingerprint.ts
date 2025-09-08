@@ -4,6 +4,7 @@ import { readdir, stat } from "node:fs/promises";
 import * as path from "node:path";
 import ignore, { type Ignore } from "ignore";
 import pLimit from "p-limit";
+import picomatch from "picomatch";
 
 import { DEFAULT_CONCURRENCY, EMPTY_HASH } from "./constants.js";
 import { calculateContentHash } from "./inputs/content.js";
@@ -24,7 +25,7 @@ export async function calculateFingerprint(
 ): Promise<FingerprintResult> {
   const config: FingerprintConfig = {
     rootDir,
-    exclude: options?.exclude,
+    exclude: options?.exclude?.map((pattern) => picomatch(pattern)),
     hashAlgorithm: options?.hashAlgorithm,
     ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
     asyncWrapper: pLimit(options?.maxConcurrent ?? DEFAULT_CONCURRENCY),
@@ -127,7 +128,7 @@ export function calculateFingerprintSync(
 ): FingerprintResult {
   const config: FingerprintConfig = {
     rootDir,
-    exclude: options?.exclude,
+    exclude: options?.exclude?.map((pattern) => picomatch(pattern)),
     hashAlgorithm: options?.hashAlgorithm,
     ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
   };

@@ -7,7 +7,6 @@ import { calculateContentHash } from "../content.js";
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "content-test"),
-  exclude: [],
   hashAlgorithm: "sha1",
 };
 
