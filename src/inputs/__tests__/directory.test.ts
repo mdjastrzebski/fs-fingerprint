@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { beforeEach, expect, test } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 
 import type { FingerprintConfig } from "../../types.js";
 import { calculateDirectoryHash, calculateDirectoryHashSync } from "../directory.js";
@@ -37,8 +37,8 @@ test("hash directory input", async () => {
         },
       ],
       "hash": "b0525e564d1cc96ceb59b55150e30f51bb0600c9",
-      "key": "directory:test-dir",
-      "path": "test-dir",
+      "key": "directory:test-dir/",
+      "path": "test-dir/",
       "type": "directory",
     }
   `);
@@ -65,8 +65,8 @@ test("hash directory input with nesting", async () => {
             },
           ],
           "hash": "e765acb113f5393fe1baa2f0d9bb1e8de1d04523",
-          "key": "directory:test-dir/nested",
-          "path": "test-dir/nested",
+          "key": "directory:test-dir/nested/",
+          "path": "test-dir/nested/",
           "type": "directory",
         },
         {
@@ -76,9 +76,9 @@ test("hash directory input with nesting", async () => {
           "type": "file",
         },
       ],
-      "hash": "53abd16e171d5374d110a5e6756be51e01def412",
-      "key": "directory:test-dir",
-      "path": "test-dir",
+      "hash": "8f01f240e6da14421a0b4b8c8be1c5afda2e03e1",
+      "key": "directory:test-dir/",
+      "path": "test-dir/",
       "type": "directory",
     }
   `);
@@ -112,8 +112,8 @@ test("hash directory excludes ignored paths", async () => {
             },
           ],
           "hash": "e765acb113f5393fe1baa2f0d9bb1e8de1d04523",
-          "key": "directory:test-dir/nested",
-          "path": "test-dir/nested",
+          "key": "directory:test-dir/nested/",
+          "path": "test-dir/nested/",
           "type": "directory",
         },
         {
@@ -129,9 +129,9 @@ test("hash directory excludes ignored paths", async () => {
           "type": "file",
         },
       ],
-      "hash": "7a306094610251c40f467a8c3cd418b75295b1e8",
-      "key": "directory:test-dir",
-      "path": "test-dir",
+      "hash": "56bb145d176e8e64653c1f656fd5f2d0c67391ff",
+      "key": "directory:test-dir/",
+      "path": "test-dir/",
       "type": "directory",
     }
   `);
@@ -148,23 +148,29 @@ test("hash directory handles negative ignore paths", async () => {
   const fingerprintSync = calculateDirectoryHashSync(".", config2);
   const fingerprint = await calculateDirectoryHash(".", config2);
   expect(fingerprintSync).toEqual(fingerprint);
-  expect(fingerprint).toMatchInlineSnapshot(`
-    {
-      "children": [
-        {
-          "children": [],
-          "hash": "(null)",
-          "key": "directory:ignore",
-          "path": "ignore",
-          "type": "directory",
-        },
-      ],
-      "hash": "f74d721c23a3d631e1e39e3d41ef1888fe727bf8",
-      "key": "directory:.",
-      "path": ".",
-      "type": "directory",
-    }
-  `);
+  expect(fingerprint).toMatchInlineSnapshot(`null`);
+});
+
+test("calculateDirectoryHash warns for non-file/non-directory entries", async () => {
+  fs.mkdirSync(path.join(config.rootDir, "dir"));
+  const devNullPath = path.join(config.rootDir, "dir", "dev-null-link");
+  fs.symlinkSync("/dev/null", devNullPath);
+
+  const consoleWarnSpy = vi.spyOn(console, "warn");
+
+  await calculateDirectoryHash("dir", config);
+  expect(consoleWarnSpy).toHaveBeenCalledWith("fs-fingerprint: skipping dev-null-link in dir");
+});
+
+test("calculateDirectoryHashSync warns for non-file/non-directory entries", async () => {
+  fs.mkdirSync(path.join(config.rootDir, "dir"));
+  const devNullPath = path.join(config.rootDir, "dir", "dev-null-link");
+  fs.symlinkSync("/dev/null", devNullPath);
+
+  const consoleWarnSpy = vi.spyOn(console, "warn");
+
+  calculateDirectoryHashSync("dir", config);
+  expect(consoleWarnSpy).toHaveBeenCalledWith("fs-fingerprint: skipping dev-null-link in dir");
 });
 
 function writeFile(filePath: string, content: string) {
@@ -173,3 +179,4 @@ function writeFile(filePath: string, content: string) {
   fs.mkdirSync(absoluteDirPath, { recursive: true });
   fs.writeFileSync(absoluteFilePath, content);
 }
+

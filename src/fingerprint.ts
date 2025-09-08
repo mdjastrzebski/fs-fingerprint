@@ -1,11 +1,11 @@
 import * as console from "node:console";
-import { type Dirent, readdirSync, readFileSync, type Stats, statSync } from "node:fs";
+import { type Dirent, existsSync, readdirSync, readFileSync, type Stats, statSync } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
 import * as path from "node:path";
 import ignore, { type Ignore } from "ignore";
 import pLimit from "p-limit";
 
-import { DEFAULT_CONCURRENCY } from "./constants.js";
+import { DEFAULT_CONCURRENCY, EMPTY_HASH } from "./constants.js";
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateDirectoryHash, calculateDirectoryHashSync } from "./inputs/directory.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
@@ -41,7 +41,9 @@ export async function calculateFingerprint(
   } else {
     const entries = await readdir(rootDir, { withFileTypes: true });
     const entryHashes = await Promise.all(
-      entries.map((entry) => calculateEntryHashForDirent(entry, config))
+      entries.map((entry) =>
+        entry.name.startsWith(".") ? null : calculateEntryHashForDirent(entry, config)
+      )
     );
     inputHashes.push(...entryHashes.filter((hash) => hash != null));
   }
@@ -63,7 +65,15 @@ export async function calculateFingerprint(
     }
   }
 
-  return mergeHashes(inputHashes, config);
+  const result = mergeHashes(inputHashes, config);
+  if (result == null) {
+    return {
+      hash: EMPTY_HASH,
+      inputs: [],
+    };
+  }
+
+  return result;
 }
 
 async function calculateEntryHashForDirent(
@@ -134,7 +144,9 @@ export function calculateFingerprintSync(
   } else {
     const entries = readdirSync(rootDir, { withFileTypes: true });
     for (const entry of entries) {
-      const hash = calculateEntryHashForDirentSync(entry, config);
+      const hash = entry.name.startsWith(".")
+        ? null
+        : calculateEntryHashForDirentSync(entry, config);
       if (hash !== null) {
         inputHashes.push(hash);
       }
@@ -158,7 +170,15 @@ export function calculateFingerprintSync(
     }
   }
 
-  return mergeHashes(inputHashes, config);
+  const result = mergeHashes(inputHashes, config);
+  if (result == null) {
+    return {
+      hash: EMPTY_HASH,
+      inputs: [],
+    };
+  }
+
+  return result;
 }
 
 function calculateEntryHashForPathSync(
@@ -212,13 +232,10 @@ function buildIgnoreObject(rootDir: string, ignoreFilePath?: string): Ignore | u
   }
 
   const pathWithRoot = path.join(rootDir, ignoreFilePath);
-
-  let rules: string;
-  try {
-    rules = readFileSync(pathWithRoot, "utf8")
-  } catch {
+  if (!existsSync(pathWithRoot)) {
     return undefined;
   }
 
+  const rules = readFileSync(pathWithRoot, "utf8");
   return ignore().add(rules);
 }
