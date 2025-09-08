@@ -33,8 +33,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "test": "vitest",
-    "validate": "pnpm typecheck && pnpm lint && pnpm test --no-watch",
-    "prettier": "prettier --write .",
+    "validate": "pnpm typecheck && pnpm lint && pnpm test --no-watch && pnpm prettier:check",
+    "prettier:check": "prettier --check .",
+    "prettier:write": "prettier --write .",
     "clean": "rm -rf ./dist",
     "bench": "tsx benchmarks/fingerprint.bench.ts",
     "release": "release-it"
