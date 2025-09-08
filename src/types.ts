@@ -1,4 +1,5 @@
 import type { Ignore } from "ignore";
+import type { Matcher } from "picomatch";
 
 type StringWithAutoSuggest<T> = (string & {}) | T;
 
@@ -19,17 +20,17 @@ export type FingerprintOptions = {
 
   /** Extra inputs to include in the fingerprint */
   extraInputs?: FingerprintInput[];
-  
+
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
 
-  /** 
+  /**
    * Path (relative to rootDir) to ".gitignore"-like file.
    * Note: this supports .gitignore specs, by using "ignore" npm package.
    */
   ignoreFilePath?: string;
 
-  /** Maximum number of concurrently opened files */ 
+  /** Maximum number of concurrently opened files */
   maxConcurrent?: number;
 };
 
@@ -37,7 +38,7 @@ export type AsyncWrapper = <T>(fn: () => PromiseLike<T> | T) => Promise<T>;
 
 export type FingerprintConfig = {
   rootDir: string;
-  exclude?: readonly string[];
+  exclude?: Matcher[];
   hashAlgorithm?: HashAlgorithm;
   ignoreObject?: Ignore;
   asyncWrapper?: AsyncWrapper;

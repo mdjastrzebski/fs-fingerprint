@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import picomatch from "picomatch";
 import { beforeEach, expect, test, vi } from "vitest";
 
 import type { FingerprintConfig } from "../../types.js";
@@ -8,7 +9,6 @@ import { calculateDirectoryHash, calculateDirectoryHashSync } from "../directory
 
 const config: FingerprintConfig = {
   rootDir: path.join(os.tmpdir(), "directory-test"),
-  exclude: [],
   hashAlgorithm: "sha1",
 };
 
@@ -42,7 +42,6 @@ test("hash directory input", async () => {
       "type": "directory",
     }
   `);
-  
 });
 
 test("hash directory input with nesting", async () => {
@@ -93,7 +92,7 @@ test("hash directory excludes ignored paths", async () => {
 
   const config2: FingerprintConfig = {
     ...config,
-    exclude: ["**/ignored", "*.md"],
+    exclude: ["**/ignored", "*.md"].map((pattern) => picomatch(pattern)),
   };
 
   const fingerprintSync = calculateDirectoryHashSync("test-dir", config2);
@@ -142,7 +141,7 @@ test("hash directory handles negative ignore paths", async () => {
 
   const config2: FingerprintConfig = {
     ...config,
-    exclude: ["ignore/*"],
+    exclude: ["ignore/*"].map((pattern) => picomatch(pattern)),
   };
 
   const fingerprintSync = calculateDirectoryHashSync(".", config2);
@@ -179,4 +178,3 @@ function writeFile(filePath: string, content: string) {
   fs.mkdirSync(absoluteDirPath, { recursive: true });
   fs.writeFileSync(absoluteFilePath, content);
 }
-
