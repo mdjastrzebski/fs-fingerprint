@@ -21,7 +21,7 @@ import { isExcludedPath, mergeHashes } from "./utils.js";
 export async function calculateFingerprint(
   rootDir: string,
   options?: FingerprintOptions
-): Promise<FingerprintResult> {
+): Promise<FingerprintResult | null> {
   const config: FingerprintConfig = {
     rootDir,
     exclude: options?.exclude,
@@ -114,7 +114,7 @@ async function calculateEntryHashForPath(
 export function calculateFingerprintSync(
   rootDir: string,
   options?: FingerprintOptions
-): FingerprintResult {
+): FingerprintResult | null {
   const config: FingerprintConfig = {
     rootDir,
     exclude: options?.exclude,
@@ -215,7 +215,7 @@ function buildIgnoreObject(rootDir: string, ignoreFilePath?: string): Ignore | u
 
   let rules: string;
   try {
-    rules = readFileSync(pathWithRoot, "utf8")
+    rules = readFileSync(pathWithRoot, "utf8");
   } catch {
     return undefined;
   }
