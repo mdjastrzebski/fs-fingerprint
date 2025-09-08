@@ -5,7 +5,7 @@ import * as path from "node:path";
 import ignore, { type Ignore } from "ignore";
 import pLimit from "p-limit";
 
-import { DEFAULT_CONCURRENCY } from "./constants.js";
+import { DEFAULT_CONCURRENCY, EMPTY_HASH } from "./constants.js";
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateDirectoryHash, calculateDirectoryHashSync } from "./inputs/directory.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
@@ -21,7 +21,7 @@ import { isExcludedPath, mergeHashes } from "./utils.js";
 export async function calculateFingerprint(
   rootDir: string,
   options?: FingerprintOptions
-): Promise<FingerprintResult | null> {
+): Promise<FingerprintResult> {
   const config: FingerprintConfig = {
     rootDir,
     exclude: options?.exclude,
@@ -63,7 +63,15 @@ export async function calculateFingerprint(
     }
   }
 
-  return mergeHashes(inputHashes, config);
+  const result = mergeHashes(inputHashes, config);
+  if (result == null) {
+    return {
+      hash: EMPTY_HASH,
+      inputs: [],
+    };
+  }
+
+  return result;
 }
 
 async function calculateEntryHashForDirent(
@@ -114,7 +122,7 @@ async function calculateEntryHashForPath(
 export function calculateFingerprintSync(
   rootDir: string,
   options?: FingerprintOptions
-): FingerprintResult | null {
+): FingerprintResult {
   const config: FingerprintConfig = {
     rootDir,
     exclude: options?.exclude,
@@ -158,7 +166,15 @@ export function calculateFingerprintSync(
     }
   }
 
-  return mergeHashes(inputHashes, config);
+  const result = mergeHashes(inputHashes, config);
+  if (result == null) {
+    return {
+      hash: EMPTY_HASH,
+      inputs: [],
+    };
+  }
+
+  return result;
 }
 
 function calculateEntryHashForPathSync(

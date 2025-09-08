@@ -24,9 +24,7 @@ const fingerprintSync = calculateFingerprintSync(path, options);
 const isMatch = fingerprint.hash === fingerprintSync.hash;
 
 console.log("--- Check ---");
-console.log(
-  `Fingerprint: ${isMatch ? "match ✅" : "mismatch ❌"}`
-);
+console.log(`Fingerprint: ${isMatch ? "match ✅" : "mismatch ❌"}`);
 
 if (!isMatch) {
   console.log("--- Fingerprint Sync ---");
