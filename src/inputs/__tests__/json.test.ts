@@ -90,6 +90,8 @@ describe("calculateJsonHash", () => {
     expect(result.type).toBe("json");
     expect(result.key).toBe("json:test");
     expect(result.json).toEqual(data);
-    expect(result.hash).toMatchInlineSnapshot(`"43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"`);
+    expect(result.hash).toMatchInlineSnapshot(
+      `"43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"`,
+    );
   });
 });

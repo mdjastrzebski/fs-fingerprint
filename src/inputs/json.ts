@@ -3,7 +3,7 @@ import { hashContent } from "../utils.js";
 
 export function calculateJsonHash(
   input: FingerprintJsonInput,
-  config: FingerprintConfig
+  config: FingerprintConfig,
 ): FingerprintJsonHash {
   const normalizedData = normalizeObject(input.json);
   const jsonString = JSON.stringify(normalizedData);

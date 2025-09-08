@@ -10,7 +10,7 @@ const noopWrapper = async (fn: () => PromiseLike<string>) => fn();
 
 export async function calculateFileHash(
   path: string,
-  config: FingerprintConfig
+  config: FingerprintConfig,
 ): Promise<FingerprintFileHash | null> {
   if (isExcludedPath(path, config)) {
     return null;
@@ -41,7 +41,7 @@ export async function calculateFileHash(
 
 export function calculateFileHashSync(
   path: string,
-  config: FingerprintConfig
+  config: FingerprintConfig,
 ): FingerprintFileHash | null {
   if (isExcludedPath(path, config)) {
     return null;

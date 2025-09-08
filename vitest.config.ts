@@ -6,6 +6,6 @@ export default defineConfig({
     coverage: {
       include: ["src/**"],
       exclude: ["benchmarks/**", "dist/**", "node_modules/**", "scripts/**"],
-    }
+    },
   },
 });

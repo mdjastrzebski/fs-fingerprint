@@ -2,7 +2,12 @@ import { createHash } from "node:crypto";
 import { expect, test } from "vitest";
 
 import { EMPTY_HASH } from "../constants.js";
-import { type FingerprintConfig, type FingerprintFileHash, hashContent, mergeHashes } from "../index.js";
+import {
+  type FingerprintConfig,
+  type FingerprintFileHash,
+  hashContent,
+  mergeHashes,
+} from "../index.js";
 
 test("hashContent respects null hash algorithm", () => {
   const config: FingerprintConfig = {
@@ -30,7 +35,12 @@ test("mergeHashes respects null hash algorithm", () => {
     hashAlgorithm: "null",
   };
 
-  const fileInput: FingerprintFileHash = { key: "test", hash: "123", type: "file", path: "fake/path" };
+  const fileInput: FingerprintFileHash = {
+    key: "test",
+    hash: "123",
+    type: "file",
+    path: "fake/path",
+  };
 
   const result = mergeHashes([fileInput], config);
   expect(result).toEqual({
@@ -40,13 +50,18 @@ test("mergeHashes respects null hash algorithm", () => {
 });
 
 test("mergeHashes uses default hash algorithm if not specified", () => {
-    const config: FingerprintConfig = {
-      rootDir: "/does/not/matter",
-    };
-  
-    const fileInput: FingerprintFileHash = { key: "test", hash: "123", type: "file", path: "fake/path" };
-  
-    const result = mergeHashes([fileInput], config);
-    const resultSha1 = mergeHashes([fileInput], { ...config, hashAlgorithm: "sha1" });
-    expect(result).toEqual(resultSha1);
-  });
+  const config: FingerprintConfig = {
+    rootDir: "/does/not/matter",
+  };
+
+  const fileInput: FingerprintFileHash = {
+    key: "test",
+    hash: "123",
+    type: "file",
+    path: "fake/path",
+  };
+
+  const result = mergeHashes([fileInput], config);
+  const resultSha1 = mergeHashes([fileInput], { ...config, hashAlgorithm: "sha1" });
+  expect(result).toEqual(resultSha1);
+});

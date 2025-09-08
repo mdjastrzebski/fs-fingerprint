@@ -8,7 +8,7 @@ import { calculateFileHash, calculateFileHashSync } from "./file.js";
 
 export async function calculateDirectoryHash(
   path: string,
-  config: FingerprintConfig
+  config: FingerprintConfig,
 ): Promise<FingerprintDirectoryHash | null> {
   if (isExcludedPath(path, config)) {
     return null;
@@ -28,13 +28,13 @@ export async function calculateDirectoryHash(
         console.warn(`fs-fingerprint: skipping ${entry.name} in ${path}`);
         return null;
       }
-    })
+    }),
   );
 
   const normalizedPath = normalizeDirPath(path);
   const merged = mergeHashes(
     entryHashes.filter((hash) => hash != null),
-    config
+    config,
   );
   if (merged == null) {
     return null;
@@ -51,7 +51,7 @@ export async function calculateDirectoryHash(
 
 export function calculateDirectoryHashSync(
   path: string,
-  config: FingerprintConfig
+  config: FingerprintConfig,
 ): FingerprintDirectoryHash | null {
   if (isExcludedPath(path, config)) {
     return null;

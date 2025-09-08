@@ -2,7 +2,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { Bench } from "tinybench";
 
-import { calculateFingerprint, calculateFingerprintSync, type FingerprintOptions } from "../src/index.js";
+import {
+  calculateFingerprint,
+  calculateFingerprintSync,
+  type FingerprintOptions,
+} from "../src/index.js";
 import { RepoManager } from "./fixtures/repos.js";
 
 const isBaseline = process.argv.includes("--baseline");
@@ -28,8 +32,8 @@ async function runBenchmarks(): Promise<void> {
   });
 
   // Lodash benchmarks
-    const lodashPath = repoPaths.get("lodash");
-    if (lodashPath) {
+  const lodashPath = repoPaths.get("lodash");
+  if (lodashPath) {
     bench.add("lodash-sync", () => {
       calculateFingerprintSync(lodashPath);
     });
@@ -39,32 +43,32 @@ async function runBenchmarks(): Promise<void> {
   }
 
   // Express benchmarks
-    const expressPath = repoPaths.get("express");
-    if (expressPath) {
-      bench.add("express-sync", () => {
-        calculateFingerprintSync(expressPath);
-      });
-      bench.add("express", async () => {
-        await calculateFingerprint(expressPath);
-      });
-    }
- 
+  const expressPath = repoPaths.get("express");
+  if (expressPath) {
+    bench.add("express-sync", () => {
+      calculateFingerprintSync(expressPath);
+    });
+    bench.add("express", async () => {
+      await calculateFingerprint(expressPath);
+    });
+  }
+
   // React benchmarks
-    const reactPath = repoPaths.get("react");
-    if (reactPath) {
-      bench.add("react-sync", () => {
-        calculateFingerprintSync(reactPath);
-      });
-      bench.add("react", async () => {
-        await calculateFingerprint(reactPath);
-      });
-    }
-  
+  const reactPath = repoPaths.get("react");
+  if (reactPath) {
+    bench.add("react-sync", () => {
+      calculateFingerprintSync(reactPath);
+    });
+    bench.add("react", async () => {
+      await calculateFingerprint(reactPath);
+    });
+  }
+
   // React Native benchmarks
   const reactNativeOptions: FingerprintOptions = {
     include: ["packages", "package.json", "README.md"],
     exclude: ["**/node_modules/**", "**/.git/**"],
-  }
+  };
 
   const reactNativePath = repoPaths.get("react-native");
   if (reactNativePath) {
@@ -96,14 +100,12 @@ async function runBenchmarks(): Promise<void> {
   console.table(
     bench.table((task) => ({
       "Task name": task.name,
-      "Latency med (ms)": `${task.result?.latency.p50?.toFixed(
-        2
-      )} \xB1 ${task.result?.latency.mad?.toFixed(2)}`,
+      "Latency med (ms)": `${task.result?.latency.p50?.toFixed(2)} \xB1 ${task.result?.latency.mad?.toFixed(2)}`,
       "Throughput med (ops/s)": `${task.result?.throughput?.p50?.toFixed(
-        2
+        2,
       )} \xB1 ${task.result?.throughput?.mad?.toFixed(2)}`,
       Samples: task.result?.latency.samples.length,
-    }))
+    })),
   );
 
   // Write machine-readable JSON output
@@ -155,7 +157,7 @@ async function runBenchmarks(): Promise<void> {
   const baselineFilepath = join(benchmarkDir, "baseline.json");
   if (!existsSync(baselineFilepath)) {
     console.error(
-      "\n⚠️  No baseline data found. Run with --baseline flag first to create baseline."
+      "\n⚠️  No baseline data found. Run with --baseline flag first to create baseline.",
     );
     return;
   }
@@ -165,7 +167,7 @@ async function runBenchmarks(): Promise<void> {
 
   const comparisonTable = jsonOutput.benchmarks.map((current) => {
     const baseline = baselineData.benchmarks.find(
-      (b: { name: string; latency: { p50: number } }) => b.name === current.name
+      (b: { name: string; latency: { p50: number } }) => b.name === current.name,
     );
 
     if (!baseline) {
