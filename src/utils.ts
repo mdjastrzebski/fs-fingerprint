@@ -44,9 +44,14 @@ export function mergeHashes(
   };
 }
 
-export function isExcludedPath(path: string, config: FingerprintConfig): boolean {
+export function isExcludedPath(
+  path: string,
+  config: FingerprintConfig,
+  skipIgnoreObject?: boolean,
+): boolean {
   return Boolean(
-    config.exclude?.some((matcher) => matcher(path)) || config.ignoreObject?.ignores(path),
+    config.exclude?.some((matcher) => matcher(path)) ||
+      (skipIgnoreObject ? false : config.ignoreObject?.ignores(path)),
   );
 }
 

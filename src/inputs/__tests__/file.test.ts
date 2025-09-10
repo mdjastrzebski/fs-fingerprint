@@ -1,104 +1,72 @@
 import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import picomatch from "picomatch";
 import { beforeEach, expect, test } from "vitest";
 
+import { createRootDir } from "../../../test-utils/fs.js";
 import { EMPTY_HASH } from "../../constants.js";
 import type { FingerprintConfig } from "../../types.js";
 import { calculateFileHash, calculateFileHashSync } from "../file.js";
 
-const config: FingerprintConfig = {
-  rootDir: path.join(os.tmpdir(), "file-test"),
+const { rootDir, writeFile } = createRootDir("file-test");
+
+const baseConfig: FingerprintConfig = {
+  rootDir,
   hashAlgorithm: "sha1",
 };
 
 beforeEach(() => {
-  if (fs.existsSync(config.rootDir)) {
-    fs.rmSync(config.rootDir, { recursive: true });
+  if (fs.existsSync(baseConfig.rootDir)) {
+    fs.rmSync(baseConfig.rootDir, { recursive: true });
   }
 
-  fs.mkdirSync(config.rootDir, { recursive: true });
+  fs.mkdirSync(baseConfig.rootDir, { recursive: true });
 });
 
-test("hash file input", async () => {
-  writeFile("test.txt", "Hello, world!");
+test("calculateFileHash handles regular file", async () => {
+  writeFile("file-1.txt", "Hello, world!");
 
-  const fingerprintSync = calculateFileHashSync("test.txt", config);
-  const fingerprint = await calculateFileHash("test.txt", config);
-  expect(fingerprintSync).toEqual(fingerprint);
-  expect(fingerprint).toMatchInlineSnapshot(`
-    {
-      "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-      "key": "file:test.txt",
-      "path": "test.txt",
-      "type": "file",
-    }
-  `);
+  const hash = await calculateFileHash("file-1.txt", baseConfig);
+  expect(hash).toEqual({
+    hash: "943a702d06f34599aee1f8da8ef9f7296031d699",
+    key: "file:file-1.txt",
+    path: "file-1.txt",
+    type: "file",
+  });
 
-  writeFile("test.txt", "Hello, there!");
-  const fingerprintSync2 = calculateFileHashSync("test.txt", config);
-  const fingerprint2 = await calculateFileHash("test.txt", config);
-  expect(fingerprintSync2).toEqual(fingerprint2);
-  expect(fingerprint2).toMatchInlineSnapshot(`
-    {
-      "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
-      "key": "file:test.txt",
-      "path": "test.txt",
-      "type": "file",
-    }
-  `);
+  const hashSync = calculateFileHashSync("file-1.txt", baseConfig);
+  expect(hashSync).toEqual(hash);
 });
 
-test("excludes ignored paths", async () => {
-  writeFile("test1.txt", "Hello, world!");
-  writeFile("test2.txt", "Hello, there!");
-  writeFile("test3.md", "Hello, other!");
+test("calculateFileHash rejects trailing slash", async () => {
+  writeFile("file-1.txt", "Hello, world!");
 
-  const config2: FingerprintConfig = {
-    ...config,
-    exclude: ["test2.txt", "*.md"].map((pattern) => picomatch(pattern)),
-  };
-
-  const fingerprintSync1 = calculateFileHashSync("test1.txt", config2);
-  const fingerprint1 = await calculateFileHash("test1.txt", config2);
-  expect(fingerprintSync1).toEqual(fingerprint1);
-  expect(fingerprint1).toMatchInlineSnapshot(`
-    {
-      "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-      "key": "file:test1.txt",
-      "path": "test1.txt",
-      "type": "file",
-    }
-  `);
-
-  const fingerprintSync2 = calculateFileHashSync("test2.txt", config2);
-  const fingerprint2 = await calculateFileHash("test2.txt", config2);
-  expect(fingerprintSync2).toEqual(fingerprint2);
-  expect(fingerprint2).toMatchInlineSnapshot(`null`);
-
-  const fingerprintSync3 = calculateFileHashSync("test3.md", config2);
-  const fingerprint3 = await calculateFileHash("test3.md", config2);
-  expect(fingerprintSync3).toEqual(fingerprint3);
-  expect(fingerprint3).toMatchInlineSnapshot(`null`);
+  await expect(() => calculateFileHash("file-1.txt/", baseConfig)).rejects.toThrow();
+  expect(() => calculateFileHashSync("file-1.txt/", baseConfig)).toThrow();
 });
 
-test("respects null hash algorithm", async () => {
-  writeFile("test.txt", "Hello, world!");
-  const config2: FingerprintConfig = {
-    ...config,
-    hashAlgorithm: "null",
-  };
+test("calculateFileHash handles excluded paths", async () => {
+  writeFile("file-1.txt", "Hello, world!");
 
-  const hash = await calculateFileHash("test.txt", config2);
-  const hashSync = calculateFileHashSync("test.txt", config2);
-  expect(hash).toEqual(hashSync);
-  expect(hash?.hash).toBe(EMPTY_HASH);
+  const testConfig = { ...baseConfig, exclude: [picomatch("file-1.txt")] };
+  const hash = await calculateFileHash("file-1.txt", testConfig);
+  expect(hash).toBeNull();
+
+  const hashSync = calculateFileHashSync("file-1.txt", testConfig);
+  expect(hashSync).toEqual(hash);
 });
 
-function writeFile(filePath: string, content: string) {
-  const absoluteFilePath = path.join(config.rootDir, filePath);
-  const absoluteDirPath = path.dirname(absoluteFilePath);
-  fs.mkdirSync(absoluteDirPath, { recursive: true });
-  fs.writeFileSync(absoluteFilePath, content);
-}
+test("calculateFileHash handles null hash algorithm", async () => {
+  writeFile("file-1.txt", "Hello, world!");
+
+  const testConfig = { ...baseConfig, hashAlgorithm: "null" };
+  const hash = await calculateFileHash("file-1.txt", testConfig);
+  expect(hash).toEqual({
+    hash: EMPTY_HASH,
+    key: "file:file-1.txt",
+    path: "file-1.txt",
+    type: "file",
+  });
+
+  const hashSync = calculateFileHashSync("file-1.txt", testConfig);
+  expect(hashSync).toEqual(hash);
+});

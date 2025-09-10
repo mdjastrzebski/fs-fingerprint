@@ -1,24 +1,34 @@
-import os from "node:os";
-import path from "node:path";
 import { expect, test } from "vitest";
 
-import type { FingerprintConfig } from "../../types.js";
+import { EMPTY_HASH } from "../../constants.js";
+import type { FingerprintConfig, FingerprintContentInput } from "../../types.js";
 import { calculateContentHash } from "../content.js";
 
-const config: FingerprintConfig = {
-  rootDir: path.join(os.tmpdir(), "content-test"),
-  hashAlgorithm: "sha1",
+const baseConfig: FingerprintConfig = {
+  rootDir: "not-used",
 };
 
-test("calculateContentHash", () => {
-  const input = { key: "test", content: "Hello, world!" };
-  const fingerprint = calculateContentHash(input, config);
-  expect(fingerprint).toMatchInlineSnapshot(`
-    {
-      "content": "Hello, world!",
-      "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-      "key": "content:test",
-      "type": "content",
-    }
-  `);
+test("calculateContentHash handles regular content", () => {
+  const content: FingerprintContentInput = { key: "content-1", content: "Hello, world!" };
+
+  const hash = calculateContentHash(content, baseConfig);
+  expect(hash).toEqual({
+    hash: "943a702d06f34599aee1f8da8ef9f7296031d699",
+    key: "content:content-1",
+    type: "content",
+    content: "Hello, world!",
+  });
+});
+
+test("calculateContentHash handles null hash algorithm", () => {
+  const content: FingerprintContentInput = { key: "content-1", content: "Hello, world!" };
+
+  const testConfig = { ...baseConfig, hashAlgorithm: "null" };
+  const hash = calculateContentHash(content, testConfig);
+  expect(hash).toEqual({
+    hash: EMPTY_HASH,
+    key: "content:content-1",
+    type: "content",
+    content: "Hello, world!",
+  });
 });

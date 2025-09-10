@@ -1,180 +1,159 @@
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import picomatch from "picomatch";
 import { beforeEach, expect, test, vi } from "vitest";
 
+import { findInput } from "../../../test-utils/assert.js";
+import { formatInputHash } from "../../../test-utils/format.js";
+import { createRootDir } from "../../../test-utils/fs.js";
 import type { FingerprintConfig } from "../../types.js";
 import { calculateDirectoryHash, calculateDirectoryHashSync } from "../directory.js";
 
-const config: FingerprintConfig = {
-  rootDir: path.join(os.tmpdir(), "directory-test"),
+const { rootDir, writePaths } = createRootDir("directory-test");
+
+const baseConfig: FingerprintConfig = {
+  rootDir,
   hashAlgorithm: "sha1",
 };
 
 beforeEach(() => {
-  if (fs.existsSync(config.rootDir)) {
-    fs.rmSync(config.rootDir, { recursive: true });
+  if (fs.existsSync(baseConfig.rootDir)) {
+    fs.rmSync(baseConfig.rootDir, { recursive: true });
   }
 
-  fs.mkdirSync(config.rootDir, { recursive: true });
+  fs.mkdirSync(baseConfig.rootDir, { recursive: true });
 });
 
-test("hash directory input", async () => {
-  writeFile("test-dir/test.txt", "Hello, world!");
+test("calculateDirectoryHash handles simple directories", async () => {
+  writePaths(["dir-1/file-1.txt", "dir-1/file-2.txt", "dir-1/nested/file-3.txt"]);
 
-  const fingerprintSync = calculateDirectoryHashSync("test-dir", config);
-  const fingerprint = await calculateDirectoryHash("test-dir", config);
-  expect(fingerprintSync).toEqual(fingerprint);
-  expect(fingerprint).toMatchInlineSnapshot(`
-    {
-      "children": [
-        {
-          "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-          "key": "file:test-dir/test.txt",
-          "path": "test-dir/test.txt",
-          "type": "file",
-        },
-      ],
-      "hash": "b0525e564d1cc96ceb59b55150e30f51bb0600c9",
-      "key": "directory:test-dir/",
-      "path": "test-dir/",
-      "type": "directory",
-    }
+  const hash = await calculateDirectoryHash("dir-1", baseConfig);
+  expect(formatInputHash(hash)).toMatchInlineSnapshot(`
+    "- DIRECTORY dir-1/ - 066249a654b92686b21bca840812bf716652959c
+        - DIRECTORY dir-1/nested/ - 75415966766ba875dc03435573e1a5438d4c8e36
+            - FILE dir-1/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - FILE dir-1/file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - FILE dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+    "
   `);
+
+  const hashSync = calculateDirectoryHashSync("dir-1", baseConfig);
+  expect(hashSync).toEqual(hash);
+
+  const hashWithSlash = await calculateDirectoryHash("dir-1/", baseConfig);
+  expect(hashWithSlash).toEqual(hash);
+
+  const hashWithSlashSync = calculateDirectoryHashSync("dir-1/", baseConfig);
+  expect(hashWithSlashSync).toEqual(hash);
 });
 
-test("hash directory input with nesting", async () => {
-  writeFile("test-dir/test.txt", "Hello, world!");
-  writeFile("test-dir/nested/test.txt", "Hello, there!");
+test("calculateDirectoryHash handles nested directories", async () => {
+  writePaths(["dir-1/file-1.txt", "dir-1/nested/file-2.txt"]);
 
-  const fingerprintSync = calculateDirectoryHashSync("test-dir", config);
-  const fingerprint = await calculateDirectoryHash("test-dir", config);
-  expect(fingerprintSync).toEqual(fingerprint);
-  expect(fingerprint).toMatchInlineSnapshot(`
-    {
-      "children": [
-        {
-          "children": [
-            {
-              "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
-              "key": "file:test-dir/nested/test.txt",
-              "path": "test-dir/nested/test.txt",
-              "type": "file",
-            },
-          ],
-          "hash": "e765acb113f5393fe1baa2f0d9bb1e8de1d04523",
-          "key": "directory:test-dir/nested/",
-          "path": "test-dir/nested/",
-          "type": "directory",
-        },
-        {
-          "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-          "key": "file:test-dir/test.txt",
-          "path": "test-dir/test.txt",
-          "type": "file",
-        },
-      ],
-      "hash": "8f01f240e6da14421a0b4b8c8be1c5afda2e03e1",
-      "key": "directory:test-dir/",
-      "path": "test-dir/",
-      "type": "directory",
-    }
+  const hash = await calculateDirectoryHash("dir-1/nested", baseConfig);
+  expect(formatInputHash(hash)).toMatchInlineSnapshot(`
+    "- DIRECTORY dir-1/nested/ - 6e24c390c930b8dff1a73555d82e35ef18b83142
+        - FILE dir-1/nested/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+    "
   `);
+
+  const hashSync = calculateDirectoryHashSync("dir-1/nested", baseConfig);
+  expect(hashSync).toEqual(hash);
 });
 
-test("hash directory excludes ignored paths", async () => {
-  writeFile("test-dir/test.txt", "Hello, world!");
-  writeFile("test-dir/test.md", "This should be ignored");
-  writeFile("test-dir/nested/test.txt", "Hello, there!");
-  writeFile("test-dir/ignored/test.txt", "This should be ignored");
-  writeFile("test-dir/ignored/test2", "This should be ignored");
+test("calculateFileHash handles excluded paths for paths", async () => {
+  writePaths([
+    "dir-1/file-1.txt",
+    "dir-1/file-2.md",
+    "dir-1/nested/file-3.txt",
+    "dir-1/nested/file-4.md",
+  ]);
 
-  const config2: FingerprintConfig = {
-    ...config,
-    exclude: ["**/ignored", "*.md"].map((pattern) => picomatch(pattern)),
-  };
-
-  const fingerprintSync = calculateDirectoryHashSync("test-dir", config2);
-  const fingerprint = await calculateDirectoryHash("test-dir", config2);
-  expect(fingerprintSync).toEqual(fingerprint);
-  expect(fingerprint).toMatchInlineSnapshot(`
-    {
-      "children": [
-        {
-          "children": [
-            {
-              "hash": "f84640c76bd37e72446bc21d36613c3bb38dd788",
-              "key": "file:test-dir/nested/test.txt",
-              "path": "test-dir/nested/test.txt",
-              "type": "file",
-            },
-          ],
-          "hash": "e765acb113f5393fe1baa2f0d9bb1e8de1d04523",
-          "key": "directory:test-dir/nested/",
-          "path": "test-dir/nested/",
-          "type": "directory",
-        },
-        {
-          "hash": "ac1b00033bb1fee6c174dcedbed0cf1994b02b47",
-          "key": "file:test-dir/test.md",
-          "path": "test-dir/test.md",
-          "type": "file",
-        },
-        {
-          "hash": "943a702d06f34599aee1f8da8ef9f7296031d699",
-          "key": "file:test-dir/test.txt",
-          "path": "test-dir/test.txt",
-          "type": "file",
-        },
-      ],
-      "hash": "56bb145d176e8e64653c1f656fd5f2d0c67391ff",
-      "key": "directory:test-dir/",
-      "path": "test-dir/",
-      "type": "directory",
-    }
+  const testConfig = { ...baseConfig, exclude: [picomatch("**/*.md")] };
+  const hash = await calculateDirectoryHash("dir-1", testConfig);
+  expect(formatInputHash(hash)).toMatchInlineSnapshot(`
+    "- DIRECTORY dir-1/ - cf3d09eec927f7b2a83bdefa17588affd9db6b17
+        - DIRECTORY dir-1/nested/ - 75415966766ba875dc03435573e1a5438d4c8e36
+            - FILE dir-1/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - FILE dir-1/file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+    "
   `);
+
+  expect(findInput(hash?.children, "dir-1/file-1.txt")).toBeTruthy();
+  expect(findInput(hash?.children, "dir-1/nested/file-3.txt")).toBeTruthy();
+  expect(findInput(hash?.children, "dir-1/file-2.md")).toBeNull();
+  expect(findInput(hash?.children, "dir-1/nested/file-4.md")).toBeNull();
+
+  const hashSync = calculateDirectoryHashSync("dir-1", testConfig);
+  expect(hashSync).toEqual(hash);
 });
 
-test("hash directory handles negative ignore paths", async () => {
-  writeFile("ignore/test.md", "Hello, world!");
+test("calculateFileHash handles excluded paths for directory", async () => {
+  writePaths(["dir-1/file-1.txt", "dir-1/nested/file2.txt"]);
 
-  const config2: FingerprintConfig = {
-    ...config,
-    exclude: ["ignore/*"].map((pattern) => picomatch(pattern)),
-  };
+  const testConfig = { ...baseConfig, exclude: [picomatch("dir-1")] };
+  const hash = await calculateDirectoryHash("dir-1", testConfig);
+  expect(formatInputHash(hash)).toBe("(null)\n");
 
-  const fingerprintSync = calculateDirectoryHashSync(".", config2);
-  const fingerprint = await calculateDirectoryHash(".", config2);
-  expect(fingerprintSync).toEqual(fingerprint);
-  expect(fingerprint).toMatchInlineSnapshot(`null`);
+  expect(findInput(hash?.children, "dir-1/file-1.txt")).toBeNull();
+  expect(findInput(hash?.children, "dir-1/nested/file-2.txt")).toBeNull();
+
+  const hashSync = calculateDirectoryHashSync("dir-1", testConfig);
+  expect(hashSync).toEqual(hash);
+});
+
+test("calculateFileHash handles null hash algorithm", async () => {
+  writePaths(["dir-1/file-1.txt", "dir-1/nested/file-2.txt"]);
+
+  const testConfig = { ...baseConfig, hashAlgorithm: "null" };
+  const hash = await calculateDirectoryHash("dir-1", testConfig);
+  expect(formatInputHash(hash)).toMatchInlineSnapshot(`
+    "- DIRECTORY dir-1/ - (null)
+        - DIRECTORY dir-1/nested/ - (null)
+            - FILE dir-1/nested/file-2.txt - (null)
+        - FILE dir-1/file-1.txt - (null)
+    "
+  `);
+
+  const hashSync = calculateDirectoryHashSync("dir-1", testConfig);
+  expect(hashSync).toEqual(hash);
+});
+
+test("calculateFileHash for empty directory returns null", async () => {
+  writePaths(["dir-1/"]);
+
+  const testConfig = { ...baseConfig };
+  const hash = await calculateDirectoryHash("dir-1", testConfig);
+  expect(hash).toBeNull();
+
+  const hashSync = calculateDirectoryHashSync("dir-1", testConfig);
+  expect(hashSync).toBeNull();
+});
+
+test("calculateFileHash for directory with all excluded files returns null", async () => {
+  writePaths(["dir-1/file-1.txt", "dir-1/nested/file-2.txt"]);
+
+  const testConfig = { ...baseConfig, exclude: [picomatch("**/*.txt")] };
+  const hash = await calculateDirectoryHash("dir-1", testConfig);
+  expect(hash).toBeNull();
+
+  const hashSync = calculateDirectoryHashSync("dir-1", testConfig);
+  expect(hashSync).toBeNull();
 });
 
 test("calculateDirectoryHash warns for non-file/non-directory entries", async () => {
-  fs.mkdirSync(path.join(config.rootDir, "dir"));
-  const devNullPath = path.join(config.rootDir, "dir", "dev-null-link");
-  fs.symlinkSync("/dev/null", devNullPath);
+  writePaths(["dir-1/"]);
+  fs.symlinkSync("/dev/null", path.join(rootDir, "dir-1", "dev-null-link"));
 
-  const consoleWarnSpy = vi.spyOn(console, "warn");
+  const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  await calculateDirectoryHash("dir-1", baseConfig);
+  expect(consoleWarnSpy).toHaveBeenCalledWith(
+    'fs-fingerprint: skipping "dir-1/dev-null-link" (not a file or directory)',
+  );
 
-  await calculateDirectoryHash("dir", config);
-  expect(consoleWarnSpy).toHaveBeenCalledWith("fs-fingerprint: skipping dev-null-link in dir");
+  consoleWarnSpy.mockClear();
+  calculateDirectoryHashSync("dir-1", baseConfig);
+  expect(consoleWarnSpy).toHaveBeenCalledWith(
+    'fs-fingerprint: skipping "dir-1/dev-null-link" (not a file or directory)',
+  );
 });
-
-test("calculateDirectoryHashSync warns for non-file/non-directory entries", async () => {
-  fs.mkdirSync(path.join(config.rootDir, "dir"));
-  const devNullPath = path.join(config.rootDir, "dir", "dev-null-link");
-  fs.symlinkSync("/dev/null", devNullPath);
-
-  const consoleWarnSpy = vi.spyOn(console, "warn");
-
-  calculateDirectoryHashSync("dir", config);
-  expect(consoleWarnSpy).toHaveBeenCalledWith("fs-fingerprint: skipping dev-null-link in dir");
-});
-
-function writeFile(filePath: string, content: string) {
-  const absoluteFilePath = path.join(config.rootDir, filePath);
-  const absoluteDirPath = path.dirname(absoluteFilePath);
-  fs.mkdirSync(absoluteDirPath, { recursive: true });
-  fs.writeFileSync(absoluteFilePath, content);
-}

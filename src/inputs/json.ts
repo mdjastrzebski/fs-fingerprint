@@ -6,7 +6,9 @@ export function calculateJsonHash(
   config: FingerprintConfig,
 ): FingerprintJsonHash {
   const normalizedData = normalizeObject(input.json);
-  const jsonString = JSON.stringify(normalizedData);
+
+  // JSON.stringify will return "undefined" for undefined values, instead of serializing them as "undefined"
+  const jsonString = normalizedData === undefined ? "undefined" : JSON.stringify(normalizedData);
 
   return {
     type: "json",

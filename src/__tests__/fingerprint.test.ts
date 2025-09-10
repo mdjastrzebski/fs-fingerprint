@@ -1,14 +1,17 @@
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { beforeEach, expect, test } from "vitest";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { beforeEach, expect, test, vi } from "vitest";
 
-import { EMPTY_HASH } from "../constants.js";
-import { calculateFingerprint, calculateFingerprintSync } from "../index.js";
-import type { FingerprintInputHash, FingerprintOptions, FingerprintResult } from "../types.js";
-import { normalizeFilePath } from "../utils.js";
+import { findInput } from "../../test-utils/assert.js";
+import { formatFingerprint } from "../../test-utils/format.js";
+import { createRootDir } from "../../test-utils/fs.js";
+import {
+  calculateFingerprint,
+  calculateFingerprintSync,
+  type FingerprintOptions,
+} from "../index.js";
 
-const rootDir = path.join(os.tmpdir(), "fingerprint-test");
+const { rootDir, writePaths, writeFile } = createRootDir("fingerprint-test");
 
 beforeEach(() => {
   if (fs.existsSync(rootDir)) {
@@ -18,466 +21,321 @@ beforeEach(() => {
   fs.mkdirSync(rootDir, { recursive: true });
 });
 
-test("calculate fingerprint all source types", async () => {
-  writeFile("test1.txt");
-  writeFile("test2.txt");
-  writeFile("test3.txt");
-  writeFile("dir/test4.txt");
-  writeFile("dir2/nested/test5.txt");
+test("calculateFingerprint supports files and directories", async () => {
+  writePaths(["file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);
 
+  const fingerprint = await calculateFingerprint(rootDir);
+
+  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
+    "Hash: 768e1dbe174582c263ef20a0858737e3c5d027f5
+    Inputs:
+      - DIRECTORY dir-1/ - ec848d637ae6d52a61e7bfa6870ad921fc6ae048
+          - FILE dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - DIRECTORY dir-2/ - 53b20bf3e108f2233eed205dd3696067be869e28
+          - DIRECTORY dir-2/nested/ - b8645c615700a17e8770dfa27a513f0ee1cdf890
+              - FILE dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+    "
+  `);
+
+  expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-1/file-2.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-2/nested/file-3.txt")).toBeTruthy();
+
+  const fingerprintSync = calculateFingerprintSync(rootDir);
+  expect(fingerprintSync).toEqual(fingerprint);
+});
+
+test("calculateFingerprint supports content inputs", async () => {
   const options: FingerprintOptions = {
     extraInputs: [
-      { key: "test-content", content: "Consectetur adipiscing elit" },
-      { key: "test-json", json: { foo: "bar", baz: 123 } },
+      { key: "test-content-1", content: "Hello, world!" },
+      { key: "test-content-2", content: "Lorem ipsum" },
     ],
-    hashAlgorithm: "sha1",
   };
 
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
   const fingerprint = await calculateFingerprint(rootDir, options);
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 161dd0513f211ca5f866f95c483f5b8628f33273
+    "Hash: 13e2ed72e8e0b878ecbcea2af1ada97e807c2e4f
     Inputs:
-      - CONTENT test-content - 3167fb5210b08f623c97f57ffb4903081ba4d6a5
-      - DIRECTORY dir/ - f443674fae0a01bff6275a5905bb9d9b057dedab
-          - FILE dir/test4.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - DIRECTORY dir2/ - 37f999cffd4e4f6e2b0c232987070cbaacf81047
-          - DIRECTORY dir2/nested/ - 5122f0891ddb28b59aa11cba7526cd225baa3d58
-              - FILE dir2/nested/test5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE test2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE test3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - JSON test-json - 2e0706ddb09be38781b9b2bcc14c75d7b028ce61
+      - CONTENT test-content-1 - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - CONTENT test-content-2 - 94912be8b3fb47d4161ea50e5948c6296af6ca05
     "
   `);
-  expect(fingerprintSync).toEqual(fingerprint);
-  expect(findInput(fingerprint.inputs, "test1.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "test2.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "test3.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir/")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir/test4.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir2/")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir2/nested/")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir2/nested/test5.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "test-content")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "test-json")).toBeTruthy();
 
-  const options2: FingerprintOptions = {
-    include: ["test1.txt", "test2.txt", "test3.txt", "dir", "dir2/"],
+  expect(findInput(fingerprint.inputs, "test-content-1")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "test-content-2")).toBeTruthy();
+
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
+  expect(fingerprintSync).toEqual(fingerprint);
+});
+
+test("calculateFingerprint supports json inputs", async () => {
+  const options: FingerprintOptions = {
     extraInputs: [
-      { key: "test-json", json: { baz: 123, foo: "bar" } },
-      { key: "test-content", content: "Consectetur adipiscing elit" },
+      { key: "test-json-1", json: { foo: "bar", baz: 123 } },
+      { key: "test-json-2", json: ["Hello", 123, null, { foo: "bar" }, ["nested", "array"]] },
+      { key: "test-json-3", json: "Hello, world!" },
+      { key: "test-json-4", json: 123 },
+      { key: "test-json-5", json: true },
+      { key: "test-json-6", json: false },
+      { key: "test-json-7", json: null },
+      { key: "test-json-8", json: undefined },
     ],
-    hashAlgorithm: "sha1",
-  };
-
-  const fingerprintSync2 = calculateFingerprintSync(rootDir, options2);
-  const fingerprint2 = await calculateFingerprint(rootDir, options2);
-  expect(fingerprintSync2).toEqual(fingerprint2);
-  expect(fingerprint2).toEqual(fingerprint);
-});
-
-test("calculate with basic include", async () => {
-  writeFile("test1.txt");
-  writeFile("dir1/test2.txt");
-  writeFile("dir1/nested/test3.txt");
-  writeFile("dir2/test4.txt");
-  writeFile("dir3/test5.txt");
-  writeFile("dir3/nested/test6.txt");
-
-  const options: FingerprintOptions = {
-    include: ["dir1", "dir2/", "dir3/nested/test.txt"],
-    hashAlgorithm: "sha1",
   };
 
   const fingerprint = await calculateFingerprint(rootDir, options);
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
 
-  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 7906524b8144b61e805fae7e8e6e834b2ee08e23
+  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(
+    `
+    "Hash: 4d4ae5db202291ebe5f18ee6543a61b350e61b1d
     Inputs:
-      - DIRECTORY dir1/ - 60b38207996aa6c2cf28575584ab1fdb593e3196
-          - DIRECTORY dir1/nested/ - 0eecb966eb8b1cf04df1fc5482cd1007a0cbfeea
-              - FILE dir1/nested/test3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-          - FILE dir1/test2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - DIRECTORY dir2/ - 5e6e2c5cc1a58efaa6d6cb170cd962b3706af940
-          - FILE dir2/test4.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - JSON test-json-1 - 2e0706ddb09be38781b9b2bcc14c75d7b028ce61
+      - JSON test-json-2 - 5ed10667370d4eee8fd1ec08cffef2c2002d2ce9
+      - JSON test-json-3 - bea2c9d7fd040292e0424938af39f7d6334e8d8a
+      - JSON test-json-4 - 40bd001563085fc35165329ea1ff5c5ecbdbbeef
+      - JSON test-json-5 - 5ffe533b830f08a0326348a9160afafc8ada44db
+      - JSON test-json-6 - 7cb6efb98ba5972a9b5090dc2e517fe14d12cb04
+      - JSON test-json-7 - 2be88ca4242c76e8253ac62474851065032d6833
+      - JSON test-json-8 - d5d4cd07616a542891b7ec2d0257b3a24b69856e
     "
-  `);
+  `,
+  );
+
+  expect(findInput(fingerprint.inputs, "test-json-1")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "test-json-2")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "test-json-3")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "test-json-4")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "test-json-5")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "test-json-6")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "test-json-7")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "test-json-8")).toBeTruthy();
+
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
   expect(fingerprintSync).toEqual(fingerprint);
 });
 
-test("calculate with nested include", async () => {
-  writeFile("test0.txt");
-  writeFile("dir1/test1.txt");
-  writeFile("dir1/nested/test2.txt");
-  writeFile("dir2/test3.txt");
-  writeFile("dir2/nested/test4.txt");
-  writeFile("dir3/test5.txt");
-  writeFile("dir3/nested/test6.txt");
+test("calculateFingerprint throws for unsupported input type", async () => {
+  const options: FingerprintOptions = {
+    // @ts-expect-error - This is intentionally invalid input type
+    extraInputs: [{ key: "test-json-1", unknown: "This will throw" }],
+  };
+
+  await expect(() => calculateFingerprint(rootDir, options)).rejects.toThrow(
+    /Unsupported input type/,
+  );
+  expect(() => calculateFingerprintSync(rootDir, options)).toThrow(/Unsupported input type/);
+});
+
+test("calculateFingerprint handles include patterns", async () => {
+  writePaths(["file-0.txt", "file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);
 
   const options: FingerprintOptions = {
-    include: ["dir1", "dir2/", "dir3/nested/test6.txt"],
-    hashAlgorithm: "sha1",
+    include: ["file-1.txt", "dir-1/file-2.txt", "dir-2/", "non-existent.txt", "non-existent-dir/"],
   };
 
   const fingerprint = await calculateFingerprint(rootDir, options);
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 09973524c16747b6fe9ea414a28624ed31be9786
+    "Hash: 2e320b4cd87db49db3619afafd6facece8e71561
     Inputs:
-      - DIRECTORY dir1/ - 5a7bcd18e48a9a41d850bd563289c99f4a31f17b
-          - DIRECTORY dir1/nested/ - baaef879143116824f5da067c17c3a8b591d0ec1
-              - FILE dir1/nested/test2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-          - FILE dir1/test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - DIRECTORY dir2/ - 4d9a94ac39aa42a87b6293d2d65eb1a18dd36851
-          - DIRECTORY dir2/nested/ - b40d8fae2a419e2973dd41c8ecf8cfd44a981185
-              - FILE dir2/nested/test4.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-          - FILE dir2/test3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE dir3/nested/test6.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - DIRECTORY dir-2/ - 53b20bf3e108f2233eed205dd3696067be869e28
+          - DIRECTORY dir-2/nested/ - b8645c615700a17e8770dfa27a513f0ee1cdf890
+              - FILE dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - FILE dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
   `);
+
+  expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-1/file-2.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-2/nested/file-3.txt")).toBeTruthy();
+
+  expect(findInput(fingerprint.inputs, "file-0.txt")).toBeNull();
+  expect(findInput(fingerprint.inputs, "non-existent.txt")).toBeNull();
+  expect(findInput(fingerprint.inputs, "non-existent-dir")).toBeNull();
+
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
   expect(fingerprintSync).toEqual(fingerprint);
-  expect(findInput(fingerprint.inputs, "dir1/test1.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir1/nested/test2.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir2/test3.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir2/nested/test4.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir3/test5.txt")).toBeNull();
-  expect(findInput(fingerprint.inputs, "dir3/nested/test6.txt")).toBeTruthy();
 });
 
-test("calculate with nested include", async () => {
-  writeFile("test0.txt");
-  writeFile("test1.txt");
-  writeFile("dir1/test2.txt");
-  writeFile("dir1/nested/test3.txt");
-  writeFile("dir2/test4.txt");
-  writeFile("dir2/nested/test5.txt");
-  writeFile("dir3/test6.txt");
-  writeFile("dir3/nested/test7.txt");
-  writeFile("dir3/test8.txt");
+test("calculateFingerprint handles exclude patterns", async () => {
+  writePaths([
+    "file-1.txt",
+    "file-2.md",
+    "dir-1/file-3.txt",
+    "dir-1/file-4.md",
+    "dir-2/nested/file-5.txt",
+    "dir-2/nested/file-6.md",
+    "dir-3/file-7.txt",
+  ]);
 
   const options: FingerprintOptions = {
-    include: ["test1.txt", "dir1", "dir2/nested", "dir3/nested/test7.txt"],
-    hashAlgorithm: "sha1",
+    exclude: ["**/*.md", "dir-1"],
   };
 
   const fingerprint = await calculateFingerprint(rootDir, options);
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: af63c7de0376bae9ad9745aaa4f3e8de788f9217
+    "Hash: 51ed5d9850c49fc23660f0e3fb651df774493a69
     Inputs:
-      - DIRECTORY dir1/ - 60b38207996aa6c2cf28575584ab1fdb593e3196
-          - DIRECTORY dir1/nested/ - 0eecb966eb8b1cf04df1fc5482cd1007a0cbfeea
-              - FILE dir1/nested/test3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-          - FILE dir1/test2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - DIRECTORY dir2/nested/ - 5122f0891ddb28b59aa11cba7526cd225baa3d58
-          - FILE dir2/nested/test5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE dir3/nested/test7.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - DIRECTORY dir-2/ - a8377c25773c71349b24d71cf93adf4a9f210c7b
+          - DIRECTORY dir-2/nested/ - 677ae87039746d91827b0804bcaab953e3a4966a
+              - FILE dir-2/nested/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - DIRECTORY dir-3/ - 6edb4fc88c3140146470550779520f9542d24336
+          - FILE dir-3/file-7.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
   `);
+
+  expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-2/nested/file-5.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-3/file-7.txt")).toBeTruthy();
+
+  expect(findInput(fingerprint.inputs, "file-2.md")).toBeNull();
+  expect(findInput(fingerprint.inputs, "dir-1/file-3.txt")).toBeNull();
+  expect(findInput(fingerprint.inputs, "dir-1/file-4.md")).toBeNull();
+  expect(findInput(fingerprint.inputs, "dir-2/nested/file-6.md")).toBeNull();
+
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
   expect(fingerprintSync).toEqual(fingerprint);
-  expect(findInput(fingerprint.inputs, "test1.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir1/test2.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir1/nested/test3.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir2/test4.txt")).toBeNull();
-  expect(findInput(fingerprint.inputs, "dir2/nested/test5.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir3/test6.txt")).toBeNull();
-  expect(findInput(fingerprint.inputs, "dir3/nested/test7.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir3/test8.txt")).toBeNull();
 });
 
-test("calculateFingerprint default include skips .files", async () => {
-  writeFile("test1.txt");
-  writeFile("dir1/test2.txt");
-  writeFile(".test3.txt");
-  writeFile(".dir2/nested/test4.txt");
-  fs.mkdirSync(".dir3/nested", { recursive: true });
+test("calculateFingerprint handles both include and exclude patterns", async () => {
+  writePaths([
+    "file-1.txt",
+    "file-2.md",
+    "dir-1/file-3.txt",
+    "dir-1/file-4.md",
+    "dir-2/file-5.txt",
+    "dir-2/nested/file-6.txt",
+    "dir-2/nested/file-7.md",
+    "dir-3/file-8.txt",
+  ]);
 
-  fs.mkdirSync("dir1/nested", { recursive: true });
   const options: FingerprintOptions = {
-    hashAlgorithm: "sha1",
+    include: ["file-1.txt", "dir-1/", "dir-2"],
+    exclude: ["**/*.md", "dir-2/nested"],
   };
 
   const fingerprint = await calculateFingerprint(rootDir, options);
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 6831e3390a28e6b6b422e2651b1aae517dd1de67
+    "Hash: 0ad70a205a6b15b4da866134fc5175c6258acce9
     Inputs:
-      - DIRECTORY dir1/ - 16fb434985da050fb4817367e33021796d07ab85
-          - FILE dir1/test2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - DIRECTORY dir-1/ - 7f4fcdecd2d8a0a60d6733958f9773483a12c854
+          - FILE dir-1/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - DIRECTORY dir-2/ - 8db312c70df4d58d50b03156fa41c1ba0ee28849
+          - FILE dir-2/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
   `);
 
-  expect(findInput(fingerprint.inputs, "test1.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir1/test2.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, ".test3.txt")).toBeNull();
-  expect(findInput(fingerprint.inputs, ".dir2/nested/test4.txt")).toBeNull();
-  expect(findInput(fingerprint.inputs, ".dir3/nested")).toBeNull();
+  expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-1/file-3.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-2/file-5.txt")).toBeTruthy();
 
+  expect(findInput(fingerprint.inputs, "file-2.md")).toBeNull();
+  expect(findInput(fingerprint.inputs, "dir-1/file-4.md")).toBeNull();
+  expect(findInput(fingerprint.inputs, "dir-2/nested/file-6.md")).toBeNull();
+  expect(findInput(fingerprint.inputs, "dir-3/file-8.txt")).toBeNull();
+
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
   expect(fingerprintSync).toEqual(fingerprint);
 });
 
-test("calculate fingerprint with exclude", async () => {
-  writeFile("test1.txt");
-  writeFile("test2.md");
-  writeFile("dir/test3.md");
-  writeFile("ignore/test.txt");
+test("calculateFingerprint handles .gitignore file", async () => {
+  writePaths([
+    "file-1.txt",
+    "file-2.md",
+    "dir-1/file-3.txt",
+    "dir-1/file-4.md",
+    "dir-2/nested/file-5.txt",
+    "dir-2/nested/file-6.md",
+    "dir-3/file-7.txt",
+  ]);
+  writeFile(".gitignore", "**/*.md\ndir-1");
 
   const options: FingerprintOptions = {
-    exclude: ["ignore", "*.md"],
-    hashAlgorithm: "sha1",
-  };
-
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
-  const fingerprint = await calculateFingerprint(rootDir, options);
-  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 66c493c65fc2c1721b3b2f1500842c2847b4a70c
-    Inputs:
-      - DIRECTORY dir/ - a9064391c3bc49a6cea75d15073442b4457b287d
-          - FILE dir/test3.md - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
-  expect(fingerprintSync).toEqual(fingerprint);
-
-  const options2: FingerprintOptions = {
-    include: ["test1.txt", "test2.md"],
-    exclude: ["ignore", "*.txt"],
-    hashAlgorithm: "sha1",
-  };
-
-  const fingerprintSync2 = calculateFingerprintSync(rootDir, options2);
-  const fingerprint2 = await calculateFingerprint(rootDir, options2);
-  expect(formatFingerprint(fingerprint2)).toMatchInlineSnapshot(`
-    "Hash: 15fa3ee324c36f2be3aa61e7b4c01f0a4a3bde65
-    Inputs:
-      - FILE test2.md - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
-  expect(fingerprintSync2).toEqual(fingerprint2);
-});
-
-test("calculate fingerprint with include and exclude", async () => {
-  writeFile("test0.txt");
-  writeFile("test1.txt");
-  writeFile("dir/test1.txt");
-  writeFile("dir/test3.md");
-  writeFile("dir/nested/test4.txt");
-  writeFile("dir/nested/test5.md");
-  writeFile("ignore/test6.txt");
-
-  const options: FingerprintOptions = {
-    include: ["test1.txt", "dir"],
-    exclude: ["**/*.md"],
-    hashAlgorithm: "sha1",
-  };
-
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
-  const fingerprint = await calculateFingerprint(rootDir, options);
-  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 0a5025899e7a46d4eac5e2ad04654545cc5ab107
-    Inputs:
-      - DIRECTORY dir/ - 33dbab09a5eb38ea1538de41f3dd9e4b29c3a4b8
-          - DIRECTORY dir/nested/ - a048684ad348be9abbddcab4878ba0c3445ad221
-              - FILE dir/nested/test4.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-          - FILE dir/test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
-  expect(fingerprintSync).toEqual(fingerprint);
-});
-
-test("calculate fingerprint ignores empty directory", async () => {
-  writeFile("test1.txt");
-  fs.mkdirSync("dir2", { recursive: true });
-  writeFile("dir3/test2.txt");
-  fs.mkdirSync("dir3/nested", { recursive: true });
-
-  const options: FingerprintOptions = {
-    include: ["test1.txt", "dir2/", "dir3/"],
-    hashAlgorithm: "sha1",
-  };
-
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
-  const fingerprint = await calculateFingerprint(rootDir, options);
-  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: bdf2872b4e39b98c9ab1ee075dbd1fe429ee7011
-    Inputs:
-      - DIRECTORY dir3/ - cd3751afade56310c244e71784c48ecdbfd8cdea
-          - FILE dir3/test2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
-  expect(findInput(fingerprint.inputs, "test1.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir2")).toBeNull();
-  expect(findInput(fingerprint.inputs, "dir3/test2.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir3/nested")).toBeNull();
-
-  expect(fingerprintSync).toEqual(fingerprint);
-});
-
-test("calculate fingerprint with dir path for file", async () => {
-  writeFile("test1.txt");
-  writeFile("test2.txt");
-  writeFile("test3.md");
-  writeFile("dir/test4.txt");
-  writeFile("dir2/test5.md");
-  fs.mkdirSync("dir3/deeply/nested", { recursive: true });
-
-  const options: FingerprintOptions = {
-    include: ["test1.txt", "test2.txt/", "test3.md", "dir/test4.txt", "dir2"],
-    exclude: ["**/*.md"],
-    hashAlgorithm: "sha1",
-  };
-
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
-  const fingerprint = await calculateFingerprint(rootDir, options);
-  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 9d35a0d61da1e472219da1b083f43f2a41eead9c
-    Inputs:
-      - FILE dir/test4.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
-  expect(findInput(fingerprint.inputs, "test1.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "test2.txt")).toBeNull();
-  expect(findInput(fingerprint.inputs, "test3.md")).toBeNull();
-  expect(findInput(fingerprint.inputs, "dir/test4.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir2/")).toBeNull();
-  expect(findInput(fingerprint.inputs, "dir2/test5.md")).toBeNull();
-  expect(findInput(fingerprint.inputs, "dir3/deeply/nested")).toBeNull();
-
-  expect(fingerprintSync).toEqual(fingerprint);
-});
-
-test("calculate fingerprint supports .gitignore", async () => {
-  writeFile("test1.txt");
-  writeFile("dir/test2.txt");
-  writeFile("dir/test3.md");
-  writeFile("dir/test4.ts");
-  writeFile("dir/nested/test5.txt");
-  writeFile("dir/nested/test6.md");
-  writeFile(".gitignore", "**/*.md");
-
-  const options: FingerprintOptions = {
-    include: ["test1.txt", "dir"],
-    exclude: ["**/*.ts"],
-    hashAlgorithm: "sha1",
+    exclude: [".gitignore"],
     ignoreFilePath: ".gitignore",
   };
 
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
   const fingerprint = await calculateFingerprint(rootDir, options);
+
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 3623fac938d0d6a20d91b76a391eb6fe3f510ffb
+    "Hash: 51ed5d9850c49fc23660f0e3fb651df774493a69
     Inputs:
-      - DIRECTORY dir/ - 4007a58166ef7a82f50066a73952f031199aee71
-          - DIRECTORY dir/nested/ - 75dc76fc81ca621af19f10d0b04f574f5cc1f7e9
-              - FILE dir/nested/test5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-          - FILE dir/test2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - DIRECTORY dir-2/ - a8377c25773c71349b24d71cf93adf4a9f210c7b
+          - DIRECTORY dir-2/nested/ - 677ae87039746d91827b0804bcaab953e3a4966a
+              - FILE dir-2/nested/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - DIRECTORY dir-3/ - 6edb4fc88c3140146470550779520f9542d24336
+          - FILE dir-3/file-7.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
   `);
 
+  expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-2/nested/file-5.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-3/file-7.txt")).toBeTruthy();
+
+  expect(findInput(fingerprint.inputs, "file-2.md")).toBeNull();
+  expect(findInput(fingerprint.inputs, "dir-1/file-3.txt")).toBeNull();
+  expect(findInput(fingerprint.inputs, "dir-1/file-4.md")).toBeNull();
+  expect(findInput(fingerprint.inputs, "dir-2/nested/file-6.md")).toBeNull();
+
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
   expect(fingerprintSync).toEqual(fingerprint);
-  expect(findInput(fingerprint.inputs, "test1.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir/test2.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir/test3.md")).toBeNull(); // .gitignore
-  expect(findInput(fingerprint.inputs, "dir/test4.ts")).toBeNull(); // exclude option
-  expect(findInput(fingerprint.inputs, "dir/nested/test5.txt")).toBeTruthy();
-  expect(findInput(fingerprint.inputs, "dir/nested/test6.md")).toBeNull(); // .gitignore
 });
 
-test("calculateFingerprint handles non-existent .gitignore", async () => {
-  writeFile("test1.txt");
+test("calculateFingerprint handles missing .gitignore file", async () => {
+  writePaths(["file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);
 
   const options: FingerprintOptions = {
-    hashAlgorithm: "sha1",
     ignoreFilePath: ".gitignore",
   };
 
-  const fingerprintSync = calculateFingerprintSync(rootDir, options);
   const fingerprint = await calculateFingerprint(rootDir, options);
+
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 142fa232afb866d394ab59fef182fd20ac591989
+    "Hash: 768e1dbe174582c263ef20a0858737e3c5d027f5
     Inputs:
-      - FILE test1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - DIRECTORY dir-1/ - ec848d637ae6d52a61e7bfa6870ad921fc6ae048
+          - FILE dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - DIRECTORY dir-2/ - 53b20bf3e108f2233eed205dd3696067be869e28
+          - DIRECTORY dir-2/nested/ - b8645c615700a17e8770dfa27a513f0ee1cdf890
+              - FILE dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
   `);
 
-  expect(fingerprintSync).toEqual(fingerprint);
-  expect(findInput(fingerprint.inputs, "test1.txt")).toBeTruthy();
-});
-
-test("calculateFingerprint handles null result", async () => {
-  const options: FingerprintOptions = {
-    include: [],
-    hashAlgorithm: "sha1",
-  };
+  expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-1/file-2.txt")).toBeTruthy();
+  expect(findInput(fingerprint.inputs, "dir-2/nested/file-3.txt")).toBeTruthy();
 
   const fingerprintSync = calculateFingerprintSync(rootDir, options);
-  const fingerprint = await calculateFingerprint(rootDir, options);
-  expect(fingerprint).toEqual({
-    hash: EMPTY_HASH,
-    inputs: [],
-  });
-
   expect(fingerprintSync).toEqual(fingerprint);
 });
 
-function writeFile(filePath: string, content: string = "Hello, world!") {
-  const absoluteFilePath = path.join(rootDir, filePath);
-  const absoluteDirPath = path.dirname(absoluteFilePath);
-  fs.mkdirSync(absoluteDirPath, { recursive: true });
-  fs.writeFileSync(absoluteFilePath, content);
-}
+test("calculateFingerprint warns for non-file/non-directory entries", async () => {
+  writePaths(["dir-1/"]);
+  fs.symlinkSync("/dev/null", path.join(rootDir, "dir-1", "dev-null-link"));
 
-function formatFingerprint(fingerprint: FingerprintResult): string {
-  let result = `Hash: ${fingerprint.hash}\n`;
-  result += `Inputs:\n`;
-  result += formatInputs(fingerprint.inputs, 2);
-  return result;
-}
+  const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
-function formatInputs(inputs: FingerprintInputHash[], indent = 0): string {
-  let result = "";
-  for (const input of inputs) {
-    const name = input.key.split(":")[1];
+  const options: FingerprintOptions = {
+    include: ["dir-1/dev-null-link"],
+  };
 
-    result += `${" ".repeat(indent)}- ${input.type.toUpperCase()} ${name} - ${input.hash}\n`;
-    if (input.type === "directory") {
-      result += formatInputs(input.children, indent + 4);
-    }
-  }
+  await calculateFingerprint(rootDir, options);
+  expect(consoleWarnSpy).toHaveBeenCalledWith(
+    'fs-fingerprint: skipping "dir-1/dev-null-link" (not a file or directory)',
+  );
 
-  return result;
-}
-
-function findInput(inputs: FingerprintInputHash[], path: string): FingerprintInputHash | null {
-  const pathComponents = normalizeFilePath(path).split("/").filter(Boolean);
-
-  const exactMatch = inputs.find((input) => input.key.split(":")[1] === path);
-  if (exactMatch) {
-    return exactMatch;
-  }
-
-  for (let depth = 0; depth < pathComponents.length; depth += 1) {
-    const partialPath = pathComponents.slice(0, depth + 1).join("/");
-    const partialMatch = inputs.find((input) => input.key.split(":")[1] === `${partialPath}/`);
-    if (partialMatch?.type === "directory") {
-      const childMatch = findInput(partialMatch.children, path);
-      if (childMatch) {
-        return childMatch;
-      }
-    }
-  }
-
-  return null;
-}
+  consoleWarnSpy.mockClear();
+  calculateFingerprintSync(rootDir, options);
+  expect(consoleWarnSpy).toHaveBeenCalledWith(
+    'fs-fingerprint: skipping "dir-1/dev-null-link" (not a file or directory)',
+  );
+});
