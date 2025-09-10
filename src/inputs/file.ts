@@ -8,11 +8,17 @@ import { hashContent, isExcludedPath, normalizeFilePath } from "../utils.js";
 
 const noopWrapper = async (fn: () => PromiseLike<string>) => fn();
 
+type CalculateFileHashOptions = {
+  /** Skip exclude for initial path, but handle it normally for subdirectories */
+  skipInitialExclude?: boolean;
+};
+
 export async function calculateFileHash(
   path: string,
   config: FingerprintConfig,
+  options?: CalculateFileHashOptions,
 ): Promise<FingerprintFileHash | null> {
-  if (isExcludedPath(path, config)) {
+  if (!options?.skipInitialExclude && isExcludedPath(path, config)) {
     return null;
   }
 
@@ -42,8 +48,9 @@ export async function calculateFileHash(
 export function calculateFileHashSync(
   path: string,
   config: FingerprintConfig,
+  options?: CalculateFileHashOptions,
 ): FingerprintFileHash | null {
-  if (isExcludedPath(path, config)) {
+  if (!options?.skipInitialExclude && isExcludedPath(path, config)) {
     return null;
   }
 

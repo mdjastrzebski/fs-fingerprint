@@ -40,7 +40,7 @@ export async function calculateFingerprint(
     );
     inputHashes.push(...entryHashes.filter((hash) => hash != null));
   } else {
-    const rootDirHash = await calculateDirectoryHash(".", config, { skipExclude: true });
+    const rootDirHash = await calculateDirectoryHash(".", config, { skipInitialExclude: true });
     if (rootDirHash != null) {
       inputHashes.push(...rootDirHash.children);
     }
@@ -67,9 +67,9 @@ async function calculateEntryHashForPath(
   }
 
   if (entry.isFile()) {
-    return calculateFileHash(entryPath, config);
+    return calculateFileHash(entryPath, config, { skipInitialExclude: true });
   } else if (entry.isDirectory()) {
-    return calculateDirectoryHash(entryPath, config);
+    return calculateDirectoryHash(entryPath, config, { skipInitialExclude: true });
   } else {
     console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
     return null;
@@ -93,7 +93,7 @@ export function calculateFingerprintSync(
     const entryHashes = options.include.map((path) => calculateEntryHashForPathSync(path, config));
     inputHashes.push(...entryHashes.filter((hash) => hash != null));
   } else {
-    const rootDirHash = calculateDirectoryHashSync(".", config, { skipExclude: true });
+    const rootDirHash = calculateDirectoryHashSync(".", config, { skipInitialExclude: true });
     if (rootDirHash != null) {
       inputHashes.push(...rootDirHash.children);
     }
@@ -120,9 +120,9 @@ function calculateEntryHashForPathSync(
   }
 
   if (entry.isFile()) {
-    return calculateFileHashSync(entryPath, config);
+    return calculateFileHashSync(entryPath, config, { skipInitialExclude: true });
   } else if (entry.isDirectory()) {
-    return calculateDirectoryHashSync(entryPath, config);
+    return calculateDirectoryHashSync(entryPath, config, { skipInitialExclude: true });
   } else {
     console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
     return null;

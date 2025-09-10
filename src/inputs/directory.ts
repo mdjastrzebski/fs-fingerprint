@@ -7,7 +7,8 @@ import { isExcludedPath, mergeHashes, normalizeDirPath } from "../utils.js";
 import { calculateFileHash, calculateFileHashSync } from "./file.js";
 
 type CalculateDirectoryHashOptions = {
-  skipExclude?: boolean;
+  /** Skip exclude for initial path, but handle it normally for subdirectories */
+  skipInitialExclude?: boolean;
 };
 
 export async function calculateDirectoryHash(
@@ -15,7 +16,7 @@ export async function calculateDirectoryHash(
   config: FingerprintConfig,
   options?: CalculateDirectoryHashOptions,
 ): Promise<FingerprintDirectoryHash | null> {
-  if (!options?.skipExclude && isExcludedPath(path, config)) {
+  if (!options?.skipInitialExclude && isExcludedPath(path, config)) {
     return null;
   }
 
@@ -59,7 +60,7 @@ export function calculateDirectoryHashSync(
   config: FingerprintConfig,
   options?: CalculateDirectoryHashOptions,
 ): FingerprintDirectoryHash | null {
-  if (!options?.skipExclude && isExcludedPath(path, config)) {
+  if (!options?.skipInitialExclude && isExcludedPath(path, config)) {
     return null;
   }
 
