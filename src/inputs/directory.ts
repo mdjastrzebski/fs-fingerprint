@@ -24,7 +24,7 @@ export async function calculateDirectoryHash(
       } else if (entry.isDirectory()) {
         return calculateDirectoryHash(entryPath, config);
       } else {
-        console.warn(`fs-fingerprint: skipping "${path}/${entry.name}" (not a file or directory)`);
+        console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
         return null;
       }
     }),
@@ -67,7 +67,7 @@ export function calculateDirectoryHashSync(
       const dirPath = join(path, entry.name);
       return calculateDirectoryHashSync(dirPath, config);
     } else {
-      console.warn(`fs-fingerprint: skipping "${path}/${entry.name}" (not a file or directory)`);
+      console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
       return null;
     }
   });
