@@ -6,19 +6,19 @@ type StringWithAutoSuggest<T> = (string & {}) | T;
 /** Hashing algorithm to use */
 /**
  * Hashing algorithm to use.
- * Common values: "sha1", "sha256", "sha512", "null", etc.
- * TypeScript will auto-suggest these values, but any string is allowed.
+ * Common values: "sha1", "sha256", "sha512", etc.
+ * TypeScript will auto-suggest these values, but other valid hash algorithms are allowed.
  */
-export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512" | "null">;
+export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512">;
 
 export type FingerprintOptions = {
-  /** Paths to include (does not support globs) */
+  /** File and directory paths to include (does NOT support globs) */
   include?: readonly string[];
 
-  /** Paths to exclude (support globs, minimatch syntax) */
+  /** Paths to exclude (support globs, "picomatch" syntax) */
   exclude?: readonly string[];
 
-  /** Extra inputs to include in the fingerprint */
+  /** Extra inputs to include in the fingerprint: content, json, etc */
   extraInputs?: FingerprintInput[];
 
   /** Hashing algorithm to use */
@@ -36,6 +36,9 @@ export type FingerprintOptions = {
 
 export type AsyncWrapper = <T>(fn: () => PromiseLike<T> | T) => Promise<T>;
 
+/**
+ * Internal fingerprint config. Can change without semver.
+ */
 export type FingerprintConfig = {
   rootDir: string;
   exclude?: Matcher[];
