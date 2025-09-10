@@ -89,14 +89,19 @@ test("calculateFileHash handles excluded paths for paths", async () => {
 });
 
 test("calculateFileHash handles excluded paths for directory", async () => {
-  writePaths(["dir-1/file-1.txt", "dir-1/nested/file2.txt"]);
+  writePaths(["dir-1/file-1.txt", "dir-1/nested/file-2.txt", "dir-1/nested/deep/file-3.txt"]);
 
-  const testConfig = { ...baseConfig, exclude: [picomatch("dir-1")] };
+  const testConfig = { ...baseConfig, exclude: [picomatch("dir-1/nested")] };
   const hash = await calculateDirectoryHash("dir-1", testConfig);
-  expect(formatInputHash(hash)).toBe("(null)\n");
+  expect(formatInputHash(hash)).toMatchInlineSnapshot(`
+    "- DIRECTORY dir-1/ - 1435d377a8827b125ba021da1351e0935859eadb
+        - FILE dir-1/file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+    "
+  `);
 
-  expect(findInput(hash?.children, "dir-1/file-1.txt")).toBeNull();
+  expect(findInput(hash?.children, "dir-1/file-1.txt")).toBeTruthy();
   expect(findInput(hash?.children, "dir-1/nested/file-2.txt")).toBeNull();
+  expect(findInput(hash?.children, "dir-1/nested/deep/file-3.txt")).toBeNull();
 
   const hashSync = calculateDirectoryHashSync("dir-1", testConfig);
   expect(hashSync).toEqual(hash);

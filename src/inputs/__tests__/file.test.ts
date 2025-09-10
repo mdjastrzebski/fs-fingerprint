@@ -48,7 +48,7 @@ test("calculateFileHash ignores excluded paths", async () => {
   writeFile("file-1.txt", "Hello, world!");
 
   const testConfig = { ...baseConfig, exclude: [picomatch("file-1.txt")] };
-  const hash = await calculateFileHash("file-1.txt", testConfig, { skipInitialExclude: true });
+  const hash = await calculateFileHash("file-1.txt", testConfig);
   expect(hash).toEqual({
     hash: "943a702d06f34599aee1f8da8ef9f7296031d699",
     key: "file:file-1.txt",
@@ -56,7 +56,7 @@ test("calculateFileHash ignores excluded paths", async () => {
     type: "file",
   });
 
-  const hashSync = calculateFileHashSync("file-1.txt", testConfig, { skipInitialExclude: true });
+  const hashSync = calculateFileHashSync("file-1.txt", testConfig);
   expect(hashSync).toEqual(hash);
 });
 

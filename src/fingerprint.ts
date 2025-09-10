@@ -40,7 +40,7 @@ export async function calculateFingerprint(
     );
     inputHashes.push(...entryHashes.filter((hash) => hash != null));
   } else {
-    const rootDirHash = await calculateDirectoryHash(".", config, { skipInitialExclude: true });
+    const rootDirHash = await calculateDirectoryHash(".", config);
     if (rootDirHash != null) {
       inputHashes.push(...rootDirHash.children);
     }
@@ -62,14 +62,13 @@ async function calculateEntryHashForPath(
   try {
     entry = await stat(pathWithRoot);
   } catch {
-    console.warn(`fs-fingerprint: skipping "${entryPath}" (not exists)`);
     return null;
   }
 
   if (entry.isFile()) {
-    return calculateFileHash(entryPath, config, { skipInitialExclude: true });
+    return calculateFileHash(entryPath, config);
   } else if (entry.isDirectory()) {
-    return calculateDirectoryHash(entryPath, config, { skipInitialExclude: true });
+    return calculateDirectoryHash(entryPath, config);
   } else {
     console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
     return null;
@@ -93,7 +92,7 @@ export function calculateFingerprintSync(
     const entryHashes = options.include.map((path) => calculateEntryHashForPathSync(path, config));
     inputHashes.push(...entryHashes.filter((hash) => hash != null));
   } else {
-    const rootDirHash = calculateDirectoryHashSync(".", config, { skipInitialExclude: true });
+    const rootDirHash = calculateDirectoryHashSync(".", config);
     if (rootDirHash != null) {
       inputHashes.push(...rootDirHash.children);
     }
@@ -115,14 +114,13 @@ function calculateEntryHashForPathSync(
   try {
     entry = statSync(pathWithRoot);
   } catch {
-    console.warn(`fs-fingerprint: skipping "${entryPath}" (not exists)`);
     return null;
   }
 
   if (entry.isFile()) {
-    return calculateFileHashSync(entryPath, config, { skipInitialExclude: true });
+    return calculateFileHashSync(entryPath, config);
   } else if (entry.isDirectory()) {
-    return calculateDirectoryHashSync(entryPath, config, { skipInitialExclude: true });
+    return calculateDirectoryHashSync(entryPath, config);
   } else {
     console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
     return null;

@@ -6,30 +6,23 @@ import type { FingerprintConfig, FingerprintDirectoryHash } from "../types.js";
 import { isExcludedPath, mergeHashes, normalizeDirPath } from "../utils.js";
 import { calculateFileHash, calculateFileHashSync } from "./file.js";
 
-type CalculateDirectoryHashOptions = {
-  /** Skip exclude for initial path, but handle it normally for subdirectories */
-  skipInitialExclude?: boolean;
-};
-
 export async function calculateDirectoryHash(
   path: string,
   config: FingerprintConfig,
-  options?: CalculateDirectoryHashOptions,
 ): Promise<FingerprintDirectoryHash | null> {
-  if (!options?.skipInitialExclude && isExcludedPath(path, config)) {
-    return null;
-  }
-
   const pathWithRoot = join(config.rootDir, path);
   const entries = await readdir(pathWithRoot, { withFileTypes: true });
   const entryHashes = await Promise.all(
     entries.map((entry) => {
+      const entryPath = join(path, entry.name);
+      if (isExcludedPath(entryPath, config)) {
+        return null;
+      }
+
       if (entry.isFile()) {
-        const filePath = join(path, entry.name);
-        return calculateFileHash(filePath, config);
+        return calculateFileHash(entryPath, config);
       } else if (entry.isDirectory()) {
-        const dirPath = join(path, entry.name);
-        return calculateDirectoryHash(dirPath, config);
+        return calculateDirectoryHash(entryPath, config);
       } else {
         console.warn(`fs-fingerprint: skipping "${path}/${entry.name}" (not a file or directory)`);
         return null;
@@ -58,15 +51,15 @@ export async function calculateDirectoryHash(
 export function calculateDirectoryHashSync(
   path: string,
   config: FingerprintConfig,
-  options?: CalculateDirectoryHashOptions,
 ): FingerprintDirectoryHash | null {
-  if (!options?.skipInitialExclude && isExcludedPath(path, config)) {
-    return null;
-  }
-
   const pathWithRoot = join(config.rootDir, path);
   const entries = readdirSync(pathWithRoot, { withFileTypes: true });
   const entryHashes = entries.map((entry) => {
+    const entryPath = join(path, entry.name);
+    if (isExcludedPath(entryPath, config)) {
+      return null;
+    }
+
     if (entry.isFile()) {
       const filePath = join(path, entry.name);
       return calculateFileHashSync(filePath, config);
