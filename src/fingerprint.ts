@@ -1,6 +1,5 @@
-import * as console from "node:console";
-import { type Dirent, existsSync, readdirSync, readFileSync, type Stats, statSync } from "node:fs";
-import { readdir, stat } from "node:fs/promises";
+import { existsSync, readFileSync, type Stats, statSync } from "node:fs";
+import { stat } from "node:fs/promises";
 import * as path from "node:path";
 import ignore, { type Ignore } from "ignore";
 import pLimit from "p-limit";
@@ -13,11 +12,12 @@ import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
 import { calculateJsonHash } from "./inputs/json.js";
 import type {
   FingerprintConfig,
+  FingerprintInput,
   FingerprintInputHash,
   FingerprintOptions,
   FingerprintResult,
 } from "./types.js";
-import { isExcludedPath, mergeHashes } from "./utils.js";
+import { mergeHashes } from "./utils.js";
 
 export async function calculateFingerprint(
   rootDir: string,
@@ -40,75 +40,28 @@ export async function calculateFingerprint(
     );
     inputHashes.push(...entryHashes.filter((hash) => hash != null));
   } else {
-    const entries = await readdir(rootDir, { withFileTypes: true });
-    const entryHashes = await Promise.all(
-      entries.map((entry) =>
-        entry.name.startsWith(".") ? null : calculateEntryHashForDirent(entry, config),
-      ),
-    );
-    inputHashes.push(...entryHashes.filter((hash) => hash != null));
-  }
-
-  // Process extraInputs (content and json inputs)
-  if (options?.extraInputs) {
-    for (const input of options.extraInputs) {
-      let hash: FingerprintInputHash;
-
-      if ("content" in input) {
-        hash = calculateContentHash(input, config);
-      } else if ("json" in input) {
-        hash = calculateJsonHash(input, config);
-      } else {
-        throw new Error(`Unsupported input type: ${JSON.stringify(input, null, 2)}`);
-      }
-
-      inputHashes.push(hash);
+    const rootDirHash = await calculateDirectoryHash(".", config);
+    if (rootDirHash != null) {
+      inputHashes.push(...rootDirHash.children);
     }
   }
 
-  const result = mergeHashes(inputHashes, config);
-  if (result == null) {
-    return {
-      hash: EMPTY_HASH,
-      inputs: [],
-    };
+  if (options?.extraInputs) {
+    inputHashes.push(...calculateExtraInputHashes(options.extraInputs, config));
   }
 
-  return result;
-}
-
-async function calculateEntryHashForDirent(
-  entry: Dirent,
-  config: FingerprintConfig,
-): Promise<FingerprintInputHash | null> {
-  if (isExcludedPath(entry.name, config)) {
-    return null;
-  }
-
-  if (entry.isFile()) {
-    return calculateFileHash(entry.name, config);
-  } else if (entry.isDirectory()) {
-    return calculateDirectoryHash(entry.name, config);
-  } else {
-    console.warn(`fs-fingerprint: skipping ${entry.name} (not a file or directory)`);
-    return null;
-  }
+  return mergeHashes(inputHashes, config) ?? { hash: EMPTY_HASH, inputs: [] };
 }
 
 async function calculateEntryHashForPath(
   entryPath: string,
   config: FingerprintConfig,
 ): Promise<FingerprintInputHash | null> {
-  if (isExcludedPath(entryPath, config)) {
-    return null;
-  }
-
   const pathWithRoot = path.join(config.rootDir, entryPath);
   let entry: Stats;
   try {
     entry = await stat(pathWithRoot);
   } catch {
-    console.warn(`fs-fingerprint: skipping ${entryPath} (not exists)`);
     return null;
   }
 
@@ -117,7 +70,7 @@ async function calculateEntryHashForPath(
   } else if (entry.isDirectory()) {
     return calculateDirectoryHash(entryPath, config);
   } else {
-    console.warn(`fs-fingerprint: skipping ${entryPath} (not a file or directory)`);
+    console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
     return null;
   }
 }
@@ -136,66 +89,31 @@ export function calculateFingerprintSync(
   const inputHashes: FingerprintInputHash[] = [];
 
   if (options?.include) {
-    for (const entryPath of options.include) {
-      const hash = calculateEntryHashForPathSync(entryPath, config);
-      if (hash !== null) {
-        inputHashes.push(hash);
-      }
-    }
+    const entryHashes = options.include.map((path) => calculateEntryHashForPathSync(path, config));
+    inputHashes.push(...entryHashes.filter((hash) => hash != null));
   } else {
-    const entries = readdirSync(rootDir, { withFileTypes: true });
-    for (const entry of entries) {
-      const hash = entry.name.startsWith(".")
-        ? null
-        : calculateEntryHashForDirentSync(entry, config);
-      if (hash !== null) {
-        inputHashes.push(hash);
-      }
+    const rootDirHash = calculateDirectoryHashSync(".", config);
+    if (rootDirHash != null) {
+      inputHashes.push(...rootDirHash.children);
     }
   }
 
-  // Process extraInputs (content and json inputs)
   if (options?.extraInputs) {
-    for (const input of options.extraInputs) {
-      let hash: FingerprintInputHash;
-
-      if ("content" in input) {
-        hash = calculateContentHash(input, config);
-      } else if ("json" in input) {
-        hash = calculateJsonHash(input, config);
-      } else {
-        throw new Error(`Unsupported input type: ${JSON.stringify(input, null, 2)}`);
-      }
-
-      inputHashes.push(hash);
-    }
+    inputHashes.push(...calculateExtraInputHashes(options.extraInputs, config));
   }
 
-  const result = mergeHashes(inputHashes, config);
-  if (result == null) {
-    return {
-      hash: EMPTY_HASH,
-      inputs: [],
-    };
-  }
-
-  return result;
+  return mergeHashes(inputHashes, config) ?? { hash: EMPTY_HASH, inputs: [] };
 }
 
 function calculateEntryHashForPathSync(
   entryPath: string,
   config: FingerprintConfig,
 ): FingerprintInputHash | null {
-  if (isExcludedPath(entryPath, config)) {
-    return null;
-  }
-
   const pathWithRoot = path.join(config.rootDir, entryPath);
   let entry: Stats;
   try {
     entry = statSync(pathWithRoot);
   } catch {
-    console.warn(`fs-fingerprint: skipping ${entryPath} (not exists)`);
     return null;
   }
 
@@ -204,27 +122,27 @@ function calculateEntryHashForPathSync(
   } else if (entry.isDirectory()) {
     return calculateDirectoryHashSync(entryPath, config);
   } else {
-    console.warn(`fs-fingerprint: skipping ${entryPath} (not a file or directory)`);
+    console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
     return null;
   }
 }
 
-function calculateEntryHashForDirentSync(
-  entry: Dirent,
+function calculateExtraInputHashes(
+  inputs: FingerprintInput[],
   config: FingerprintConfig,
-): FingerprintInputHash | null {
-  if (isExcludedPath(entry.name, config)) {
-    return null;
+): FingerprintInputHash[] {
+  const result: FingerprintInputHash[] = [];
+  for (const input of inputs) {
+    if ("content" in input) {
+      result.push(calculateContentHash(input, config));
+    } else if ("json" in input) {
+      result.push(calculateJsonHash(input, config));
+    } else {
+      throw new Error(`Unsupported input type: ${JSON.stringify(input, null, 2)}`);
+    }
   }
 
-  if (entry.isFile()) {
-    return calculateFileHashSync(entry.name, config);
-  } else if (entry.isDirectory()) {
-    return calculateDirectoryHashSync(entry.name, config);
-  } else {
-    console.warn(`fs-fingerprint: skipping ${entry.name} (not a file or directory)`);
-    return null;
-  }
+  return result;
 }
 
 function buildIgnoreObject(rootDir: string, ignoreFilePath?: string): Ignore | undefined {
