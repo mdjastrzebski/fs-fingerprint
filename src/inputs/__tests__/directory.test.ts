@@ -120,6 +120,10 @@ test("calculateDirectoryHash handles null hash algorithm", async () => {
     "
   `);
 
+  expect(findInput(hash?.children, "file-1.txt")?.hash).toBe("(null)");
+  expect(findInput(hash?.children, "nested/")?.hash).toBe("(null)");
+  expect(findInput(hash?.children, "nested/file-2.txt")?.hash).toBe("(null)");
+
   const hashSync = calculateDirectoryHashSync("dir-1", testConfig);
   expect(hashSync).toEqual(hash);
 });
