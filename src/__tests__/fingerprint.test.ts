@@ -27,12 +27,12 @@ test("calculateFingerprint supports files and directories", async () => {
   const fingerprint = await calculateFingerprint(rootDir);
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 768e1dbe174582c263ef20a0858737e3c5d027f5
+    "Hash: 23e62713b63d41c43a94d1b90c140c2e3308a7bb
     Inputs:
-      - DIRECTORY dir-1/ - ec848d637ae6d52a61e7bfa6870ad921fc6ae048
+      - DIRECTORY dir-1/ - 84ef58dcf7a2b1115354cd4d1f70fcd6c04e6a34
           - FILE dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - DIRECTORY dir-2/ - 53b20bf3e108f2233eed205dd3696067be869e28
-          - DIRECTORY dir-2/nested/ - b8645c615700a17e8770dfa27a513f0ee1cdf890
+      - DIRECTORY dir-2/ - de2726851255d01e8a801b6c2069c98a14862a0f
+          - DIRECTORY dir-2/nested/ - f3046f31039ebf0bff3e192e6b0ec9d7aa440065
               - FILE dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
@@ -57,7 +57,7 @@ test("calculateFingerprint supports content inputs", async () => {
   const fingerprint = await calculateFingerprint(rootDir, options);
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 13e2ed72e8e0b878ecbcea2af1ada97e807c2e4f
+    "Hash: 99cb8f1cc97b0302838cd30059514fe892034fed
     Inputs:
       - CONTENT test-content-1 - 943a702d06f34599aee1f8da8ef9f7296031d699
       - CONTENT test-content-2 - 94912be8b3fb47d4161ea50e5948c6296af6ca05
@@ -89,7 +89,7 @@ test("calculateFingerprint supports json inputs", async () => {
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(
     `
-    "Hash: 4d4ae5db202291ebe5f18ee6543a61b350e61b1d
+    "Hash: 30ed44060ae76efc2623835dc5ec5efc0c493a7c
     Inputs:
       - JSON test-json-1 - 2e0706ddb09be38781b9b2bcc14c75d7b028ce61
       - JSON test-json-2 - 5ed10667370d4eee8fd1ec08cffef2c2002d2ce9
@@ -138,10 +138,10 @@ test("calculateFingerprint handles include patterns", async () => {
   const fingerprint = await calculateFingerprint(rootDir, options);
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 2e320b4cd87db49db3619afafd6facece8e71561
+    "Hash: d05fc49975b34f47d20c1c002b70e099deb460b4
     Inputs:
-      - DIRECTORY dir-2/ - 53b20bf3e108f2233eed205dd3696067be869e28
-          - DIRECTORY dir-2/nested/ - b8645c615700a17e8770dfa27a513f0ee1cdf890
+      - DIRECTORY dir-2/ - de2726851255d01e8a801b6c2069c98a14862a0f
+          - DIRECTORY dir-2/nested/ - f3046f31039ebf0bff3e192e6b0ec9d7aa440065
               - FILE dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - FILE dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
@@ -178,12 +178,12 @@ test("calculateFingerprint handles exclude patterns", async () => {
   const fingerprint = await calculateFingerprint(rootDir, options);
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 51ed5d9850c49fc23660f0e3fb651df774493a69
+    "Hash: c56f512a5d87a9acf70b715de99e92429e1cd3b4
     Inputs:
-      - DIRECTORY dir-2/ - a8377c25773c71349b24d71cf93adf4a9f210c7b
-          - DIRECTORY dir-2/nested/ - 677ae87039746d91827b0804bcaab953e3a4966a
+      - DIRECTORY dir-2/ - fd82e14f10fdccb21e4335923b6f301d545f8e77
+          - DIRECTORY dir-2/nested/ - 18cbabbed90623c2b101c8395975e27f6644d886
               - FILE dir-2/nested/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - DIRECTORY dir-3/ - 6edb4fc88c3140146470550779520f9542d24336
+      - DIRECTORY dir-3/ - de238366c9649dfb04c35efcb096c162b5748df2
           - FILE dir-3/file-7.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
@@ -222,11 +222,11 @@ test("calculateFingerprint handles both include and exclude patterns", async () 
   const fingerprint = await calculateFingerprint(rootDir, options);
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 0ad70a205a6b15b4da866134fc5175c6258acce9
+    "Hash: 82c81ba90c1c90ad84e37753258564d70a7d4144
     Inputs:
-      - DIRECTORY dir-1/ - 7f4fcdecd2d8a0a60d6733958f9773483a12c854
+      - DIRECTORY dir-1/ - a2a5caa9f970d29d8b2512208246652a20a1d4be
           - FILE dir-1/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - DIRECTORY dir-2/ - 8db312c70df4d58d50b03156fa41c1ba0ee28849
+      - DIRECTORY dir-2/ - 101bfe21b2d323d5e4749613a8a34387514099c5
           - FILE dir-2/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
@@ -265,12 +265,12 @@ test("calculateFingerprint handles .gitignore file", async () => {
   const fingerprint = await calculateFingerprint(rootDir, options);
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 51ed5d9850c49fc23660f0e3fb651df774493a69
+    "Hash: c56f512a5d87a9acf70b715de99e92429e1cd3b4
     Inputs:
-      - DIRECTORY dir-2/ - a8377c25773c71349b24d71cf93adf4a9f210c7b
-          - DIRECTORY dir-2/nested/ - 677ae87039746d91827b0804bcaab953e3a4966a
+      - DIRECTORY dir-2/ - fd82e14f10fdccb21e4335923b6f301d545f8e77
+          - DIRECTORY dir-2/nested/ - 18cbabbed90623c2b101c8395975e27f6644d886
               - FILE dir-2/nested/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - DIRECTORY dir-3/ - 6edb4fc88c3140146470550779520f9542d24336
+      - DIRECTORY dir-3/ - de238366c9649dfb04c35efcb096c162b5748df2
           - FILE dir-3/file-7.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
@@ -299,12 +299,12 @@ test("calculateFingerprint handles missing .gitignore file", async () => {
   const fingerprint = await calculateFingerprint(rootDir, options);
 
   expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 768e1dbe174582c263ef20a0858737e3c5d027f5
+    "Hash: 23e62713b63d41c43a94d1b90c140c2e3308a7bb
     Inputs:
-      - DIRECTORY dir-1/ - ec848d637ae6d52a61e7bfa6870ad921fc6ae048
+      - DIRECTORY dir-1/ - 84ef58dcf7a2b1115354cd4d1f70fcd6c04e6a34
           - FILE dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - DIRECTORY dir-2/ - 53b20bf3e108f2233eed205dd3696067be869e28
-          - DIRECTORY dir-2/nested/ - b8645c615700a17e8770dfa27a513f0ee1cdf890
+      - DIRECTORY dir-2/ - de2726851255d01e8a801b6c2069c98a14862a0f
+          - DIRECTORY dir-2/nested/ - f3046f31039ebf0bff3e192e6b0ec9d7aa440065
               - FILE dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - FILE file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "

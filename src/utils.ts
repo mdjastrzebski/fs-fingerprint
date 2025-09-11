@@ -21,9 +21,7 @@ export function mergeHashes(
     return null;
   }
 
-  const sortedHashes = [...hashes].sort((a, b) => {
-    return a.key.localeCompare(b.key);
-  });
+  const sortedHashes = [...hashes].sort((a, b) => a.key.localeCompare(b.key));
 
   if (config.hashAlgorithm === "null") {
     return {
@@ -35,7 +33,9 @@ export function mergeHashes(
   const hasher = createHash(config.hashAlgorithm ?? DEFAULT_HASH_ALGORITHM);
   for (const inputHash of sortedHashes) {
     hasher.update(inputHash.key);
+    hasher.update("\0");
     hasher.update(inputHash.hash);
+    hasher.update("\0\0");
   }
 
   return {

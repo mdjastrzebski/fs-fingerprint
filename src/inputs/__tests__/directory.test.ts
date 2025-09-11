@@ -29,8 +29,8 @@ test("calculateDirectoryHash handles simple directories", async () => {
 
   const hash = await calculateDirectoryHash("dir-1", baseConfig);
   expect(formatInputHash(hash)).toMatchInlineSnapshot(`
-    "- DIRECTORY dir-1/ - 066249a654b92686b21bca840812bf716652959c
-        - DIRECTORY dir-1/nested/ - 75415966766ba875dc03435573e1a5438d4c8e36
+    "- DIRECTORY dir-1/ - d4f76289c3ff8e8b39590c141d58aeda93949f7e
+        - DIRECTORY dir-1/nested/ - 62fe0d525004f43af63e81f57ab5d29d113b50ca
             - FILE dir-1/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
         - FILE dir-1/file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
         - FILE dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
@@ -52,7 +52,7 @@ test("calculateDirectoryHash handles nested directories", async () => {
 
   const hash = await calculateDirectoryHash("dir-1/nested", baseConfig);
   expect(formatInputHash(hash)).toMatchInlineSnapshot(`
-    "- DIRECTORY dir-1/nested/ - 6e24c390c930b8dff1a73555d82e35ef18b83142
+    "- DIRECTORY dir-1/nested/ - ce82d7d635ce824328f5e3e3ebeec52a585dd603
         - FILE dir-1/nested/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
   `);
@@ -72,8 +72,8 @@ test("calculateFileHash handles excluded paths for paths", async () => {
   const testConfig = { ...baseConfig, exclude: [picomatch("**/*.md")] };
   const hash = await calculateDirectoryHash("dir-1", testConfig);
   expect(formatInputHash(hash)).toMatchInlineSnapshot(`
-    "- DIRECTORY dir-1/ - cf3d09eec927f7b2a83bdefa17588affd9db6b17
-        - DIRECTORY dir-1/nested/ - 75415966766ba875dc03435573e1a5438d4c8e36
+    "- DIRECTORY dir-1/ - 8f268dc4752a3eceddaa01612b17b9e4c1f2c7f6
+        - DIRECTORY dir-1/nested/ - 62fe0d525004f43af63e81f57ab5d29d113b50ca
             - FILE dir-1/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
         - FILE dir-1/file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
@@ -94,7 +94,7 @@ test("calculateFileHash handles excluded paths for directory", async () => {
   const testConfig = { ...baseConfig, exclude: [picomatch("dir-1/nested")] };
   const hash = await calculateDirectoryHash("dir-1", testConfig);
   expect(formatInputHash(hash)).toMatchInlineSnapshot(`
-    "- DIRECTORY dir-1/ - 1435d377a8827b125ba021da1351e0935859eadb
+    "- DIRECTORY dir-1/ - bc07f522c8d0fdc1bb6e0eaf2eb33b09ece6ce6d
         - FILE dir-1/file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
     "
   `);
