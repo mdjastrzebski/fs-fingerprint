@@ -66,9 +66,9 @@ async function calculateEntryHashForPath(
   }
 
   if (entry.isFile()) {
-    return calculateFileHash(entryPath, config);
+    return calculateFileHash(entryPath, config, { useFullPath: true });
   } else if (entry.isDirectory()) {
-    return calculateDirectoryHash(entryPath, config);
+    return calculateDirectoryHash(entryPath, config, { useFullPath: true });
   } else {
     console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
     return null;
@@ -118,9 +118,9 @@ function calculateEntryHashForPathSync(
   }
 
   if (entry.isFile()) {
-    return calculateFileHashSync(entryPath, config);
+    return calculateFileHashSync(entryPath, config, { useFullPath: true });
   } else if (entry.isDirectory()) {
-    return calculateDirectoryHashSync(entryPath, config);
+    return calculateDirectoryHashSync(entryPath, config, { useFullPath: true });
   } else {
     console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
     return null;

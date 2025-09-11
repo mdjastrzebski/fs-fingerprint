@@ -20,12 +20,12 @@ Perfect for building intelligent caching solutions that automatically invalidate
 2. Code:
 
 ```ts
-import { calculateFingerprint } from 'fs-fingerprint';
+import { calculateFingerprint } from "fs-fingerprint";
 
 const { hash } = await calculateFingerprint(rootPath, {
-  include: ['ios', 'package.json'],
-  exclude: ['build'],
-  ignoreFilePath: '.gitignore',
+  include: ["ios", "package.json"],
+  exclude: ["build"],
+  ignoreFilePath: ".gitignore",
 });
 ```
 
@@ -68,11 +68,12 @@ function calculateFingerprintSync(
     extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
     ignoreFilePath?: string; // Path (relative to "rootDir") to ignore file, e.g. ".gitignore".
-  }
-): FingerprintResult
+  },
+): FingerprintResult;
 ```
 
 Sync version of `calculateFingerprint`:
+
 - generates the same hash value without awaiting
 - will be slower due to blocking filesystem reads
 
@@ -129,6 +130,17 @@ const { hash } = calculateFingerprintSync("./src", {
   hashAlgorithm: "sha512",
 });
 ```
+
+## Design Considerations
+
+1. **File Hashing:**  
+   A file’s hash is based only on its content, but not from the file’s own name or path.
+
+2. **Directory Hashing:**  
+   A directory’s hash is based only on the names and hashes of its immediate contents (files and subdirectories), but not from the directory’s own name or path.
+
+3. **Include/Exclude Patterns:**  
+   Entries listed in `include` are always processed, even if they match `exclude` patterns or are listed in ignore files (such as `.gitignore`). However, files and subdirectories within included directories are still subject to `exclude` and ignore rules. This allows you to always include specific files or directories, while still controlling which of their contents are considered.
 
 ## Contributing
 

@@ -3,9 +3,8 @@ import type { Matcher } from "picomatch";
 
 type StringWithAutoSuggest<T> = (string & {}) | T;
 
-/** Hashing algorithm to use */
 /**
- * Hashing algorithm to use.
+ * Hashing algorithm to use
  * Common values: "sha1", "sha256", "sha512", etc.
  * TypeScript will auto-suggest these values, but other valid hash algorithms are allowed.
  */

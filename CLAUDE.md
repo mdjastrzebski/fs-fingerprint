@@ -22,16 +22,19 @@ This is a filesystem fingerprinting library that generates unique hashes based o
 ### Core Components
 
 **Main API (`src/fingerprint.ts:22-54`)**:
+
 - `calculateFingerprint()` - Main async function for generating fingerprints
 - `calculateFingerprintSync()` - Synchronous version
 
 **Input Types (`src/inputs/`)**:
+
 - `file.ts` - Handles individual file hashing
 - `directory.ts` - Handles directory tree hashing with recursive traversal
 - `content.ts` - Handles raw content hashing
 - `json.ts` - Handles JSON object hashing
 
 **Key Features**:
+
 - Supports include/exclude patterns using picomatch for glob matching
 - Uses ignore library for .gitignore-style file filtering
 - Configurable hash algorithms (sha1, sha256, sha512)
@@ -41,6 +44,7 @@ This is a filesystem fingerprinting library that generates unique hashes based o
 ### Configuration
 
 The library uses a `FingerprintConfig` object internally that combines:
+
 - Root directory path
 - Compiled exclude patterns (picomatch matchers)
 - Hash algorithm selection

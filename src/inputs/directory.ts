@@ -1,14 +1,19 @@
 import { readdirSync } from "node:fs";
 import { readdir } from "node:fs/promises";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 import type { FingerprintConfig, FingerprintDirectoryHash } from "../types.js";
 import { isExcludedPath, mergeHashes, normalizeDirPath } from "../utils.js";
 import { calculateFileHash, calculateFileHashSync } from "./file.js";
 
+export interface CalculateDirectorHashOptions {
+  useFullPath?: boolean;
+}
+
 export async function calculateDirectoryHash(
   path: string,
   config: FingerprintConfig,
+  options?: CalculateDirectorHashOptions,
 ): Promise<FingerprintDirectoryHash | null> {
   const pathWithRoot = join(config.rootDir, path);
   const entries = await readdir(pathWithRoot, { withFileTypes: true });
@@ -39,9 +44,10 @@ export async function calculateDirectoryHash(
   }
 
   const normalizedPath = normalizeDirPath(path);
+  const name = options?.useFullPath ? normalizedPath : normalizeDirPath(basename(normalizedPath));
   return {
     type: "directory",
-    key: `directory:${normalizedPath}`,
+    key: `directory:${name}`,
     hash: merged.hash,
     path: normalizedPath,
     children: merged.inputs,
@@ -51,6 +57,7 @@ export async function calculateDirectoryHash(
 export function calculateDirectoryHashSync(
   path: string,
   config: FingerprintConfig,
+  options?: CalculateDirectorHashOptions,
 ): FingerprintDirectoryHash | null {
   const pathWithRoot = join(config.rootDir, path);
   const entries = readdirSync(pathWithRoot, { withFileTypes: true });
@@ -81,9 +88,10 @@ export function calculateDirectoryHashSync(
   }
 
   const normalizedPath = normalizeDirPath(path);
+  const name = options?.useFullPath ? normalizedPath : normalizeDirPath(basename(normalizedPath));
   return {
     type: "directory",
-    key: `directory:${normalizedPath}`,
+    key: `directory:${name}`,
     hash: merged.hash,
     path: normalizedPath,
     children: merged.inputs,
