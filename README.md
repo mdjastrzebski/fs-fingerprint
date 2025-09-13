@@ -1,10 +1,10 @@
 # FS Fingerprint 🫆
 
-Generate unique hashes for your project’s current state.
+Generate unique fingerprint hashes from filesystem (and other) state.
 
 ## What's This?
 
-A fast Node.js library to generate unique fingerprints (hashes) based on the state of your filesystem : files, directories, and other content (string, JSON, etc).
+A fast Node.js library to generate unique fingerprints (hashes) based on the state of your filesystem: files, directories, and other content (string, JSON, etc).
 
 Perfect for building intelligent caching solutions that automatically invalidate when your code or data changes. ⚡
 
