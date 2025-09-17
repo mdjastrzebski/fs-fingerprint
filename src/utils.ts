@@ -66,12 +66,14 @@ type GenerateFileListOptions = {
   rootDir: string;
   include?: string[];
   exclude?: string[];
+  excludeFn?: (path: string) => boolean;
 };
 
 export function generateFileList({
   rootDir,
   include = ["*"],
   exclude,
+  excludeFn,
 }: GenerateFileListOptions): string[] {
   console.log("\nGenerate file list", include);
 
@@ -84,7 +86,6 @@ export function generateFileList({
 
   const files = new Set<string>();
   const dirs = new Set<string>();
-
   for (const path of firstPass) {
     if (path.endsWith("/")) {
       dirs.add(`${path}**`);
@@ -105,6 +106,13 @@ export function generateFileList({
     files.add(path);
   }
 
-  console.log("  Final files:", Array.from(files).sort());
-  return Array.from(files).sort();
+  let result = Array.from(files);
+  if (excludeFn) {
+    result = result.filter((path) => !excludeFn(path));
+    console.log("  After exclude fn:", result);
+  }
+
+  result.sort();
+  console.log("  Final files:", result);
+  return result;
 }

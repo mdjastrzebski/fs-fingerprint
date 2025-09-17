@@ -77,10 +77,17 @@ describe("generateFileList", () => {
     expect(result3).toEqual(["dir/file2.txt", "dir/subdir/file3.txt"]);
   });
 
-  test("returns applies excludes", () => {
+  test("returns supports exclude", () => {
     writePaths([...PATHS_TXT, ...PATHS_MD]);
 
     const result1 = generateFileList({ rootDir, exclude: ["**/*.md"] });
+    expect(result1).toEqual(PATHS_TXT.sort());
+  });
+
+  test("returns supports excludeFn", () => {
+    writePaths([...PATHS_TXT, ...PATHS_MD]);
+
+    const result1 = generateFileList({ rootDir, excludeFn: (path) => path.endsWith(".md") });
     expect(result1).toEqual(PATHS_TXT.sort());
   });
 });
