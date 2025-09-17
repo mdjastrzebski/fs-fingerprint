@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import fastglob from "fast-glob";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
@@ -59,4 +60,38 @@ export function normalizeDirPath(path: string): string {
   result = result.startsWith("./") ? result.slice(2) : result;
   result = result.endsWith("/") ? result : `${result}/`;
   return result;
+}
+
+type GenerateFileListOptions = {
+  rootDir: string;
+  include?: string[];
+  exclude?: string[];
+};
+
+export function generateFileList({
+  rootDir,
+  include = ["**"],
+  exclude,
+}: GenerateFileListOptions): string[] {
+  console.log("\nGenerate file list", include);
+
+  const staticPatterns = include.filter((pattern) => !fastglob.isDynamicPattern(pattern));
+  const staticPatternsWithContents = staticPatterns.map((pattern) =>
+    pattern.endsWith("/") ? `${pattern}**` : `${pattern}/**`,
+  );
+
+  const includePatterns = [...include, ...staticPatternsWithContents];
+  console.log("  Using patterns:", includePatterns);
+
+  const files = fastglob
+    .sync(includePatterns, {
+      cwd: rootDir,
+      ignore: exclude,
+      unique: true,
+    })
+    .sort();
+
+  console.log("  All files:", files);
+
+  return files;
 }
