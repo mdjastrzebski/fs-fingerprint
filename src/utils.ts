@@ -70,28 +70,41 @@ type GenerateFileListOptions = {
 
 export function generateFileList({
   rootDir,
-  include = ["**"],
+  include = ["*"],
   exclude,
 }: GenerateFileListOptions): string[] {
   console.log("\nGenerate file list", include);
 
-  const staticPatterns = include.filter((pattern) => !fastglob.isDynamicPattern(pattern));
-  const staticPatternsWithContents = staticPatterns.map((pattern) =>
-    pattern.endsWith("/") ? `${pattern}**` : `${pattern}/**`,
-  );
+  const firstPass = fastglob.sync(include, {
+    cwd: rootDir,
+    ignore: exclude,
+    onlyFiles: false,
+    markDirectories: true,
+  });
 
-  const includePatterns = [...include, ...staticPatternsWithContents];
-  console.log("  Using patterns:", includePatterns);
+  const files = new Set<string>();
+  const dirs = new Set<string>();
 
-  const files = fastglob
-    .sync(includePatterns, {
-      cwd: rootDir,
-      ignore: exclude,
-      unique: true,
-    })
-    .sort();
+  for (const path of firstPass) {
+    if (path.endsWith("/")) {
+      dirs.add(`${path}**`);
+    } else {
+      files.add(path);
+    }
+  }
 
-  console.log("  All files:", files);
+  console.log("  First pass files:", Array.from(files).sort());
+  console.log("  First pass dirs:", Array.from(dirs).sort());
 
-  return files;
+  const secondPass = fastglob.sync(Array.from(dirs), {
+    cwd: rootDir,
+    ignore: exclude,
+  });
+  console.log("  Second pass files:", Array.from(secondPass).sort());
+  for (const path of secondPass) {
+    files.add(path);
+  }
+
+  console.log("  Final files:", Array.from(files).sort());
+  return Array.from(files).sort();
 }
