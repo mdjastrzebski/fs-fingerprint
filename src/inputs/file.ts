@@ -6,10 +6,12 @@ import { EMPTY_HASH } from "../constants.js";
 import type { FingerprintConfig, FingerprintFileHash } from "../types.js";
 import { hashContent, normalizeFilePath } from "../utils.js";
 
+const noopWrapper = async (fn: () => PromiseLike<string>) => fn();
+
 export async function calculateFileHash(
   path: string,
   config: FingerprintConfig,
-): Promise<FingerprintFileHash> {
+): Promise<FingerprintFileHash | null> {
   const normalizedPath = normalizeFilePath(path);
   if (config.hashAlgorithm === "null") {
     return {
@@ -20,8 +22,10 @@ export async function calculateFileHash(
     };
   }
 
+  const asyncWrapper = config.asyncWrapper ?? noopWrapper;
+
   const pathWithRoot = join(config.rootDir, path);
-  const content = await readFile(pathWithRoot, "utf8");
+  const content = await asyncWrapper(() => readFile(pathWithRoot, "utf8"));
   return {
     type: "file",
     key: `file:${normalizedPath}`,
@@ -33,7 +37,7 @@ export async function calculateFileHash(
 export function calculateFileHashSync(
   path: string,
   config: FingerprintConfig,
-): FingerprintFileHash {
+): FingerprintFileHash | null {
   const normalizedPath = normalizeFilePath(path);
   if (config.hashAlgorithm === "null") {
     return {

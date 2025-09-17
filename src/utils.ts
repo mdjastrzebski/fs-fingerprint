@@ -45,21 +45,8 @@ export function mergeHashes(
   };
 }
 
-export function isExcludedPath(path: string, config: FingerprintConfig): boolean {
-  return Boolean(
-    config.exclude?.some((matcher) => matcher(path)) || config.ignoreObject?.ignores(path),
-  );
-}
-
 export function normalizeFilePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path;
-}
-
-export function normalizeDirPath(path: string): string {
-  let result = path;
-  result = result.startsWith("./") ? result.slice(2) : result;
-  result = result.endsWith("/") ? result : `${result}/`;
-  return result;
 }
 
 type GenerateFileListOptions = {
@@ -69,7 +56,55 @@ type GenerateFileListOptions = {
   excludeFn?: (path: string) => boolean;
 };
 
-export function generateFileList({
+export async function generateFileList({
+  rootDir,
+  include = ["*"],
+  exclude,
+  excludeFn,
+}: GenerateFileListOptions): Promise<string[]> {
+  console.log("\nGenerate file list", include);
+
+  const firstPass = await fastglob(include, {
+    cwd: rootDir,
+    ignore: exclude,
+    onlyFiles: false,
+    markDirectories: true,
+  });
+
+  const files = new Set<string>();
+  const dirs = new Set<string>();
+  for (const path of firstPass) {
+    if (path.endsWith("/")) {
+      dirs.add(`${path}**`);
+    } else {
+      files.add(path);
+    }
+  }
+
+  console.log("  First pass files:", Array.from(files).sort());
+  console.log("  First pass dirs:", Array.from(dirs).sort());
+
+  const secondPass = await fastglob(Array.from(dirs), {
+    cwd: rootDir,
+    ignore: exclude,
+  });
+  console.log("  Second pass files:", Array.from(secondPass).sort());
+  for (const path of secondPass) {
+    files.add(path);
+  }
+
+  let result = Array.from(files);
+  if (excludeFn) {
+    result = result.filter((path) => !excludeFn(path));
+    console.log("  After exclude fn:", result);
+  }
+
+  result.sort();
+  console.log("  Final files:", result);
+  return result;
+}
+
+export function generateFileListSync({
   rootDir,
   include = ["*"],
   exclude,

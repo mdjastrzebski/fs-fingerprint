@@ -1,9 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import ignore, { type Ignore } from "ignore";
-import pLimit from "p-limit";
 
-import { DEFAULT_CONCURRENCY, EMPTY_HASH } from "./constants.js";
+import { EMPTY_HASH } from "./constants.js";
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
 import { calculateJsonHash } from "./inputs/json.js";
@@ -20,7 +19,13 @@ export async function calculateFingerprint(
   rootDir: string,
   options?: FingerprintOptions,
 ): Promise<FingerprintResult> {
+  const config: FingerprintConfig = {
+    rootDir,
+    hashAlgorithm: options?.hashAlgorithm,
+  };
+
   const ignoreObject = buildIgnoreObject(rootDir, options?.ignoreFilePath);
+
   const inputFiles = await generateFileList({
     rootDir,
     include: options?.include,
@@ -28,14 +33,9 @@ export async function calculateFingerprint(
     excludeFn: ignoreObject ? (path) => ignoreObject.ignores(path) : undefined,
   });
 
-  const limit = pLimit(options?.concurrency ?? DEFAULT_CONCURRENCY);
-  const config: FingerprintConfig = {
-    rootDir,
-    hashAlgorithm: options?.hashAlgorithm,
-  };
-  const inputHashes: FingerprintInputHash[] = await Promise.all(
-    inputFiles.map((path) => limit(() => calculateFileHash(path, config))),
-  );
+  const inputHashes: FingerprintInputHash[] = (
+    await Promise.all(inputFiles.map((path) => calculateFileHash(path, config)))
+  ).filter((hash) => hash != null);
 
   if (options?.extraInputs) {
     inputHashes.push(...calculateExtraInputHashes(options.extraInputs, config));
@@ -48,7 +48,13 @@ export function calculateFingerprintSync(
   rootDir: string,
   options?: FingerprintOptions,
 ): FingerprintResult {
+  const config: FingerprintConfig = {
+    rootDir,
+    hashAlgorithm: options?.hashAlgorithm,
+  };
+
   const ignoreObject = buildIgnoreObject(rootDir, options?.ignoreFilePath);
+
   const inputFiles = generateFileListSync({
     rootDir,
     include: options?.include,
@@ -56,13 +62,9 @@ export function calculateFingerprintSync(
     excludeFn: ignoreObject ? (path) => ignoreObject.ignores(path) : undefined,
   });
 
-  const config: FingerprintConfig = {
-    rootDir,
-    hashAlgorithm: options?.hashAlgorithm,
-  };
-  const inputHashes: FingerprintInputHash[] = inputFiles.map((path) =>
-    calculateFileHashSync(path, config),
-  );
+  const inputHashes: FingerprintInputHash[] = inputFiles
+    .map((path) => calculateFileHashSync(path, config))
+    .filter((hash) => hash != null);
 
   if (options?.extraInputs) {
     inputHashes.push(...calculateExtraInputHashes(options.extraInputs, config));

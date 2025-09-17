@@ -22,5 +22,10 @@ export function formatInputHash(input: FingerprintInputHash | null, indent = 0):
   }
 
   const name = input.key.split(":")[1];
-  return `${" ".repeat(indent)}- ${name} - ${input.hash}\n`;
+  let result = `${" ".repeat(indent)}- ${name} - ${input.hash}\n`;
+  if (input.type === "directory") {
+    result += formatInputs(input.children, indent + 4);
+  }
+
+  return result;
 }
