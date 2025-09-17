@@ -1,13 +1,9 @@
-import { existsSync, readFileSync, type Stats, statSync } from "node:fs";
-import { stat } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import ignore, { type Ignore } from "ignore";
-import pLimit from "p-limit";
-import picomatch from "picomatch";
 
-import { DEFAULT_CONCURRENCY, EMPTY_HASH } from "./constants.js";
+import { EMPTY_HASH } from "./constants.js";
 import { calculateContentHash } from "./inputs/content.js";
-import { calculateDirectoryHash, calculateDirectoryHashSync } from "./inputs/directory.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
 import { calculateJsonHash } from "./inputs/json.js";
 import type {
@@ -17,7 +13,7 @@ import type {
   FingerprintOptions,
   FingerprintResult,
 } from "./types.js";
-import { mergeHashes } from "./utils.js";
+import { generateFileList, generateFileListSync, mergeHashes } from "./utils.js";
 
 export async function calculateFingerprint(
   rootDir: string,
@@ -25,54 +21,27 @@ export async function calculateFingerprint(
 ): Promise<FingerprintResult> {
   const config: FingerprintConfig = {
     rootDir,
-    exclude: options?.exclude?.map((pattern) => picomatch(pattern)),
     hashAlgorithm: options?.hashAlgorithm,
-    ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
-    asyncWrapper: pLimit(options?.maxConcurrent ?? DEFAULT_CONCURRENCY),
   };
 
-  const inputHashes: FingerprintInputHash[] = [];
+  const ignoreObject = buildIgnoreObject(rootDir, options?.ignoreFilePath);
 
-  // Process top-level entries in rootDir
-  if (options?.include) {
-    const entryHashes = await Promise.all(
-      options.include.map((path) => calculateEntryHashForPath(path, config)),
-    );
-    inputHashes.push(...entryHashes.filter((hash) => hash != null));
-  } else {
-    const rootDirHash = await calculateDirectoryHash(".", config);
-    if (rootDirHash != null) {
-      inputHashes.push(...rootDirHash.children);
-    }
-  }
+  const inputFiles = await generateFileList({
+    rootDir,
+    include: options?.include,
+    exclude: options?.exclude,
+    excludeFn: ignoreObject ? (path) => ignoreObject.ignores(path) : undefined,
+  });
+
+  const inputHashes: FingerprintInputHash[] = (
+    await Promise.all(inputFiles.map((path) => calculateFileHash(path, config)))
+  ).filter((hash) => hash != null);
 
   if (options?.extraInputs) {
     inputHashes.push(...calculateExtraInputHashes(options.extraInputs, config));
   }
 
   return mergeHashes(inputHashes, config) ?? { hash: EMPTY_HASH, inputs: [] };
-}
-
-async function calculateEntryHashForPath(
-  entryPath: string,
-  config: FingerprintConfig,
-): Promise<FingerprintInputHash | null> {
-  const pathWithRoot = path.join(config.rootDir, entryPath);
-  let entry: Stats;
-  try {
-    entry = await stat(pathWithRoot);
-  } catch {
-    return null;
-  }
-
-  if (entry.isFile()) {
-    return calculateFileHash(entryPath, config, { useFullPath: true });
-  } else if (entry.isDirectory()) {
-    return calculateDirectoryHash(entryPath, config, { useFullPath: true });
-  } else {
-    console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
-    return null;
-  }
 }
 
 export function calculateFingerprintSync(
@@ -81,50 +50,27 @@ export function calculateFingerprintSync(
 ): FingerprintResult {
   const config: FingerprintConfig = {
     rootDir,
-    exclude: options?.exclude?.map((pattern) => picomatch(pattern)),
     hashAlgorithm: options?.hashAlgorithm,
-    ignoreObject: buildIgnoreObject(rootDir, options?.ignoreFilePath),
   };
 
-  const inputHashes: FingerprintInputHash[] = [];
+  const ignoreObject = buildIgnoreObject(rootDir, options?.ignoreFilePath);
 
-  if (options?.include) {
-    const entryHashes = options.include.map((path) => calculateEntryHashForPathSync(path, config));
-    inputHashes.push(...entryHashes.filter((hash) => hash != null));
-  } else {
-    const rootDirHash = calculateDirectoryHashSync(".", config);
-    if (rootDirHash != null) {
-      inputHashes.push(...rootDirHash.children);
-    }
-  }
+  const inputFiles = generateFileListSync({
+    rootDir,
+    include: options?.include,
+    exclude: options?.exclude,
+    excludeFn: ignoreObject ? (path) => ignoreObject.ignores(path) : undefined,
+  });
+
+  const inputHashes: FingerprintInputHash[] = inputFiles
+    .map((path) => calculateFileHashSync(path, config))
+    .filter((hash) => hash != null);
 
   if (options?.extraInputs) {
     inputHashes.push(...calculateExtraInputHashes(options.extraInputs, config));
   }
 
   return mergeHashes(inputHashes, config) ?? { hash: EMPTY_HASH, inputs: [] };
-}
-
-function calculateEntryHashForPathSync(
-  entryPath: string,
-  config: FingerprintConfig,
-): FingerprintInputHash | null {
-  const pathWithRoot = path.join(config.rootDir, entryPath);
-  let entry: Stats;
-  try {
-    entry = statSync(pathWithRoot);
-  } catch {
-    return null;
-  }
-
-  if (entry.isFile()) {
-    return calculateFileHashSync(entryPath, config, { useFullPath: true });
-  } else if (entry.isDirectory()) {
-    return calculateDirectoryHashSync(entryPath, config, { useFullPath: true });
-  } else {
-    console.warn(`fs-fingerprint: skipping "${entryPath}" (not a file or directory)`);
-    return null;
-  }
 }
 
 function calculateExtraInputHashes(

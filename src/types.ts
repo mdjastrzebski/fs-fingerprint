@@ -1,6 +1,3 @@
-import type { Ignore } from "ignore";
-import type { Matcher } from "picomatch";
-
 type StringWithAutoSuggest<T> = (string & {}) | T;
 
 /**
@@ -12,10 +9,10 @@ export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512">;
 
 export type FingerprintOptions = {
   /** File and directory paths to include (does NOT support globs) */
-  include?: readonly string[];
+  include?: string[];
 
   /** Paths to exclude (support globs, "picomatch" syntax) */
-  exclude?: readonly string[];
+  exclude?: string[];
 
   /** Extra inputs to include in the fingerprint: content, json, etc */
   extraInputs?: FingerprintInput[];
@@ -40,9 +37,7 @@ export type AsyncWrapper = <T>(fn: () => PromiseLike<T> | T) => Promise<T>;
  */
 export type FingerprintConfig = {
   rootDir: string;
-  exclude?: Matcher[];
   hashAlgorithm?: HashAlgorithm;
-  ignoreObject?: Ignore;
   asyncWrapper?: AsyncWrapper;
 };
 
@@ -61,14 +56,6 @@ export interface FingerprintFileHash {
   key: string;
   hash: string;
   path: string;
-}
-
-export interface FingerprintDirectoryHash {
-  type: "directory";
-  key: string;
-  hash: string;
-  path: string;
-  children: FingerprintInputHash[];
 }
 
 export interface FingerprintContentHash {
@@ -90,8 +77,7 @@ export type FingerprintInput = FingerprintContentInput | FingerprintJsonInput;
 export type FingerprintInputHash =
   | FingerprintContentHash
   | FingerprintJsonHash
-  | FingerprintFileHash
-  | FingerprintDirectoryHash;
+  | FingerprintFileHash;
 
 export type FingerprintResult = {
   hash: string;
