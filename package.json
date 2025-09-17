@@ -42,6 +42,7 @@
     "size": "bun run build && pkg-size"
   },
   "dependencies": {
+    "fast-glob": "^3.3.3",
     "ignore": "^7.0.5",
     "p-limit": "^7.1.0",
     "tinyglobby": "^0.2.15"

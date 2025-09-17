@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { glob, globSync } from "tinyglobby";
+import fastglob from "fast-glob";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
@@ -23,6 +23,7 @@ export function mergeHashes(
   }
 
   const sortedHashes = [...hashes].sort((a, b) => a.key.localeCompare(b.key));
+
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,
@@ -44,91 +45,53 @@ export function mergeHashes(
   };
 }
 
+export function isExcludedPath(path: string, config: FingerprintConfig): boolean {
+  return Boolean(
+    config.exclude?.some((matcher) => matcher(path)) || config.ignoreObject?.ignores(path),
+  );
+}
+
 export function normalizeFilePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path;
+}
+
+export function normalizeDirPath(path: string): string {
+  let result = path;
+  result = result.startsWith("./") ? result.slice(2) : result;
+  result = result.endsWith("/") ? result : `${result}/`;
+  return result;
 }
 
 type GenerateFileListOptions = {
   rootDir: string;
   include?: string[];
   exclude?: string[];
-  excludeFn?: (path: string) => boolean;
 };
 
-export async function generateFileList({
+export function generateFileList({
   rootDir,
-  include = ["*"],
+  include = ["**"],
   exclude,
-  excludeFn,
-}: GenerateFileListOptions): Promise<string[]> {
-  const firstPass = await glob(include, {
-    cwd: rootDir,
-    ignore: exclude,
-    onlyFiles: false,
-  });
-
-  const files = new Set<string>();
-  const dirs = new Set<string>();
-  for (const path of firstPass) {
-    if (path.endsWith("/")) {
-      dirs.add(`${path}**`);
-    } else {
-      files.add(path);
-    }
-  }
-
-  const secondPass = await glob(Array.from(dirs), {
-    cwd: rootDir,
-    ignore: exclude,
-  });
-  for (const path of secondPass) {
-    files.add(path);
-  }
-
-  let result = Array.from(files);
-  if (excludeFn) {
-    result = result.filter((path) => !excludeFn(path));
-  }
-
-  result.sort();
-  return result;
-}
-
-export function generateFileListSync({
-  rootDir,
-  include = ["*"],
-  exclude,
-  excludeFn,
 }: GenerateFileListOptions): string[] {
-  const firstPass = globSync(include, {
-    cwd: rootDir,
-    ignore: exclude,
-    onlyFiles: false,
-  });
+  console.log("\nGenerate file list", include);
 
-  const files = new Set<string>();
-  const dirs = new Set<string>();
-  for (const path of firstPass) {
-    if (path.endsWith("/")) {
-      dirs.add(`${path}**`);
-    } else {
-      files.add(path);
-    }
-  }
+  const staticPatterns = include.filter((pattern) => !fastglob.isDynamicPattern(pattern));
+  const staticPatternsWithContents = staticPatterns.map((pattern) =>
+    pattern.endsWith("/") ? `${pattern}**` : `${pattern}/**`,
+  );
 
-  const secondPass = globSync(Array.from(dirs), {
-    cwd: rootDir,
-    ignore: exclude,
-  });
-  for (const path of secondPass) {
-    files.add(path);
-  }
+  const includePatterns = [...include, ...staticPatternsWithContents];
+  console.log("  Using patterns:", includePatterns);
 
-  let result = Array.from(files);
-  if (excludeFn) {
-    result = result.filter((path) => !excludeFn(path));
-  }
+  const files = fastglob
+    .sync(includePatterns, {
+      cwd: rootDir,
+      ignore: exclude,
+      unique: true,
+    })
+    .sort();
 
-  result.sort();
-  return result;
+  console.log("  All files:", files);
+
+  return files;
 }
