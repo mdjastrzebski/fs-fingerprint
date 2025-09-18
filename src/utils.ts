@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import fastglob from "fast-glob";
+import { glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
@@ -54,84 +54,45 @@ type GenerateFileListOptions = {
   include?: string[];
   exclude?: string[];
   excludeFn?: (path: string) => boolean;
+  concurrency?: number;
 };
 
 export async function generateFileList({
   rootDir,
-  include = ["*"],
+  include = ["**"],
   exclude,
   excludeFn,
 }: GenerateFileListOptions): Promise<string[]> {
-  const firstPass = await fastglob(include, {
+  let paths = await glob(include, {
     cwd: rootDir,
     ignore: exclude,
-    onlyFiles: false,
-    markDirectories: true,
+    expandDirectories: true,
   });
 
-  const files = new Set<string>();
-  const dirs = new Set<string>();
-  for (const path of firstPass) {
-    if (path.endsWith("/")) {
-      dirs.add(`${path}**`);
-    } else {
-      files.add(path);
-    }
-  }
-
-  const secondPass = await fastglob(Array.from(dirs), {
-    cwd: rootDir,
-    ignore: exclude,
-  });
-  for (const path of secondPass) {
-    files.add(path);
-  }
-
-  let result = Array.from(files);
   if (excludeFn) {
-    result = result.filter((path) => !excludeFn(path));
+    paths = paths.filter((path) => !excludeFn(path));
   }
 
-  result.sort();
-  return result;
+  paths.sort();
+  return paths;
 }
 
 export function generateFileListSync({
   rootDir,
-  include = ["*"],
+  include = ["**"],
   exclude,
   excludeFn,
 }: GenerateFileListOptions): string[] {
-  const firstPass = fastglob.sync(include, {
+  let paths = globSync(include, {
     cwd: rootDir,
     ignore: exclude,
-    onlyFiles: false,
-    markDirectories: true,
+    expandDirectories: true,
   });
 
-  const files = new Set<string>();
-  const dirs = new Set<string>();
-  for (const path of firstPass) {
-    if (path.endsWith("/")) {
-      dirs.add(`${path}**`);
-    } else {
-      files.add(path);
-    }
-  }
-
-  const secondPass = fastglob.sync(Array.from(dirs), {
-    cwd: rootDir,
-    ignore: exclude,
-  });
-  for (const path of secondPass) {
-    files.add(path);
-  }
-
-  let result = Array.from(files);
   if (excludeFn) {
-    result = result.filter((path) => !excludeFn(path));
+    paths = paths.filter((path) => !excludeFn(path));
   }
 
-  result.sort();
-  return result;
+  paths.sort();
+  return paths;
 }

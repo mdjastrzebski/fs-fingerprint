@@ -27,10 +27,8 @@ export type FingerprintOptions = {
   ignoreFilePath?: string;
 
   /** Maximum number of concurrently opened files */
-  maxConcurrent?: number;
+  concurrency?: number;
 };
-
-export type AsyncWrapper = <T>(fn: () => PromiseLike<T> | T) => Promise<T>;
 
 /**
  * Internal fingerprint config. Can change without semver.
@@ -38,7 +36,6 @@ export type AsyncWrapper = <T>(fn: () => PromiseLike<T> | T) => Promise<T>;
 export type FingerprintConfig = {
   rootDir: string;
   hashAlgorithm?: HashAlgorithm;
-  asyncWrapper?: AsyncWrapper;
 };
 
 export interface FingerprintContentInput {
