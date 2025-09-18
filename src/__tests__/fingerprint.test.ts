@@ -1,5 +1,5 @@
 import * as fs from "node:fs";
-import { beforeEach, expect, test } from "vitest";
+import { beforeEach, expect, test } from "bun:test";
 
 import { findInput } from "../../test-utils/assert.js";
 import { formatFingerprint } from "../../test-utils/format.js";
