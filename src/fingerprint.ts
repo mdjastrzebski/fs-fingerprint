@@ -33,9 +33,9 @@ export async function calculateFingerprint(
     rootDir,
     hashAlgorithm: options?.hashAlgorithm,
   };
-  const inputHashes: FingerprintInputHash[] = (
-    await Promise.all(inputFiles.map((path) => limit(() => calculateFileHash(path, config))))
-  ).filter((hash) => hash != null);
+  const inputHashes: FingerprintInputHash[] = await Promise.all(
+    inputFiles.map((path) => limit(() => calculateFileHash(path, config))),
+  );
 
   if (options?.extraInputs) {
     inputHashes.push(...calculateExtraInputHashes(options.extraInputs, config));
@@ -60,9 +60,9 @@ export function calculateFingerprintSync(
     rootDir,
     hashAlgorithm: options?.hashAlgorithm,
   };
-  const inputHashes: FingerprintInputHash[] = inputFiles
-    .map((path) => calculateFileHashSync(path, config))
-    .filter((hash) => hash != null);
+  const inputHashes: FingerprintInputHash[] = inputFiles.map((path) =>
+    calculateFileHashSync(path, config),
+  );
 
   if (options?.extraInputs) {
     inputHashes.push(...calculateExtraInputHashes(options.extraInputs, config));

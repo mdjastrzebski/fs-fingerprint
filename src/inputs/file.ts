@@ -9,7 +9,7 @@ import { hashContent, normalizeFilePath } from "../utils.js";
 export async function calculateFileHash(
   path: string,
   config: FingerprintConfig,
-): Promise<FingerprintFileHash | null> {
+): Promise<FingerprintFileHash> {
   const normalizedPath = normalizeFilePath(path);
   if (config.hashAlgorithm === "null") {
     return {
@@ -33,7 +33,7 @@ export async function calculateFileHash(
 export function calculateFileHashSync(
   path: string,
   config: FingerprintConfig,
-): FingerprintFileHash | null {
+): FingerprintFileHash {
   const normalizedPath = normalizeFilePath(path);
   if (config.hashAlgorithm === "null") {
     return {

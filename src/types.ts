@@ -38,6 +38,8 @@ export type FingerprintConfig = {
   hashAlgorithm?: HashAlgorithm;
 };
 
+export type FingerprintInput = FingerprintContentInput | FingerprintJsonInput;
+
 export interface FingerprintContentInput {
   key: string;
   content: string;
@@ -47,6 +49,16 @@ export interface FingerprintJsonInput {
   key: string;
   json: unknown;
 }
+
+export type FingerprintResult = {
+  hash: string;
+  inputs: FingerprintInputHash[];
+};
+
+export type FingerprintInputHash =
+  | FingerprintContentHash
+  | FingerprintJsonHash
+  | FingerprintFileHash;
 
 export interface FingerprintFileHash {
   type: "file";
@@ -68,15 +80,3 @@ export interface FingerprintJsonHash {
   hash: string;
   json: unknown;
 }
-
-export type FingerprintInput = FingerprintContentInput | FingerprintJsonInput;
-
-export type FingerprintInputHash =
-  | FingerprintContentHash
-  | FingerprintJsonHash
-  | FingerprintFileHash;
-
-export type FingerprintResult = {
-  hash: string;
-  inputs: FingerprintInputHash[];
-};
