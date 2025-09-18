@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
-import { beforeEach, expect, test } from "bun:test";
+import * as path from "node:path";
+import { beforeEach, expect, spyOn, test } from "bun:test";
 
 import { findInput } from "../../test-utils/assert.js";
 import { formatFingerprint } from "../../test-utils/format.js";
@@ -299,24 +300,21 @@ test("calculateFingerprint handles missing .gitignore file", async () => {
   expect(fingerprintSync).toEqual(fingerprint);
 });
 
-// test("calculateFingerprint warns for non-file/non-directory entries", async () => {
-//   writePaths(["dir-1/"]);
-//   fs.symlinkSync("/dev/null", path.join(rootDir, "dir-1", "dev-null-link"));
+test("calculateFingerprint follows symlinks", async () => {
+  writePaths(["file1.txt", "dir-1/"]);
+  fs.symlinkSync(path.join(rootDir, "file1.txt"), path.join(rootDir, "dir-1", "file-link1.txt"));
 
-// const consoleWarnSpy = spyOn(console, "warn").mockImplementation(() => undefined);
+  const options: FingerprintOptions = {
+    include: ["dir-1/file-link1.txt"],
+  };
 
-//   const options: FingerprintOptions = {
-//     include: ["dir-1/dev-null-link"],
-//   };
+  const fingerprint = await calculateFingerprint(rootDir, options);
+  expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
+    "Hash: 1ac27c550eb0af4de10ecd3c5cbe5fb3b6a16848
+    Inputs:
+      - dir-1/file-link1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+    "
+  `);
 
-//   await calculateFingerprint(rootDir, options);
-//   expect(consoleWarnSpy).toHaveBeenCalledWith(
-//     'fs-fingerprint: skipping "dir-1/dev-null-link" (not a file or directory)',
-//   );
-
-//   consoleWarnSpy.mockClear();
-//   calculateFingerprintSync(rootDir, options);
-//   expect(consoleWarnSpy).toHaveBeenCalledWith(
-//     'fs-fingerprint: skipping "dir-1/dev-null-link" (not a file or directory)',
-//   );
-// });
+  expect(findInput(fingerprint.inputs, "dir-1/file-link1.txt")).toBeTruthy();
+});
