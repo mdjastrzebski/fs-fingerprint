@@ -59,14 +59,13 @@ type GenerateFileListOptions = {
 
 export async function generateFileList({
   rootDir,
-  include = ["*"],
+  include = ["**"],
   exclude,
   excludeFn,
 }: GenerateFileListOptions): Promise<string[]> {
   let paths = await glob(include, {
     cwd: rootDir,
     ignore: exclude,
-    onlyFiles: false,
     expandDirectories: true,
   });
 
@@ -80,7 +79,7 @@ export async function generateFileList({
 
 export function generateFileListSync({
   rootDir,
-  include = ["*"],
+  include = ["**"],
   exclude,
   excludeFn,
 }: GenerateFileListOptions): string[] {
