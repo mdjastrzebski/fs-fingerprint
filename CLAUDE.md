@@ -4,16 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-- **Build**: `pnpm build` - Compiles TypeScript using tsup, outputs both ESM and CJS formats
-- **Type check**: `pnpm typecheck` - Runs TypeScript compiler without emitting files
-- **Lint**: `pnpm lint` - Runs ESLint with the configured rules
-- **Test**: `pnpm test` - Runs Vitest test suite
-- **Test (single run)**: `pnpm test --no-watch` - Runs tests once without watch mode
-- **Validation**: `pnpm validate` - Runs complete validation pipeline: typecheck, lint, test, and prettier check
-- **Format check**: `pnpm prettier:check` - Checks code formatting
-- **Format write**: `pnpm prettier:write` - Applies code formatting
-- **Clean**: `pnpm clean` - Removes dist directory
-- **Benchmark**: `pnpm bench` - Runs performance benchmarks
+- **Build**: `bun run build` - Compiles TypeScript using tsup, outputs both ESM and CJS formats
+- **Type check**: `bun run typecheck` - Runs TypeScript compiler without emitting files
+- **Lint**: `bun run lint` - Runs ESLint with the configured rules
+- **Test**: `bun run test` - Runs Vitest test suite
+- **Test (single run)**: `bun run test --no-watch` - Runs tests once without watch mode
+- **Validation**: `bun run validate` - Runs complete validation pipeline: typecheck, lint, test, and prettier check
+- **Format check**: `bun run prettier:check` - Checks code formatting
+- **Format write**: `bun run prettier:write` - Applies code formatting
+- **Clean**: `bun run clean` - Removes dist directory
+- **Benchmark**: `bun run bench` - Runs performance benchmarks
 
 ## Architecture
 
