@@ -12,11 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
-
       - name: Setup bun
         uses: oven-sh/setup-bun@v2
 
@@ -38,4 +33,6 @@ jobs:
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
+          base_sha: ${{ github.event.pull_request.base.sha }}
+          files: ./coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
