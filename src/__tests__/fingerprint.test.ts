@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { beforeEach, expect, spyOn, test } from "bun:test";
+import { beforeEach, expect, test } from "bun:test";
 
 import { findInput } from "../../test-utils/assert.js";
 import { formatFingerprint } from "../../test-utils/format.js";

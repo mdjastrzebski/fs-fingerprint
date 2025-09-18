@@ -54,6 +54,7 @@ type GenerateFileListOptions = {
   include?: string[];
   exclude?: string[];
   excludeFn?: (path: string) => boolean;
+  concurrency?: number;
 };
 
 export async function generateFileList({
@@ -61,12 +62,14 @@ export async function generateFileList({
   include = ["*"],
   exclude,
   excludeFn,
+  concurrency,
 }: GenerateFileListOptions): Promise<string[]> {
   const firstPass = await fastglob(include, {
     cwd: rootDir,
     ignore: exclude,
     onlyFiles: false,
     markDirectories: true,
+    concurrency,
   });
 
   const files = new Set<string>();
