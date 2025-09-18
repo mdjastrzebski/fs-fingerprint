@@ -62,45 +62,20 @@ export async function generateFileList({
   include = ["*"],
   exclude,
   excludeFn,
-  concurrency,
 }: GenerateFileListOptions): Promise<string[]> {
-  const firstPass = await glob(include, {
+  let paths = await glob(include, {
     cwd: rootDir,
     ignore: exclude,
     onlyFiles: false,
     expandDirectories: true,
   });
 
-  const files = new Set<string>();
-  const dirs = new Set<string>();
-  for (const path of firstPass) {
-    if (path.endsWith("/")) {
-      dirs.add(`${path}**`);
-    } else {
-      files.add(path);
-    }
-  }
-
-  console.log("First Pass files:", files);
-  console.log("First Pass dirs:", dirs);
-
-  const secondPass = await glob(Array.from(dirs), {
-    cwd: rootDir,
-    ignore: exclude,
-  });
-  for (const path of secondPass) {
-    files.add(path);
-  }
-
-  console.log("Second Pass files:", secondPass);
-
-  let result = Array.from(files);
   if (excludeFn) {
-    result = result.filter((path) => !excludeFn(path));
+    paths = paths.filter((path) => !excludeFn(path));
   }
 
-  result.sort();
-  return result;
+  paths.sort();
+  return paths;
 }
 
 export function generateFileListSync({
@@ -109,36 +84,16 @@ export function generateFileListSync({
   exclude,
   excludeFn,
 }: GenerateFileListOptions): string[] {
-  const firstPass = globSync(include, {
+  let paths = globSync(include, {
     cwd: rootDir,
     ignore: exclude,
-    //onlyFiles: false,
     expandDirectories: true,
   });
 
-  const files = new Set<string>();
-  const dirs = new Set<string>();
-  for (const path of firstPass) {
-    if (path.endsWith("/")) {
-      dirs.add(`${path}**`);
-    } else {
-      files.add(path);
-    }
-  }
-
-  const secondPass = globSync(Array.from(dirs), {
-    cwd: rootDir,
-    ignore: exclude,
-  });
-  for (const path of secondPass) {
-    files.add(path);
-  }
-
-  let result = Array.from(files);
   if (excludeFn) {
-    result = result.filter((path) => !excludeFn(path));
+    paths = paths.filter((path) => !excludeFn(path));
   }
 
-  result.sort();
-  return result;
+  paths.sort();
+  return paths;
 }
