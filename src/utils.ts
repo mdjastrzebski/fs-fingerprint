@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import fastglob from "fast-glob";
+import { glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
@@ -64,12 +64,11 @@ export async function generateFileList({
   excludeFn,
   concurrency,
 }: GenerateFileListOptions): Promise<string[]> {
-  const firstPass = await fastglob(include, {
+  const firstPass = await glob(include, {
     cwd: rootDir,
     ignore: exclude,
     onlyFiles: false,
-    markDirectories: true,
-    concurrency,
+    expandDirectories: true,
   });
 
   const files = new Set<string>();
@@ -82,13 +81,18 @@ export async function generateFileList({
     }
   }
 
-  const secondPass = await fastglob(Array.from(dirs), {
+  console.log("First Pass files:", files);
+  console.log("First Pass dirs:", dirs);
+
+  const secondPass = await glob(Array.from(dirs), {
     cwd: rootDir,
     ignore: exclude,
   });
   for (const path of secondPass) {
     files.add(path);
   }
+
+  console.log("Second Pass files:", secondPass);
 
   let result = Array.from(files);
   if (excludeFn) {
@@ -105,11 +109,11 @@ export function generateFileListSync({
   exclude,
   excludeFn,
 }: GenerateFileListOptions): string[] {
-  const firstPass = fastglob.sync(include, {
+  const firstPass = globSync(include, {
     cwd: rootDir,
     ignore: exclude,
-    onlyFiles: false,
-    markDirectories: true,
+    //onlyFiles: false,
+    expandDirectories: true,
   });
 
   const files = new Set<string>();
@@ -122,7 +126,7 @@ export function generateFileListSync({
     }
   }
 
-  const secondPass = fastglob.sync(Array.from(dirs), {
+  const secondPass = globSync(Array.from(dirs), {
     cwd: rootDir,
     ignore: exclude,
   });
