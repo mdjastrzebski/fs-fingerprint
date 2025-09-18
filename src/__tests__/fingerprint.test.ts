@@ -274,7 +274,7 @@ test("calculateFingerprint handles .gitignore file", async () => {
   expect(fingerprintSync).toEqual(fingerprint);
 });
 
-test.only("calculateFingerprint handles missing .gitignore file", async () => {
+test("calculateFingerprint handles missing .gitignore file", async () => {
   writePaths(["file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);
 
   const options: FingerprintOptions = {
