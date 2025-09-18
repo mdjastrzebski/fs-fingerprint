@@ -1,0 +1,6 @@
+[test]
+root = "src"
+coveragePathIgnorePatterns = [
+  "**/*.test.ts",
+  "test-utils/**",
+]

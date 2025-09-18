@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
+import { beforeEach, expect, spyOn, test } from "bun:test";
 import picomatch from "picomatch";
-import { beforeEach, expect, test, vi } from "vitest";
 
 import { findInput } from "../../../test-utils/assert.js";
 import { formatInputHash } from "../../../test-utils/format.js";
@@ -154,7 +154,7 @@ test("calculateDirectoryHash warns for non-file/non-directory entries", async ()
   writePaths(["dir-1/"]);
   fs.symlinkSync("/dev/null", path.join(rootDir, "dir-1", "dev-null-link"));
 
-  const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  const consoleWarnSpy = spyOn(console, "warn").mockImplementation(() => undefined);
   await calculateDirectoryHash("dir-1", baseConfig);
   expect(consoleWarnSpy).toHaveBeenCalledWith(
     'fs-fingerprint: skipping "dir-1/dev-null-link" (not a file or directory)',

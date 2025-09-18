@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import { EMPTY_HASH } from "../../constants.js";
 import type { FingerprintConfig, FingerprintContentInput } from "../../types.js";

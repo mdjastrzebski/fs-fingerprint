@@ -1,6 +1,6 @@
 import fs from "node:fs";
+import { beforeEach, expect, test } from "bun:test";
 import picomatch from "picomatch";
-import { beforeEach, expect, test } from "vitest";
 
 import { createRootDir } from "../../../test-utils/fs.js";
 import { EMPTY_HASH } from "../../constants.js";
@@ -40,7 +40,7 @@ test("calculateFileHash handles regular file", async () => {
 test("calculateFileHash rejects trailing slash", async () => {
   writeFile("file-1.txt", "Hello, world!");
 
-  await expect(() => calculateFileHash("file-1.txt/", baseConfig)).rejects.toThrow();
+  expect(() => calculateFileHash("file-1.txt/", baseConfig)).toThrow();
   expect(() => calculateFileHashSync("file-1.txt/", baseConfig)).toThrow();
 });
 

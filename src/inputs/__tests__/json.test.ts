@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import type { FingerprintConfig, FingerprintJsonInput } from "../../types.js";
 import { calculateJsonHash } from "../json.js";
