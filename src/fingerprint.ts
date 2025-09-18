@@ -16,6 +16,20 @@ import type {
 } from "./types.js";
 import { generateFileList, generateFileListSync, mergeHashes } from "./utils.js";
 
+/**
+ * Compute a fingerprint for a directory by hashing a generated list of input files and optional extra inputs.
+ *
+ * The function:
+ * - Builds an ignore object from `options.ignoreFilePath` (if provided) and uses it when generating the file list.
+ * - Generates the file list from `rootDir` using `options.include` / `options.exclude` and the ignore rules.
+ * - Hashes files in parallel subject to `options.concurrency` and `options.hashAlgorithm`.
+ * - Appends hashes for `options.extraInputs` (content or JSON inputs) if provided.
+ * - Merges all input hashes into a single fingerprint; if merging yields no result, returns `{ hash: EMPTY_HASH, inputs: [] }`.
+ *
+ * @param rootDir - Root directory to scan for input files.
+ * @param options - Optional behavior modifiers (include/exclude patterns, ignore file path, concurrency, hash algorithm, extra inputs).
+ * @returns A Promise that resolves to the computed FingerprintResult (or a default empty fingerprint when no inputs produce a mergeable hash).
+ */
 export async function calculateFingerprint(
   rootDir: string,
   options?: FingerprintOptions,
@@ -44,6 +58,24 @@ export async function calculateFingerprint(
   return mergeHashes(inputHashes, config) ?? { hash: EMPTY_HASH, inputs: [] };
 }
 
+/**
+ * Synchronously compute a fingerprint for a directory.
+ *
+ * Generates the list of files under `rootDir` (honoring `include`/`exclude` and an optional ignore file),
+ * hashes each file using the configured algorithm, incorporates any `extraInputs`, and merges all input
+ * hashes into a single FingerprintResult.
+ *
+ * If no inputs are present or merging yields no result, returns `{ hash: EMPTY_HASH, inputs: [] }`.
+ *
+ * @param rootDir - Root directory whose contents are fingerprinted.
+ * @param options - Optional settings:
+ *   - `include` / `exclude` — glob patterns to limit the files considered.
+ *   - `ignoreFilePath` — path (relative to `rootDir`) to an ignore file whose rules are applied.
+ *   - `extraInputs` — additional inlined inputs (content/json) to include in the fingerprint.
+ *   - `hashAlgorithm` — optional hash algorithm to use for file hashing.
+ *     (Note: concurrency is not used in the synchronous variant.)
+ * @returns The computed FingerprintResult containing the final hash and the list of input hashes.
+ */
 export function calculateFingerprintSync(
   rootDir: string,
   options?: FingerprintOptions,
@@ -71,6 +103,18 @@ export function calculateFingerprintSync(
   return mergeHashes(inputHashes, config) ?? { hash: EMPTY_HASH, inputs: [] };
 }
 
+/**
+ * Convert extra fingerprint inputs into their computed input hashes.
+ *
+ * Processes each entry in `inputs`: if the entry has a `content` field it is hashed as raw content;
+ * if it has a `json` field it is hashed as JSON. Returns an array of corresponding FingerprintInputHash objects
+ * in the same order as `inputs`.
+ *
+ * @param inputs - Extra inputs to include in the fingerprint; each item must have either `content` or `json`.
+ * @param config - Fingerprint configuration (e.g., rootDir and hash algorithm) used when computing hashes.
+ * @returns An array of computed FingerprintInputHash values for the provided inputs.
+ * @throws Error If an input object does not contain a supported type (`content` or `json`).
+ */
 function calculateExtraInputHashes(
   inputs: FingerprintInput[],
   config: FingerprintConfig,
