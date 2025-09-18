@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
-import { generateFileList, generateFileListSync, hashContent } from "../utils.js";
+import type { FingerprintInputHash } from "../types.js";
+import { generateFileList, generateFileListSync, hashContent, mergeHashes } from "../utils.js";
 
 const baseConfig = {
   rootDir: "not-used",
@@ -13,14 +14,16 @@ beforeEach(() => {
   prepareRootDir();
 });
 
-test("hashContent handles base case", () => {
-  const hash = hashContent("Hello, world!", baseConfig);
-  expect(hash).toMatchInlineSnapshot(`"943a702d06f34599aee1f8da8ef9f7296031d699"`);
-});
+describe("hashContent", () => {
+  test("handles basic case", () => {
+    const hash = hashContent("Hello, world!", baseConfig);
+    expect(hash).toMatchInlineSnapshot(`"943a702d06f34599aee1f8da8ef9f7296031d699"`);
+  });
 
-test("hashContent handle null algorithm", () => {
-  const hash = hashContent("Hello, world!", { ...baseConfig, hashAlgorithm: "null" });
-  expect(hash).toEqual("(null)");
+  test("handles null algorithm", () => {
+    const hash = hashContent("Hello, world!", { ...baseConfig, hashAlgorithm: "null" });
+    expect(hash).toEqual("(null)");
+  });
 });
 
 const PATHS_TXT = ["file1.txt", "dir/file2.txt", "dir/subdir/file3.txt"];
@@ -120,5 +123,25 @@ describe("generateFileList", () => {
       excludeFn: (path) => path.endsWith(".md"),
     });
     expect(resultSync1).toEqual(result1);
+  });
+});
+
+describe("mergeHashes", () => {
+  test("supports basic case", () => {
+    const inputs: FingerprintInputHash[] = [
+      { key: "a", hash: "hash-a", type: "file", path: "a" },
+      { key: "b", hash: "hash-b", type: "file", path: "b" },
+      { key: "c", hash: "hash-c", type: "file", path: "c" },
+    ];
+    const result = mergeHashes(inputs, baseConfig);
+    expect(result).toEqual({
+      hash: "f0e3d0fa0c0cd3f1a679754b1c44e7fdb426922f",
+      inputs,
+    });
+  });
+
+  test("returns null when input is empty", () => {
+    const result = mergeHashes([], baseConfig);
+    expect(result).toBeNull();
   });
 });

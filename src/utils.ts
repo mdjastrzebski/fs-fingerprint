@@ -23,7 +23,6 @@ export function mergeHashes(
   }
 
   const sortedHashes = [...hashes].sort((a, b) => a.key.localeCompare(b.key));
-
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,
@@ -54,45 +53,82 @@ type GenerateFileListOptions = {
   include?: string[];
   exclude?: string[];
   excludeFn?: (path: string) => boolean;
-  concurrency?: number;
 };
 
 export async function generateFileList({
   rootDir,
-  include = ["**"],
+  include = ["*"],
   exclude,
   excludeFn,
 }: GenerateFileListOptions): Promise<string[]> {
-  let paths = await glob(include, {
+  const firstPass = await glob(include, {
     cwd: rootDir,
     ignore: exclude,
-    expandDirectories: true,
+    onlyFiles: false,
   });
 
-  if (excludeFn) {
-    paths = paths.filter((path) => !excludeFn(path));
+  const files = new Set<string>();
+  const dirs = new Set<string>();
+  for (const path of firstPass) {
+    if (path.endsWith("/")) {
+      dirs.add(`${path}**`);
+    } else {
+      files.add(path);
+    }
   }
 
-  paths.sort();
-  return paths;
+  const secondPass = await glob(Array.from(dirs), {
+    cwd: rootDir,
+    ignore: exclude,
+  });
+  for (const path of secondPass) {
+    files.add(path);
+  }
+
+  let result = Array.from(files);
+  if (excludeFn) {
+    result = result.filter((path) => !excludeFn(path));
+  }
+
+  result.sort();
+  return result;
 }
 
 export function generateFileListSync({
   rootDir,
-  include = ["**"],
+  include = ["*"],
   exclude,
   excludeFn,
 }: GenerateFileListOptions): string[] {
-  let paths = globSync(include, {
+  const firstPass = globSync(include, {
     cwd: rootDir,
     ignore: exclude,
-    expandDirectories: true,
+    onlyFiles: false,
   });
 
-  if (excludeFn) {
-    paths = paths.filter((path) => !excludeFn(path));
+  const files = new Set<string>();
+  const dirs = new Set<string>();
+  for (const path of firstPass) {
+    if (path.endsWith("/")) {
+      dirs.add(`${path}**`);
+    } else {
+      files.add(path);
+    }
   }
 
-  paths.sort();
-  return paths;
+  const secondPass = globSync(Array.from(dirs), {
+    cwd: rootDir,
+    ignore: exclude,
+  });
+  for (const path of secondPass) {
+    files.add(path);
+  }
+
+  let result = Array.from(files);
+  if (excludeFn) {
+    result = result.filter((path) => !excludeFn(path));
+  }
+
+  result.sort();
+  return result;
 }

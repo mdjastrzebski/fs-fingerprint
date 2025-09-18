@@ -26,7 +26,6 @@ export async function calculateFingerprint(
     include: options?.include,
     exclude: options?.exclude,
     excludeFn: ignoreObject ? (path) => ignoreObject.ignores(path) : undefined,
-    concurrency: options?.concurrency ?? DEFAULT_CONCURRENCY,
   });
 
   const limit = pLimit(options?.concurrency ?? DEFAULT_CONCURRENCY);
