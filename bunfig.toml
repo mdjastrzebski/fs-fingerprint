@@ -1,0 +1,7 @@
+[test]
+root = "src"
+coverageReporter  = ["text", "lcov"]
+coveragePathIgnorePatterns = [
+  "**/*.test.ts",
+  "test-utils/**",
+]

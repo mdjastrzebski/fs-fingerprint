@@ -7,8 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Build**: `bun run build` - Compiles TypeScript using tsup, outputs both ESM and CJS formats
 - **Type check**: `bun run typecheck` - Runs TypeScript compiler without emitting files
 - **Lint**: `bun run lint` - Runs ESLint with the configured rules
-- **Test**: `bun run test` - Runs Vitest test suite
-- **Test (single run)**: `bun run test --no-watch` - Runs tests once without watch mode
+- **Test**: `bun test` - Runs Bun test suite
 - **Validation**: `bun run validate` - Runs complete validation pipeline: typecheck, lint, test, and prettier check
 - **Format check**: `bun run prettier:check` - Checks code formatting
 - **Format write**: `bun run prettier:write` - Applies code formatting
@@ -53,4 +52,4 @@ The library uses a `FingerprintConfig` object internally that combines:
 
 ### Testing
 
-Uses Vitest for testing with coverage reporting. Test files are located in `__tests__` directories alongside source files.
+Uses Bun test for testing with coverage reporting. Test files are located in `__tests__` directories alongside source files.

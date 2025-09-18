@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, spyOn, test } from "bun:test";
 
 import { findInput } from "../../test-utils/assert.js";
 import { formatFingerprint } from "../../test-utils/format.js";
@@ -122,9 +122,7 @@ test("calculateFingerprint throws for unsupported input type", async () => {
     extraInputs: [{ key: "test-json-1", unknown: "This will throw" }],
   };
 
-  await expect(() => calculateFingerprint(rootDir, options)).rejects.toThrow(
-    /Unsupported input type/,
-  );
+  expect(() => calculateFingerprint(rootDir, options)).toThrow(/Unsupported input type/);
   expect(() => calculateFingerprintSync(rootDir, options)).toThrow(/Unsupported input type/);
 });
 
@@ -322,7 +320,7 @@ test("calculateFingerprint warns for non-file/non-directory entries", async () =
   writePaths(["dir-1/"]);
   fs.symlinkSync("/dev/null", path.join(rootDir, "dir-1", "dev-null-link"));
 
-  const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  const consoleWarnSpy = spyOn(console, "warn").mockImplementation(() => undefined);
 
   const options: FingerprintOptions = {
     include: ["dir-1/dev-null-link"],
