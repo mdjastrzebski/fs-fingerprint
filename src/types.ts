@@ -1,6 +1,3 @@
-import type { Ignore } from "ignore";
-import type { Matcher } from "picomatch";
-
 type StringWithAutoSuggest<T> = (string & {}) | T;
 
 /**
@@ -12,10 +9,10 @@ export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512">;
 
 export type FingerprintOptions = {
   /** File and directory paths to include (does NOT support globs) */
-  include?: readonly string[];
+  include?: string[];
 
   /** Paths to exclude (support globs, "picomatch" syntax) */
-  exclude?: readonly string[];
+  exclude?: string[];
 
   /** Extra inputs to include in the fingerprint: content, json, etc */
   extraInputs?: FingerprintInput[];
@@ -30,21 +27,18 @@ export type FingerprintOptions = {
   ignoreFilePath?: string;
 
   /** Maximum number of concurrently opened files */
-  maxConcurrent?: number;
+  concurrency?: number;
 };
-
-export type AsyncWrapper = <T>(fn: () => PromiseLike<T> | T) => Promise<T>;
 
 /**
  * Internal fingerprint config. Can change without semver.
  */
 export type FingerprintConfig = {
   rootDir: string;
-  exclude?: Matcher[];
   hashAlgorithm?: HashAlgorithm;
-  ignoreObject?: Ignore;
-  asyncWrapper?: AsyncWrapper;
 };
+
+export type FingerprintInput = FingerprintContentInput | FingerprintJsonInput;
 
 export interface FingerprintContentInput {
   key: string;
@@ -56,19 +50,21 @@ export interface FingerprintJsonInput {
   json: unknown;
 }
 
+export type FingerprintResult = {
+  hash: string;
+  inputs: FingerprintInputHash[];
+};
+
+export type FingerprintInputHash =
+  | FingerprintContentHash
+  | FingerprintJsonHash
+  | FingerprintFileHash;
+
 export interface FingerprintFileHash {
   type: "file";
   key: string;
   hash: string;
   path: string;
-}
-
-export interface FingerprintDirectoryHash {
-  type: "directory";
-  key: string;
-  hash: string;
-  path: string;
-  children: FingerprintInputHash[];
 }
 
 export interface FingerprintContentHash {
@@ -84,16 +80,3 @@ export interface FingerprintJsonHash {
   hash: string;
   json: unknown;
 }
-
-export type FingerprintInput = FingerprintContentInput | FingerprintJsonInput;
-
-export type FingerprintInputHash =
-  | FingerprintContentHash
-  | FingerprintJsonHash
-  | FingerprintFileHash
-  | FingerprintDirectoryHash;
-
-export type FingerprintResult = {
-  hash: string;
-  inputs: FingerprintInputHash[];
-};

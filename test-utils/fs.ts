@@ -9,6 +9,7 @@ export function createRootDir(testName: string) {
 
   return {
     rootDir,
+    prepareRootDir: () => prepareRootDir(rootDir),
     writePaths: (paths: string[]) => writePaths(rootDir, paths),
     writeFile: (path: string, content?: string) => writeFile(rootDir, path, content),
   };
@@ -29,4 +30,12 @@ function writeFile(rootDir: string, path: string, content: string = "Hello, worl
   const absoluteDirPath = nodePath.dirname(absolutePath);
   fs.mkdirSync(absoluteDirPath, { recursive: true });
   fs.writeFileSync(absolutePath, content);
+}
+
+function prepareRootDir(rootDir: string) {
+  if (fs.existsSync(rootDir)) {
+    fs.rmSync(rootDir, { recursive: true });
+  }
+
+  fs.mkdirSync(rootDir, { recursive: true });
 }

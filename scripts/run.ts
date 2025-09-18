@@ -1,7 +1,6 @@
 import {
   calculateFingerprint,
   calculateFingerprintSync,
-  type FingerprintInputHash,
   type FingerprintOptions,
   type FingerprintResult,
 } from "../src/index.js";
@@ -31,23 +30,13 @@ if (!isMatch) {
   console.log(formatFingerprint(fingerprintSync));
 }
 
-function formatFingerprint(fingerprint: FingerprintResult, limit = 3): string {
+function formatFingerprint(fingerprint: FingerprintResult): string {
   let result = `Hash: ${fingerprint.hash}\n`;
   result += `Inputs:\n`;
-  result += formatInputs(fingerprint.inputs, 1, limit + 1);
-  return result;
-}
-
-function formatInputs(inputs: FingerprintInputHash[], indent = 0, limit = 3): string {
-  let result = "";
-  for (const input of inputs) {
+  fingerprint.inputs.forEach((input) => {
     const name = input.key.split(":")[1];
-
-    result += `${"    ".repeat(indent)}- ${input.type.toUpperCase()} ${name} - ${input.hash}\n`;
-    if (input.type === "directory" && indent + 1 < limit) {
-      result += formatInputs(input.children, indent + 1, limit);
-    }
-  }
+    result += `    - ${input.type.toUpperCase()} ${name} - ${input.hash}\n`;
+  });
 
   return result;
 }

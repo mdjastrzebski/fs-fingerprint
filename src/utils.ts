@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
@@ -22,7 +23,6 @@ export function mergeHashes(
   }
 
   const sortedHashes = [...hashes].sort((a, b) => a.key.localeCompare(b.key));
-
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,
@@ -44,19 +44,91 @@ export function mergeHashes(
   };
 }
 
-export function isExcludedPath(path: string, config: FingerprintConfig): boolean {
-  return Boolean(
-    config.exclude?.some((matcher) => matcher(path)) || config.ignoreObject?.ignores(path),
-  );
-}
-
 export function normalizeFilePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path;
 }
 
-export function normalizeDirPath(path: string): string {
-  let result = path;
-  result = result.startsWith("./") ? result.slice(2) : result;
-  result = result.endsWith("/") ? result : `${result}/`;
+type GenerateFileListOptions = {
+  rootDir: string;
+  include?: string[];
+  exclude?: string[];
+  excludeFn?: (path: string) => boolean;
+};
+
+export async function generateFileList({
+  rootDir,
+  include = ["*"],
+  exclude,
+  excludeFn,
+}: GenerateFileListOptions): Promise<string[]> {
+  const firstPass = await glob(include, {
+    cwd: rootDir,
+    ignore: exclude,
+    onlyFiles: false,
+  });
+
+  const files = new Set<string>();
+  const dirs = new Set<string>();
+  for (const path of firstPass) {
+    if (path.endsWith("/")) {
+      dirs.add(`${path}**`);
+    } else {
+      files.add(path);
+    }
+  }
+
+  const secondPass = await glob(Array.from(dirs), {
+    cwd: rootDir,
+    ignore: exclude,
+  });
+  for (const path of secondPass) {
+    files.add(path);
+  }
+
+  let result = Array.from(files);
+  if (excludeFn) {
+    result = result.filter((path) => !excludeFn(path));
+  }
+
+  result.sort();
+  return result;
+}
+
+export function generateFileListSync({
+  rootDir,
+  include = ["*"],
+  exclude,
+  excludeFn,
+}: GenerateFileListOptions): string[] {
+  const firstPass = globSync(include, {
+    cwd: rootDir,
+    ignore: exclude,
+    onlyFiles: false,
+  });
+
+  const files = new Set<string>();
+  const dirs = new Set<string>();
+  for (const path of firstPass) {
+    if (path.endsWith("/")) {
+      dirs.add(`${path}**`);
+    } else {
+      files.add(path);
+    }
+  }
+
+  const secondPass = globSync(Array.from(dirs), {
+    cwd: rootDir,
+    ignore: exclude,
+  });
+  for (const path of secondPass) {
+    files.add(path);
+  }
+
+  let result = Array.from(files);
+  if (excludeFn) {
+    result = result.filter((path) => !excludeFn(path));
+  }
+
+  result.sort();
   return result;
 }
