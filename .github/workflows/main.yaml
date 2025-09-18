@@ -34,5 +34,6 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          base_sha: ${{ github.event.pull_request.base.sha }}
           files: ./coverage/lcov.info
-          verbose: trues
+          verbose: true
