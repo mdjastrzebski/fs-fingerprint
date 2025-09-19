@@ -9,7 +9,6 @@ import {
   type FingerprintOptions,
 } from "../src/index.js";
 import { RepoManager } from "./fixtures/repos.js";
-import { table } from "ts-markdown-builder";
 
 const isBaseline = process.argv.includes("--baseline");
 
