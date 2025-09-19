@@ -57,66 +57,30 @@ type GenerateFileListOptions = {
 
 export async function generateFileList({
   rootDir,
-  include = ["*"],
+  include = ["**"],
   exclude,
 }: GenerateFileListOptions): Promise<string[]> {
-  const firstPass = await glob(include, {
+  const paths = await glob(include, {
     cwd: rootDir,
     ignore: exclude,
-    onlyFiles: false,
+    expandDirectories: true,
   });
 
-  const files = new Set<string>();
-  const dirs = new Set<string>();
-  for (const path of firstPass) {
-    if (path.endsWith("/")) {
-      dirs.add(`${path}**`);
-    } else {
-      files.add(path);
-    }
-  }
-
-  const secondPass = await glob(Array.from(dirs), {
-    cwd: rootDir,
-    ignore: exclude,
-  });
-  for (const path of secondPass) {
-    files.add(path);
-  }
-
-  return Array.from(files).sort();
+  return Array.from(paths).sort();
 }
 
 export function generateFileListSync({
   rootDir,
-  include = ["*"],
+  include = ["**"],
   exclude,
 }: GenerateFileListOptions): string[] {
-  const firstPass = globSync(include, {
+  const paths = globSync(include, {
     cwd: rootDir,
     ignore: exclude,
-    onlyFiles: false,
+    expandDirectories: true,
   });
 
-  const files = new Set<string>();
-  const dirs = new Set<string>();
-  for (const path of firstPass) {
-    if (path.endsWith("/")) {
-      dirs.add(`${path}**`);
-    } else {
-      files.add(path);
-    }
-  }
-
-  const secondPass = globSync(Array.from(dirs), {
-    cwd: rootDir,
-    ignore: exclude,
-  });
-  for (const path of secondPass) {
-    files.add(path);
-  }
-
-  return Array.from(files).sort();
+  return Array.from(paths).sort();
 }
 
 export function listGitIgnoredFiles(cwd: string): string[] {
