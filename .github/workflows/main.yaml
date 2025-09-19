@@ -36,3 +36,8 @@ jobs:
           base_sha: ${{ github.event.pull_request.base.sha }}
           files: ./coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Calculate package size
+        uses: pkg-size/action@7cbd5229062f24aec6543e0b8fd5eb09233bf355
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -16,6 +16,7 @@
         "eslint": "^9.34.0",
         "eslint-plugin-simple-import-sort": "^12.1.1",
         "globals": "^16.3.0",
+        "pkg-size": "^2.4.0",
         "prettier": "^3.6.2",
         "release-it": "^19.0.4",
         "tinybench": "^5.0.1",
@@ -718,6 +719,8 @@
     "picomatch": ["picomatch@4.0.3", "", {}, "sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q=="],
 
     "pirates": ["pirates@4.0.7", "", {}, "sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA=="],
+
+    "pkg-size": ["pkg-size@2.4.0", "", { "bin": { "pkg-size": "bin/cli.js" } }, "sha512-gAWAYAfYFgOk9mm9YWL/X3pjToUaVLHcdfsO52AjoPVFQlhZ3SH4nqTljcir/+3tzi/MFsReRI6tBVE6SNkZbQ=="],
 
     "pkg-types": ["pkg-types@2.3.0", "", { "dependencies": { "confbox": "^0.2.2", "exsolve": "^1.0.7", "pathe": "^2.0.3" } }, "sha512-SIqCzDRg0s9npO5XQ3tNZioRY1uK06lA41ynBC1YmFTmnY6FjUjVt6s4LoADmwoig1qqD0oK8h1p/8mlMx8Oig=="],
 

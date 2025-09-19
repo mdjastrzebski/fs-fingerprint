@@ -29,7 +29,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "bun run clean && tsup",
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "test": "bun test",
@@ -38,7 +38,8 @@
     "prettier:write": "prettier --write .",
     "clean": "rm -rf ./dist",
     "bench": "tsx benchmarks/fingerprint.bench.ts",
-    "release": "release-it"
+    "release": "release-it",
+    "size": "bun run build && pkg-size"
   },
   "dependencies": {
     "ignore": "^7.0.5",
@@ -53,6 +54,7 @@
     "eslint": "^9.34.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "globals": "^16.3.0",
+    "pkg-size": "^2.4.0",
     "prettier": "^3.6.2",
     "release-it": "^19.0.4",
     "tinybench": "^5.0.1",
