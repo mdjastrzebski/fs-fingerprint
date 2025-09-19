@@ -11,14 +11,10 @@ import {
   type FingerprintOptions,
 } from "../index.js";
 
-const { rootDir, writePaths } = createRootDir("fingerprint-test");
+const { rootDir, prepareRootDir, writePaths } = createRootDir("fingerprint-test");
 
 beforeEach(() => {
-  if (fs.existsSync(rootDir)) {
-    fs.rmSync(rootDir, { recursive: true });
-  }
-
-  fs.mkdirSync(rootDir, { recursive: true });
+  prepareRootDir();
 });
 
 describe("calculateFingerprint", () => {

@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
@@ -9,7 +10,6 @@ import {
   listGitIgnoredFiles,
   mergeHashes,
 } from "../utils.js";
-import { execSync } from "node:child_process";
 
 const baseConfig = {
   rootDir: "not-used",
