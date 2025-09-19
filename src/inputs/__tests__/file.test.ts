@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../../test-utils/fs.js";
