@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
-import { join } from "path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { Bench } from "tinybench";
 
 import {
@@ -38,7 +38,7 @@ async function runBenchmarks(): Promise<void> {
       calculateFingerprintSync(lodashPath);
     });
     bench.add("lodash", async () => {
-      await calculateFingerprintSync(lodashPath);
+      await calculateFingerprint(lodashPath);
     });
   }
 
@@ -104,7 +104,7 @@ async function runBenchmarks(): Promise<void> {
       "Throughput med (ops/s)": `${task.result?.throughput?.p50?.toFixed(
         2,
       )} \xB1 ${task.result?.throughput?.mad?.toFixed(2)}`,
-      Samples: task.result?.latency.samples.length,
+      Samples: task.result?.latency?.samples.length ?? 0,
     })),
   );
 
@@ -119,7 +119,7 @@ async function runBenchmarks(): Promise<void> {
         min: task.result?.latency.min,
         max: task.result?.latency.max,
         p99: task.result?.latency.p99,
-        samples: task.result?.latency.samples.length,
+        samples: task.result?.latency?.samples.length ?? 0,
       },
       throughput: {
         p50: task.result?.throughput?.p50,
@@ -127,7 +127,7 @@ async function runBenchmarks(): Promise<void> {
         min: task.result?.throughput?.min,
         max: task.result?.throughput?.max,
         p99: task.result?.throughput?.p99,
-        samples: task.result?.throughput.samples.length,
+        samples: task.result?.throughput?.samples.length ?? 0,
       },
       totalTime: task.result?.totalTime,
     })),
