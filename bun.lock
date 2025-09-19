@@ -21,6 +21,7 @@
         "release-it": "^19.0.4",
         "rimraf": "^6.0.1",
         "tinybench": "^5.0.1",
+        "ts-markdown-builder": "^0.5.0",
         "tsup": "^8.5.0",
         "tsx": "^4.20.5",
         "typescript": "^5.9.2",
@@ -850,6 +851,8 @@
     "ts-api-utils": ["ts-api-utils@2.1.0", "", { "peerDependencies": { "typescript": ">=4.8.4" } }, "sha512-CUgTZL1irw8u29bzrOD/nH85jqyc74D6SshFgujOIA7osm2Rz7dYH77agkx7H4FBNxDq7Cjf+IjaX/8zwFW+ZQ=="],
 
     "ts-interface-checker": ["ts-interface-checker@0.1.13", "", {}, "sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA=="],
+
+    "ts-markdown-builder": ["ts-markdown-builder@0.5.0", "", {}, "sha512-/2pzAFjGwk5fUR8ftFMhCOm/zmoqtpYWK6209j3YPfgWF2I+eYY6PKpR0mBJte6s8McnkQ/T92fV+IJg6bdxyw=="],
 
     "tslib": ["tslib@2.8.1", "", {}, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
 
