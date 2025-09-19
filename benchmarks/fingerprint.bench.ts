@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Bench } from "tinybench";
+import * as md from "ts-markdown-builder";
 
 import {
   calculateFingerprint,
@@ -8,6 +9,7 @@ import {
   type FingerprintOptions,
 } from "../src/index.js";
 import { RepoManager } from "./fixtures/repos.js";
+import { table } from "ts-markdown-builder";
 
 const isBaseline = process.argv.includes("--baseline");
 
@@ -97,15 +99,17 @@ async function runBenchmarks(): Promise<void> {
   await bench.run();
 
   console.log("\n📊 Benchmark Results:");
-  console.table(
-    bench.table((task) => ({
-      "Task name": task.name,
-      "Latency med (ms)": `${task.result?.latency.p50?.toFixed(2)} \xB1 ${task.result?.latency.mad?.toFixed(2)}`,
-      "Throughput med (ops/s)": `${task.result?.throughput?.p50?.toFixed(
-        2,
-      )} \xB1 ${task.result?.throughput?.mad?.toFixed(2)}`,
-      Samples: task.result?.latency?.samples.length ?? 0,
-    })),
+  const table = bench.table(
+    (task) =>
+      [
+        task.name,
+        `${task.result?.latency.p50?.toFixed(2)} \xB1 ${task.result?.latency.mad?.toFixed(2)}`,
+        `${task.result?.throughput?.p50?.toFixed(2)} \xB1 ${task.result?.throughput?.mad?.toFixed(2)}`,
+        `${task.result?.latency?.samples.length ?? 0}`,
+      ] as Record<number, string>,
+  ) as unknown as string[][];
+  console.log(
+    md.table(["Task name", "Latency med (ms)", "Throughput med (ops/s)", "Samples"], table),
   );
 
   // Write machine-readable JSON output
