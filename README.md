@@ -25,7 +25,6 @@ import { calculateFingerprint } from "fs-fingerprint";
 const { hash } = await calculateFingerprint(rootPath, {
   include: ["ios", "package.json"],
   exclude: ["build"],
-  ignoreFilePath: ".gitignore",
 });
 ```
 
@@ -41,7 +40,6 @@ async function calculateFingerprint(
     exclude?: string[]; // Glob patterns to exclude files and directories
     extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
-    ignoreFilePath?: string; // Path (relative to "rootDir") to ignore file, e.g. ".gitignore".
   }
 ): Promise<FingerprintResult<
 ```
@@ -67,7 +65,6 @@ function calculateFingerprintSync(
     exclude?: string[]; // Glob patterns to exclude files and directories
     extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
-    ignoreFilePath?: string; // Path (relative to "rootDir") to ignore file, e.g. ".gitignore".
   },
 ): FingerprintResult;
 ```
@@ -110,8 +107,10 @@ const { hash } = await calculateFingerprint("./src", {
 **Using `.gitignore` file:**
 
 ```typescript
+const gitIgnoredFiles = listGitIgnoredFiles("./src");
+
 const { hash } = await calculateFingerprint("./src", {
-  ignoreFilePath: ".gitignore",
+  exclude: [...gitIgnoredFiles, "other/excludes/**"],
 });
 ```
 

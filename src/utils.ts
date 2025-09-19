@@ -1,5 +1,6 @@
+import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { glob, globSync } from "tinyglobby";
+import { escapePath, glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
@@ -52,83 +53,45 @@ type GenerateFileListOptions = {
   rootDir: string;
   include?: string[];
   exclude?: string[];
-  excludeFn?: (path: string) => boolean;
 };
 
 export async function generateFileList({
   rootDir,
-  include = ["*"],
+  include = ["**"],
   exclude,
-  excludeFn,
 }: GenerateFileListOptions): Promise<string[]> {
-  const firstPass = await glob(include, {
+  const paths = await glob(include, {
     cwd: rootDir,
     ignore: exclude,
-    onlyFiles: false,
+    expandDirectories: true,
   });
 
-  const files = new Set<string>();
-  const dirs = new Set<string>();
-  for (const path of firstPass) {
-    if (path.endsWith("/")) {
-      dirs.add(`${path}**`);
-    } else {
-      files.add(path);
-    }
-  }
-
-  const secondPass = await glob(Array.from(dirs), {
-    cwd: rootDir,
-    ignore: exclude,
-  });
-  for (const path of secondPass) {
-    files.add(path);
-  }
-
-  let result = Array.from(files);
-  if (excludeFn) {
-    result = result.filter((path) => !excludeFn(path));
-  }
-
-  result.sort();
-  return result;
+  return Array.from(paths).sort();
 }
 
 export function generateFileListSync({
   rootDir,
-  include = ["*"],
+  include = ["**"],
   exclude,
-  excludeFn,
 }: GenerateFileListOptions): string[] {
-  const firstPass = globSync(include, {
+  const paths = globSync(include, {
     cwd: rootDir,
     ignore: exclude,
-    onlyFiles: false,
+    expandDirectories: true,
   });
 
-  const files = new Set<string>();
-  const dirs = new Set<string>();
-  for (const path of firstPass) {
-    if (path.endsWith("/")) {
-      dirs.add(`${path}**`);
-    } else {
-      files.add(path);
-    }
-  }
+  return Array.from(paths).sort();
+}
 
-  const secondPass = globSync(Array.from(dirs), {
-    cwd: rootDir,
-    ignore: exclude,
+export function listGitIgnoredFiles(cwd: string): string[] {
+  const output = execSync("git ls-files --others --ignored --exclude-standard --directory", {
+    cwd,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
   });
-  for (const path of secondPass) {
-    files.add(path);
-  }
 
-  let result = Array.from(files);
-  if (excludeFn) {
-    result = result.filter((path) => !excludeFn(path));
-  }
-
-  result.sort();
-  return result;
+  return output
+    .split("\n")
+    .filter(Boolean)
+    .map((p) => escapePath(p));
 }

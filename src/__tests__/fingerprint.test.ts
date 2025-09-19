@@ -11,14 +11,10 @@ import {
   type FingerprintOptions,
 } from "../index.js";
 
-const { rootDir, writePaths, writeFile } = createRootDir("fingerprint-test");
+const { rootDir, prepareRootDir, writePaths } = createRootDir("fingerprint-test");
 
 beforeEach(() => {
-  if (fs.existsSync(rootDir)) {
-    fs.rmSync(rootDir, { recursive: true });
-  }
-
-  fs.mkdirSync(rootDir, { recursive: true });
+  prepareRootDir();
 });
 
 describe("calculateFingerprint", () => {
@@ -235,73 +231,6 @@ describe("calculateFingerprint", () => {
     expect(findInput(fingerprint.inputs, "dir-1/file-4.md")).toBeNull();
     expect(findInput(fingerprint.inputs, "dir-2/nested/file-6.md")).toBeNull();
     expect(findInput(fingerprint.inputs, "dir-3/file-8.txt")).toBeNull();
-
-    const fingerprintSync = calculateFingerprintSync(rootDir, options);
-    expect(fingerprintSync).toEqual(fingerprint);
-  });
-
-  test("supports .gitignore file", async () => {
-    writePaths([
-      "file-1.txt",
-      "file-2.md",
-      "dir-1/file-3.txt",
-      "dir-1/file-4.md",
-      "dir-2/nested/file-5.txt",
-      "dir-2/nested/file-6.md",
-      "dir-3/file-7.txt",
-    ]);
-    writeFile(".gitignore", "**/*.md\ndir-1");
-
-    const options: FingerprintOptions = {
-      exclude: [".gitignore"],
-      ignoreFilePath: ".gitignore",
-    };
-
-    const fingerprint = await calculateFingerprint(rootDir, options);
-
-    expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 8eae035d400562fab2acee2bfb7a7f5c6151454d
-    Inputs:
-      - dir-2/nested/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - dir-3/file-7.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
-
-    expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
-    expect(findInput(fingerprint.inputs, "dir-2/nested/file-5.txt")).toBeTruthy();
-    expect(findInput(fingerprint.inputs, "dir-3/file-7.txt")).toBeTruthy();
-
-    expect(findInput(fingerprint.inputs, "file-2.md")).toBeNull();
-    expect(findInput(fingerprint.inputs, "dir-1/file-3.txt")).toBeNull();
-    expect(findInput(fingerprint.inputs, "dir-1/file-4.md")).toBeNull();
-    expect(findInput(fingerprint.inputs, "dir-2/nested/file-6.md")).toBeNull();
-
-    const fingerprintSync = calculateFingerprintSync(rootDir, options);
-    expect(fingerprintSync).toEqual(fingerprint);
-  });
-
-  test("handles missing .gitignore file", async () => {
-    writePaths(["file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);
-
-    const options: FingerprintOptions = {
-      ignoreFilePath: ".gitignore",
-    };
-
-    const fingerprint = await calculateFingerprint(rootDir, options);
-
-    expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: a7ee23ee0b180e85386a5d3c89904407abf15ee4
-    Inputs:
-      - dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
-
-    expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
-    expect(findInput(fingerprint.inputs, "dir-1/file-2.txt")).toBeTruthy();
-    expect(findInput(fingerprint.inputs, "dir-2/nested/file-3.txt")).toBeTruthy();
 
     const fingerprintSync = calculateFingerprintSync(rootDir, options);
     expect(fingerprintSync).toEqual(fingerprint);
