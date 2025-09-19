@@ -1,0 +1,29 @@
+name: Check Package Size
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build
+        run: bun run build
+
+      - name: Calculate package size
+        uses: pkg-size/action@7cbd5229062f24aec6543e0b8fd5eb09233bf355
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
