@@ -144,7 +144,7 @@ describe("listGitIgnoredFiles", () => {
   test("returns empty array when no git repo", () => {
     writePaths(["file1.txt", "dir/file2.txt", "dir/subdir/file3.txt"]);
     writePaths(["file1.md", "dir/file2.md", "dir/subdir/file3.md"]);
-    writeFile(".gitignore", "*.md");
+    writeFile(".gitignore", "*.md\ndir/subdir/");
 
     execSync("git init", {
       cwd: rootDir,
@@ -153,7 +153,7 @@ describe("listGitIgnoredFiles", () => {
     const ignoredFiles = listGitIgnoredFiles(rootDir);
     expect(ignoredFiles).toContain("file1.md");
     expect(ignoredFiles).toContain("dir/file2.md");
-    expect(ignoredFiles).toContain("dir/subdir/file3.md");
+    expect(ignoredFiles).not.toContain("dir/subdir/file3.md");
     expect(ignoredFiles).not.toContain("file1.txt");
     expect(ignoredFiles).not.toContain("dir/file2.txt");
     expect(ignoredFiles).not.toContain("dir/subdir/file3.txt");
