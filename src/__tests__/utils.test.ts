@@ -2,13 +2,20 @@ import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
 import type { FingerprintInputHash } from "../types.js";
-import { generateFileList, generateFileListSync, hashContent, mergeHashes } from "../utils.js";
+import {
+  generateFileList,
+  generateFileListSync,
+  hashContent,
+  listGitIgnoredFiles,
+  mergeHashes,
+} from "../utils.js";
+import { execSync } from "node:child_process";
 
 const baseConfig = {
   rootDir: "not-used",
 };
 
-const { rootDir, prepareRootDir, writePaths } = createRootDir("utils-test");
+const { rootDir, prepareRootDir, writePaths, writeFile } = createRootDir("utils-test");
 
 beforeEach(() => {
   prepareRootDir();
@@ -130,5 +137,25 @@ describe("mergeHashes", () => {
   test("returns null when input is empty", () => {
     const result = mergeHashes([], baseConfig);
     expect(result).toBeNull();
+  });
+});
+
+describe("listGitIgnoredFiles", () => {
+  test("returns empty array when no git repo", () => {
+    writePaths(["file1.txt", "dir/file2.txt", "dir/subdir/file3.txt"]);
+    writePaths(["file1.md", "dir/file2.md", "dir/subdir/file3.md"]);
+    writeFile(".gitignore", "*.md");
+
+    execSync("git init", {
+      cwd: rootDir,
+    });
+
+    const ignoredFiles = listGitIgnoredFiles(rootDir);
+    expect(ignoredFiles).toContain("file1.md");
+    expect(ignoredFiles).toContain("dir/file2.md");
+    expect(ignoredFiles).toContain("dir/subdir/file3.md");
+    expect(ignoredFiles).not.toContain("file1.txt");
+    expect(ignoredFiles).not.toContain("dir/file2.txt");
+    expect(ignoredFiles).not.toContain("dir/subdir/file3.txt");
   });
 });
