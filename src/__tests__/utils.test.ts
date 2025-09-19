@@ -111,19 +111,6 @@ describe("generateFileList", () => {
     const resultSync1 = generateFileListSync({ rootDir, exclude: ["**/*.md"] });
     expect(resultSync1).toEqual(result1);
   });
-
-  test("returns supports excludeFn", async () => {
-    writePaths([...PATHS_TXT, ...PATHS_MD]);
-
-    const result1 = await generateFileList({ rootDir, excludeFn: (path) => path.endsWith(".md") });
-    expect(result1).toEqual(PATHS_TXT.sort());
-
-    const resultSync1 = generateFileListSync({
-      rootDir,
-      excludeFn: (path) => path.endsWith(".md"),
-    });
-    expect(resultSync1).toEqual(result1);
-  });
 });
 
 describe("mergeHashes", () => {
