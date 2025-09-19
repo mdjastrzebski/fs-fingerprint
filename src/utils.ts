@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
-import { glob, globSync } from "tinyglobby";
+import { escapePath, glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
+import { execSync } from "node:child_process";
 
 export function hashContent(content: string, config: FingerprintConfig) {
   if (config.hashAlgorithm === "null") {
@@ -87,4 +88,17 @@ export function generateFileListSync({
   const result = excludeFn ? paths.filter((p) => !excludeFn(p)) : paths;
   result.sort();
   return result;
+}
+
+export function listGitIgnoredFiles(cwd: string): string[] {
+  const output = execSync("git ls-files --others --ignored --exclude-standard --directory", {
+    cwd,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+  });
+
+  return output
+    .split("\n")
+    .filter(Boolean)
+    .map((p) => escapePath(p));
 }
