@@ -1,16 +1,14 @@
 name: Check Package Size
 
-permissions:
-  contents: read
-  pull-requests: write
-
 on:
   pull_request:
     branches: [main]
 
 jobs:
-  build:
+  check-size:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
