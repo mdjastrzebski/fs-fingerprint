@@ -20,12 +20,6 @@ export type FingerprintOptions = {
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
 
-  /**
-   * Path (relative to rootDir) to ".gitignore"-like file.
-   * Note: this supports .gitignore specs, by using "ignore" npm package.
-   */
-  ignoreFilePath?: string;
-
   /** Maximum number of concurrently opened files */
   concurrency?: number;
 };

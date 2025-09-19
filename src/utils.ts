@@ -1,9 +1,9 @@
+import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { escapePath, glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
-import { execSync } from "node:child_process";
 
 export function hashContent(content: string, config: FingerprintConfig) {
   if (config.hashAlgorithm === "null") {
@@ -53,14 +53,12 @@ type GenerateFileListOptions = {
   rootDir: string;
   include?: string[];
   exclude?: string[];
-  excludeFn?: (path: string) => boolean;
 };
 
 export async function generateFileList({
   rootDir,
   include = ["**"],
   exclude,
-  excludeFn,
 }: GenerateFileListOptions): Promise<string[]> {
   const paths = await glob(include, {
     cwd: rootDir,
@@ -68,16 +66,14 @@ export async function generateFileList({
     expandDirectories: true,
   });
 
-  const result = excludeFn ? paths.filter((p) => !excludeFn(p)) : paths;
-  result.sort();
-  return result;
+  paths.sort();
+  return paths;
 }
 
 export function generateFileListSync({
   rootDir,
   include = ["**"],
   exclude,
-  excludeFn,
 }: GenerateFileListOptions): string[] {
   const paths = globSync(include, {
     cwd: rootDir,
@@ -85,9 +81,8 @@ export function generateFileListSync({
     expandDirectories: true,
   });
 
-  const result = excludeFn ? paths.filter((p) => !excludeFn(p)) : paths;
-  result.sort();
-  return result;
+  paths.sort();
+  return paths;
 }
 
 export function listGitIgnoredFiles(cwd: string): string[] {
