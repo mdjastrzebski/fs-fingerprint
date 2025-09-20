@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Bench } from "tinybench";
+import * as md from "ts-markdown-builder";
 
 import {
   calculateFingerprint,
@@ -97,15 +98,17 @@ async function runBenchmarks(): Promise<void> {
   await bench.run();
 
   console.log("\n📊 Benchmark Results:");
-  console.table(
-    bench.table((task) => ({
-      "Task name": task.name,
-      "Latency med (ms)": `${task.result?.latency.p50?.toFixed(2)} \xB1 ${task.result?.latency.mad?.toFixed(2)}`,
-      "Throughput med (ops/s)": `${task.result?.throughput?.p50?.toFixed(
-        2,
-      )} \xB1 ${task.result?.throughput?.mad?.toFixed(2)}`,
-      Samples: task.result?.latency?.samples.length ?? 0,
-    })),
+  const table = bench.table(
+    (task) =>
+      [
+        task.name,
+        `${task.result?.latency.p50?.toFixed(2)} \xB1 ${task.result?.latency.mad?.toFixed(2)}`,
+        `${task.result?.throughput?.p50?.toFixed(2)} \xB1 ${task.result?.throughput?.mad?.toFixed(2)}`,
+        `${task.result?.latency?.samples.length ?? 0}`,
+      ] as Record<number, string>,
+  ) as unknown as string[][];
+  console.log(
+    md.table(["Task name", "Latency med (ms)", "Throughput med (ops/s)", "Samples"], table),
   );
 
   // Write machine-readable JSON output
@@ -171,40 +174,38 @@ async function runBenchmarks(): Promise<void> {
     );
 
     if (!baseline) {
-      return {
-        "Task name": current.name,
-        "Baseline latency (ms)": "N/A",
-        "Current latency (ms)": current.latency.p50?.toFixed(2) || "N/A",
-        "Change (ms)": "N/A",
-      };
+      return [current.name, "N/A", current.latency.p50?.toFixed(2) || "N/A", "N/A"];
     }
 
     const currentLatency = current.latency.p50;
     const baselineLatency = baseline.latency.p50;
 
     if (!currentLatency || !baselineLatency) {
-      return {
-        "Task name": current.name,
-        "Baseline latency (ms)": baselineLatency?.toFixed(2) || "N/A",
-        "Current latency (ms)": currentLatency?.toFixed(2) || "N/A",
-        "Change (ms)": "N/A",
-      };
+      return [
+        current.name,
+        baselineLatency?.toFixed(2) || "N/A",
+        currentLatency?.toFixed(2) || "N/A",
+        "N/A",
+      ];
     }
 
     const latencyChange = currentLatency - baselineLatency;
     const latencyChangePercent = (latencyChange / baselineLatency) * 100;
 
-    return {
-      "Task name": current.name,
-      "Baseline latency (ms)": baselineLatency.toFixed(2),
-      "Current latency (ms)": currentLatency.toFixed(2),
-      "Change (ms)": `${latencyChange > 0 ? "+" : ""}${latencyChange.toFixed(2)} (${
-        latencyChangePercent > 0 ? "+" : ""
-      }${latencyChangePercent.toFixed(1)}%)`,
-    };
+    return [
+      current.name,
+      baselineLatency.toFixed(2),
+      currentLatency.toFixed(2),
+      `${latencyChange > 0 ? "+" : ""}${latencyChange.toFixed(2)} (${latencyChangePercent > 0 ? "+" : ""}${latencyChangePercent.toFixed(1)}%)`,
+    ];
   });
 
-  console.table(comparisonTable);
+  console.log(
+    md.table(
+      ["Task name", "Baseline latency (ms)", "Current latency (ms)", "Change (ms)"],
+      comparisonTable,
+    ),
+  );
 }
 
 // Run benchmarks if this file is executed directly
