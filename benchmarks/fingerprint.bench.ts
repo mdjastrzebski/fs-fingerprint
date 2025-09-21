@@ -94,6 +94,31 @@ async function runBenchmarks(): Promise<void> {
     });
   }
 
+  // Expensify benchmarks
+  const expensifyPath = repoPaths.get("expensify");
+  const iosOptions: FingerprintOptions = {
+    include: ["ios", "package.json"],
+  };
+
+  const androidOptions: FingerprintOptions = {
+    include: ["android", "package.json"],
+  };
+
+  if (expensifyPath) {
+    bench.add("expensify-ios-sync", () => {
+      calculateFingerprintSync(expensifyPath, iosOptions);
+    });
+    bench.add("expensify-ios", async () => {
+      await calculateFingerprint(expensifyPath, iosOptions);
+    });
+    bench.add("expensify-android-sync", () => {
+      calculateFingerprintSync(expensifyPath, androidOptions);
+    });
+    bench.add("expensify-android", async () => {
+      await calculateFingerprint(expensifyPath, androidOptions);
+    });
+  }
+
   console.log("⏱️  Running benchmarks...");
   await bench.run();
 
