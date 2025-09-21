@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import gitDiff from "git-diff";
 
@@ -8,6 +8,7 @@ import {
   calculateFingerprintSync,
   type FingerprintOptions,
   type FingerprintResult,
+  listGitIgnoredFiles,
 } from "../src/index.js";
 
 const defaultOptions: FingerprintOptions = {
@@ -50,20 +51,29 @@ async function main() {
   console.log("Project type:", projectType);
   console.log("Path:", rootDir);
   console.log("Options:", options);
+  console.log("Ignored paths:", options.exclude?.join(", ") ?? "none");
+
+  const tsGitIgnore0 = performance.now();
+  const gitIgnoredPaths = listGitIgnoredFiles(rootDir);
+  const tsGitIgnore1 = performance.now();
+  console.log(
+    `Git-Ignored paths (${(tsGitIgnore1 - tsGitIgnore0).toFixed(1)}ms)`,
+    gitIgnoredPaths.join(", ") || "none",
+  );
   console.log("");
 
   const outputDir = join(rootDir, ".fingerprint");
 
-  const ts1 = performance.now();
+  const tsAsync0 = performance.now();
   const fingerprint = await calculateFingerprint(rootDir, options);
-  const ts2 = performance.now();
-  console.log(`Fingerprint: ${(ts2 - ts1).toFixed(1)}ms`);
+  const tsAsync1 = performance.now();
+  console.log(`Fingerprint: ${(tsAsync1 - tsAsync0).toFixed(1)}ms`);
   console.log(formatFingerprint(fingerprint));
 
-  const ts3 = performance.now();
+  const tsSync0 = performance.now();
   const fingerprintSync = calculateFingerprintSync(rootDir, options);
-  const ts4 = performance.now();
-  console.log(`Sync Fingerprint: ${(ts4 - ts3).toFixed(1)}ms`);
+  const tsSync1 = performance.now();
+  console.log(`Sync Fingerprint: ${(tsSync1 - tsSync0).toFixed(1)}ms`);
   compareFingerprints(fingerprint, fingerprintSync, "Sync Fingerprint check");
 
   const filename = isBaseline ? `baseline-${projectType}.json` : `current-${projectType}.json`;
