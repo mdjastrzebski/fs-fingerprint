@@ -10,6 +10,7 @@ reviews:
     enabled: true
     drafts: false
     labels: ["!wip"]
+    ignore_title_keywords: ["wip"]
 
   finishing_touches:
     docstrings:
@@ -20,3 +21,6 @@ reviews:
       mode: "off"
     description:
       mode: "off"
+
+  chat:
+    art: false
