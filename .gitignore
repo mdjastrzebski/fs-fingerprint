@@ -24,5 +24,6 @@ dist/
 
 # Benchmarks
 benchmarks/repos/
+.fingerprint/
 .benchmark/
 
