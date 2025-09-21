@@ -37,16 +37,19 @@ async function main() {
   const filename = isBaseline ? "baseline.json" : "current.json";
   mkdirSync(outputDir, { recursive: true });
   writeFileSync(`${outputDir}/${filename}`, JSON.stringify(fingerprint, null, 2));
-  console.log(`Wrote ${outputDir}/${filename}`);
+  console.log(`Saved ${outputDir}/${filename}`);
 
   const otherFilename = isBaseline ? "current.json" : "baseline.json";
   if (existsSync(`${outputDir}/${otherFilename}`)) {
     const content = readFileSync(`${outputDir}/${otherFilename}`, "utf-8");
     const otherFingerprint = JSON.parse(content) as FingerprintResult;
+    console.log(`Loaded: ${outputDir}/${otherFilename}`);
     compareFingerprints(fingerprint, otherFingerprint, "Baseline fingerprint check");
   } else {
     console.log(`No ${outputDir}/${otherFilename} to compare against`);
   }
+
+  console.log("Done\n");
 }
 
 function formatFingerprint(fingerprint: FingerprintResult): string {
