@@ -71,6 +71,8 @@ export async function generateFileList({
   if (excludeFn) {
     result = result.filter((path) => !excludeFn(path));
   }
+
+  result.sort();
   return result;
 }
 
@@ -90,5 +92,7 @@ export function generateFileListSync({
   if (excludeFn) {
     result = result.filter((path) => !excludeFn(path));
   }
+
+  result.sort();
   return result;
 }
