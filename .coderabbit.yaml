@@ -22,5 +22,5 @@ reviews:
     description:
       mode: "off"
 
-  chat:
-    art: false
+chat:
+  art: false
