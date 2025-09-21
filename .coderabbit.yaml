@@ -9,7 +9,7 @@ reviews:
   auto_review:
     enabled: true
     drafts: false
-    labels: [!wip ]
+    labels: ["!wip"]
 
   finishing_touches:
     docstrings:
@@ -17,6 +17,6 @@ reviews:
 
   pre_merge_checks:
     docstrings:
-      mode: off
+      mode: "off"
     description:
-      mode: off
+      mode: "off"
