@@ -1,0 +1,22 @@
+language: "en-US"
+
+reviews:
+  profile: "chill"
+  high_level_summary: true
+  collapse_walkthrough: true
+  poem: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+    labels: [!wip ]
+
+  finishing_touches:
+    docstrings:
+      enabled: false
+
+  pre_merge_checks:
+    docstrings:
+      mode: off
+    description:
+      mode: off
