@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { parseArgs } from "node:util";
 import gitDiff from "git-diff";
 
 import {
@@ -14,24 +15,39 @@ const options: FingerprintOptions = {
   exclude: ["node_modules", "dist"],
 };
 
-const isBaseline = process.argv.includes("--baseline");
+const { values, positionals } = parseArgs({
+  options: {
+    baseline: { type: "boolean" },
+  },
+  allowPositionals: true,
+});
+
+const isBaseline = values.baseline ?? false;
 
 async function main() {
-  const path = process.argv[2];
+  const rootDir = positionals[0] ?? process.cwd();
+  if (!existsSync(rootDir)) {
+    console.error(`Path does not exist: ${rootDir}`);
+    process.exit(1);
+  }
+
   console.log("Mode:", isBaseline ? "baseline" : "current");
-  console.log("Path:", path);
+  console.log("Path:", rootDir);
   console.log("Options:", options);
   console.log("");
 
-  const outputDir = join(path, ".fingerprint");
+  const outputDir = join(rootDir, ".fingerprint");
 
   const ts1 = performance.now();
-  const fingerprint = await calculateFingerprint(path, options);
+  const fingerprint = await calculateFingerprint(rootDir, options);
   const ts2 = performance.now();
-  console.log(`🫆 Fingerprint: ${(ts2 - ts1).toFixed(1)}ms`);
+  console.log(`Fingerprint: ${(ts2 - ts1).toFixed(1)}ms`);
   console.log(formatFingerprint(fingerprint));
 
-  const fingerprintSync = calculateFingerprintSync(path, options);
+  const ts3 = performance.now();
+  const fingerprintSync = calculateFingerprintSync(rootDir, options);
+  const ts4 = performance.now();
+  console.log(`Sync Fingerprint: ${(ts4 - ts3).toFixed(1)}ms`);
   compareFingerprints(fingerprint, fingerprintSync, "Sync Fingerprint check");
 
   const filename = isBaseline ? "baseline.json" : "current.json";

@@ -8,7 +8,7 @@ export interface RepoConfig {
   description: string;
 }
 
-export const BENCHMARK_REPOS: RepoConfig[] = [
+export const REPOS: RepoConfig[] = [
   {
     name: "lodash",
     url: "https://github.com/lodash/lodash.git",
@@ -28,6 +28,11 @@ export const BENCHMARK_REPOS: RepoConfig[] = [
     name: "react",
     url: "https://github.com/facebook/react.git",
     description: "React JavaScript library monorepo (~2000+ files)",
+  },
+  {
+    name: "expensify",
+    url: "https://github.com/Expensify/App.git",
+    description: "Expensify App",
   },
 ];
 
@@ -95,7 +100,7 @@ export class RepoManager {
 
     console.log("🚀 Setting up benchmark repositories...");
 
-    for (const config of BENCHMARK_REPOS) {
+    for (const config of REPOS) {
       try {
         const path = await this.setupRepo(config);
         repoPaths.set(config.name, path);
@@ -123,6 +128,6 @@ export class RepoManager {
    * Get repository configuration by name
    */
   getRepoConfig(name: string): RepoConfig | undefined {
-    return BENCHMARK_REPOS.find((repo) => repo.name === name);
+    return REPOS.find((repo) => repo.name === name);
   }
 }
