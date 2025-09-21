@@ -10,7 +10,17 @@ import {
   type FingerprintResult,
 } from "../src/index.js";
 
-const options: FingerprintOptions = {
+const defaultOptions: FingerprintOptions = {
+  include: ["android", "package.json"],
+  exclude: ["node_modules", "dist"],
+};
+
+const iosOptions: FingerprintOptions = {
+  include: ["ios", "package.json"],
+  exclude: ["node_modules", "dist"],
+};
+
+const androidOptions: FingerprintOptions = {
   include: ["android", "package.json"],
   exclude: ["node_modules", "dist"],
 };
@@ -18,11 +28,16 @@ const options: FingerprintOptions = {
 const { values, positionals } = parseArgs({
   options: {
     baseline: { type: "boolean" },
+    ios: { type: "boolean" },
+    android: { type: "boolean" },
   },
   allowPositionals: true,
 });
 
 const isBaseline = values.baseline ?? false;
+
+const projectType = values.ios ? "ios" : values.android ? "android" : "default";
+const options = values.ios ? iosOptions : values.android ? androidOptions : defaultOptions;
 
 async function main() {
   const rootDir = positionals[0] ?? process.cwd();
@@ -32,6 +47,7 @@ async function main() {
   }
 
   console.log("Mode:", isBaseline ? "baseline" : "current");
+  console.log("Project type:", projectType);
   console.log("Path:", rootDir);
   console.log("Options:", options);
   console.log("");
@@ -50,12 +66,12 @@ async function main() {
   console.log(`Sync Fingerprint: ${(ts4 - ts3).toFixed(1)}ms`);
   compareFingerprints(fingerprint, fingerprintSync, "Sync Fingerprint check");
 
-  const filename = isBaseline ? "baseline.json" : "current.json";
+  const filename = isBaseline ? `baseline-${projectType}.json` : `current-${projectType}.json`;
   mkdirSync(outputDir, { recursive: true });
   writeFileSync(`${outputDir}/${filename}`, JSON.stringify(fingerprint, null, 2));
   console.log(`Wrote ${outputDir}/${filename}`);
 
-  const otherFilename = isBaseline ? "current.json" : "baseline.json";
+  const otherFilename = isBaseline ? `current-${projectType}.json` : `baseline-${projectType}.json`;
   if (existsSync(`${outputDir}/${otherFilename}`)) {
     const content = readFileSync(`${outputDir}/${otherFilename}`, "utf-8");
     const otherFingerprint = JSON.parse(content) as FingerprintResult;
