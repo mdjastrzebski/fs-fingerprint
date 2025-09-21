@@ -86,14 +86,14 @@ export function generateFileListSync({
 }
 
 export function listGitIgnoredFiles(cwd: string): string[] {
-  const output = execSync("git ls-files --others --ignored --exclude-standard --directory", {
+  const output = execSync("git ls-files -z --others --ignored --exclude-standard --directory", {
     cwd,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "ignore"],
   });
 
   return output
-    .split("\n")
+    .split("\0")
     .filter(Boolean)
     .map((p) => escapePath(p));
 }

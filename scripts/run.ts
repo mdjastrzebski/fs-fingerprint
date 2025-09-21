@@ -51,30 +51,30 @@ async function main() {
   console.log("Project type:", projectType);
   console.log("Path:", rootDir);
   console.log("Options:", options);
-  console.log("Ignored paths:", options.exclude?.join(", ") ?? "none");
 
   const tsGitIgnore0 = performance.now();
   const gitIgnoredPaths = listGitIgnoredFiles(rootDir);
   const tsGitIgnore1 = performance.now();
   console.log(
-    `Git-Ignored paths (${(tsGitIgnore1 - tsGitIgnore0).toFixed(1)}ms)`,
-    gitIgnoredPaths.join(", ") || "none",
+    `Git-Ignored paths (${(tsGitIgnore1 - tsGitIgnore0).toFixed(1)}ms):`,
+    gitIgnoredPaths,
   );
   console.log("");
 
   const outputDir = join(rootDir, ".fingerprint");
 
-  const tsAsync0 = performance.now();
-  const fingerprint = await calculateFingerprint(rootDir, options);
-  const tsAsync1 = performance.now();
-  console.log(`Fingerprint: ${(tsAsync1 - tsAsync0).toFixed(1)}ms`);
-  console.log(formatFingerprint(fingerprint));
-
   const tsSync0 = performance.now();
   const fingerprintSync = calculateFingerprintSync(rootDir, options);
   const tsSync1 = performance.now();
   console.log(`Sync Fingerprint: ${(tsSync1 - tsSync0).toFixed(1)}ms`);
+
+  const tsAsync0 = performance.now();
+  const fingerprint = await calculateFingerprint(rootDir, options);
+  const tsAsync1 = performance.now();
+  console.log(`Async Fingerprint: ${(tsAsync1 - tsAsync0).toFixed(1)}ms`);
   compareFingerprints(fingerprint, fingerprintSync, "Sync Fingerprint check");
+
+  console.log("\n" + formatFingerprint(fingerprint));
 
   const filename = isBaseline ? `baseline-${projectType}.json` : `current-${projectType}.json`;
   mkdirSync(outputDir, { recursive: true });
