@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import gitDiff from "git-diff";
 
 import {
@@ -22,6 +23,8 @@ async function main() {
   console.log("Options:", options);
   console.log("");
 
+  const outputDir = join(path, ".fingerprint");
+
   const ts1 = performance.now();
   const fingerprint = await calculateFingerprint(path, options);
   const ts2 = performance.now();
@@ -32,17 +35,17 @@ async function main() {
   compareFingerprints(fingerprint, fingerprintSync, "Sync Fingerprint check");
 
   const filename = isBaseline ? "baseline.json" : "current.json";
-  mkdirSync(".fingerprint", { recursive: true });
-  writeFileSync(`.fingerprint/${filename}`, JSON.stringify(fingerprint, null, 2));
-  console.log(`Wrote .fingerprint/${filename}`);
+  mkdirSync(outputDir, { recursive: true });
+  writeFileSync(`${outputDir}/${filename}`, JSON.stringify(fingerprint, null, 2));
+  console.log(`Wrote ${outputDir}/${filename}`);
 
   const otherFilename = isBaseline ? "current.json" : "baseline.json";
-  if (existsSync(`.fingerprint/${otherFilename}`)) {
-    const content = readFileSync(`.fingerprint/${otherFilename}`, "utf-8");
+  if (existsSync(`${outputDir}/${otherFilename}`)) {
+    const content = readFileSync(`${outputDir}/${otherFilename}`, "utf-8");
     const otherFingerprint = JSON.parse(content) as FingerprintResult;
     compareFingerprints(fingerprint, otherFingerprint, "Baseline fingerprint check");
   } else {
-    console.log(`No .fingerprint/${otherFilename} to compare against`);
+    console.log(`No ${outputDir}/${otherFilename} to compare against`);
   }
 }
 
