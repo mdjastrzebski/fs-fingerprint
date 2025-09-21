@@ -67,11 +67,7 @@ export async function generateFileList({
     expandDirectories: true,
   });
 
-  let result = Array.from(paths);
-  if (excludeFn) {
-    result = result.filter((path) => !excludeFn(path));
-  }
-
+  const result = excludeFn ? paths.filter((p) => !excludeFn(p)) : paths;
   result.sort();
   return result;
 }
@@ -88,11 +84,7 @@ export function generateFileListSync({
     expandDirectories: true,
   });
 
-  let result = Array.from(paths);
-  if (excludeFn) {
-    result = result.filter((path) => !excludeFn(path));
-  }
-
+  const result = excludeFn ? paths.filter((p) => !excludeFn(p)) : paths;
   result.sort();
   return result;
 }
