@@ -11,13 +11,13 @@ import type {
   FingerprintOptions,
   FingerprintResult,
 } from "./types.js";
-import { generateFileList, generateFileListSync, mergeHashes } from "./utils.js";
+import { getFilesToHash, getFilesToHashSync, mergeHashes } from "./utils.js";
 
 export async function calculateFingerprint(
   rootDir: string,
   options?: FingerprintOptions,
 ): Promise<FingerprintResult> {
-  const inputFiles = await generateFileList({
+  const inputFiles = await getFilesToHash({
     rootDir,
     include: options?.include,
     exclude: options?.exclude,
@@ -43,7 +43,7 @@ export function calculateFingerprintSync(
   rootDir: string,
   options?: FingerprintOptions,
 ): FingerprintResult {
-  const inputFiles = generateFileListSync({
+  const inputFiles = getFilesToHashSync({
     rootDir,
     include: options?.include,
     exclude: options?.exclude,

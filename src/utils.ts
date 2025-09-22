@@ -1,6 +1,5 @@
-import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { escapePath, glob, globSync } from "tinyglobby";
+import { glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
@@ -45,17 +44,7 @@ export function mergeHashes(
   };
 }
 
-export function normalizeFilePath(path: string): string {
-  return path.startsWith("./") ? path.slice(2) : path;
-}
-
-type GenerateFileListOptions = {
-  rootDir: string;
-  include?: string[];
-  exclude?: string[];
-};
-
-export async function generateFileList({
+export async function getFilesToHash({
   rootDir,
   include = ["**"],
   exclude,
@@ -70,7 +59,7 @@ export async function generateFileList({
   return paths;
 }
 
-export function generateFileListSync({
+export function getFilesToHashSync({
   rootDir,
   include = ["**"],
   exclude,
@@ -85,15 +74,12 @@ export function generateFileListSync({
   return paths;
 }
 
-export function listGitIgnoredFiles(cwd: string): string[] {
-  const output = execSync("git ls-files -z --others --ignored --exclude-standard --directory", {
-    cwd,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "ignore"],
-  });
-
-  return output
-    .split("\0")
-    .filter(Boolean)
-    .map((p) => escapePath(p));
+export function normalizeFilePath(path: string): string {
+  return path.startsWith("./") ? path.slice(2) : path;
 }
+
+type GenerateFileListOptions = {
+  rootDir: string;
+  include?: string[];
+  exclude?: string[];
+};

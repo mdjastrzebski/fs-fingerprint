@@ -12,6 +12,7 @@ export function createRootDir(testName: string) {
     prepareRootDir: () => prepareRootDir(rootDir),
     writePaths: (paths: string[]) => writePaths(rootDir, paths),
     writeFile: (path: string, content?: string) => writeFile(rootDir, path, content),
+    debug: () => debug(rootDir),
   };
 }
 
@@ -38,4 +39,19 @@ function prepareRootDir(rootDir: string) {
   }
 
   fs.mkdirSync(rootDir, { recursive: true });
+}
+
+function debug(rootDir: string) {
+  function printDir(dir: string, prefix: string) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    entries.forEach((entry) => {
+      const fullPath = nodePath.join(dir, entry.name);
+      console.log(`${prefix}${entry.name}`);
+      if (entry.isDirectory()) {
+        printDir(fullPath, `${prefix}  `);
+      }
+    });
+  }
+
+  printDir(rootDir, "");
 }

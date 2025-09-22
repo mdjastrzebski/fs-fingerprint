@@ -16,7 +16,7 @@ Perfect for building intelligent caching solutions that automatically invalidate
 
 ## Quick Start
 
-1. Install: `npm install fs-fingerprint`
+1. Install: `npm install fs-fingerprint` (or `yarn/pnpm/bun add fs-fingerprint`)
 2. Code:
 
 ```ts
@@ -36,12 +36,12 @@ const { hash } = await calculateFingerprint(rootPath, {
 async function calculateFingerprint(
   rootDir: string, // Root directory path to scan
   options?: {
-    include?: string[]; // Files and directories to include (default: all) - NOTE: this are NOT a glob patterns
-    exclude?: string[]; // Glob patterns to exclude files and directories
+    include?: string[]; // Glob patterns to include files and directories (default: all)
+    exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
     extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
-  }
-): Promise<FingerprintResult<
+  },
+): Promise<FingerprintResult>;
 ```
 
 Generates a fingerprint hash for filesystem state.
@@ -61,8 +61,8 @@ interface FingerprintResult {
 function calculateFingerprintSync(
   rootDir: string, // Root directory path to scan
   options?: {
-    include?: string[]; // Files and directories to include (default: all) - NOTE: this are NOT a glob patterns
-    exclude?: string[]; // Glob patterns to exclude files and directories
+    include?: string[]; // Glob patterns to include files and directories (default: all)
+    exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
     extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
   },
@@ -99,7 +99,7 @@ const { hash } = await calculateFingerprint("./src", {
   extraInputs: [
     { key: "some-config", content: "debug=true" },
     { key: "so-metadata", json: { version: "1.0", env: "prod" } },
-    { key: "much-envs": json: [process.env.BUILD_ENVIROMENT, process.env.FEATURE_ENABLED]
+    { key: "much-envs", json: [process.env.BUILD_ENVIROMENT, process.env.FEATURE_ENABLED] },
   ],
 });
 ```
@@ -107,7 +107,8 @@ const { hash } = await calculateFingerprint("./src", {
 **Using `.gitignore` file:**
 
 ```typescript
-const gitIgnoredFiles = listGitIgnoredFiles("./src");
+// Will execute `git ls-files` to get ignored files
+const gitIgnoredFiles = getGitIgnoredFiles("./src");
 
 const { hash } = await calculateFingerprint("./src", {
   exclude: [...gitIgnoredFiles, "other/excludes/**"],
@@ -135,11 +136,8 @@ const { hash } = calculateFingerprintSync("./src", {
 1. **File Hashing:**  
    A file’s hash is based only on its content, but not from the file’s own name or path.
 
-2. **Directory Hashing:**  
-   A directory’s hash is based only on the names and hashes of its immediate contents (files and subdirectories), but not from the directory’s own name or path.
-
-3. **Include/Exclude Patterns:**  
-   Entries listed in `include` are always processed, even if they match `exclude` patterns or are listed in ignore files (such as `.gitignore`). However, files and subdirectories within included directories are still subject to `exclude` and ignore rules. This allows you to always include specific files or directories, while still controlling which of their contents are considered.
+2. **Flat manifest:**  
+   Final hash is computed from list of all files and their hashes, sorted by their relative paths. This means that renaming or moving a file will change the final fingerprint, even if the file content remains unchanged.
 
 ## Contributing
 
