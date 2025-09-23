@@ -1,12 +1,12 @@
 import { execSync } from "node:child_process";
 import { escapePath } from "tinyglobby";
 
-export function getGitIgnoredFiles(cwd: string): string[] {
+export function getGitIgnoredPaths(rootPath: string): string[] {
   try {
     const output = execSync(
       "git ls-files -z --others --ignored --exclude-standard --directory --full-name",
       {
-        cwd,
+        cwd: rootPath,
         encoding: "utf8",
         stdio: ["ignore", "pipe", "pipe"],
       },

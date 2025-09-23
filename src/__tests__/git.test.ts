@@ -3,7 +3,7 @@ import * as path from "node:path";
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
-import { getGitIgnoredFiles } from "../git.js";
+import { getGitIgnoredPaths } from "../git.js";
 
 const { rootDir, prepareRootDir, writePaths, writeFile, debug } = createRootDir("git-test");
 
@@ -14,7 +14,7 @@ beforeEach(() => {
 const PATHS_TXT = ["file1.txt", "dir/file2.txt", "dir/subdir/file3.txt"];
 const PATHS_MD = ["file1.md", "dir/file2.md", "dir/subdir/file3.md"];
 
-describe("getGitIgnoredFiles", () => {
+describe("getGitIgnoredPaths", () => {
   test("supports basic case", () => {
     writePaths(PATHS_TXT);
     writePaths(PATHS_MD);
@@ -26,7 +26,7 @@ describe("getGitIgnoredFiles", () => {
       cwd: rootDir,
     });
 
-    const ignoredFiles = getGitIgnoredFiles(rootDir);
+    const ignoredFiles = getGitIgnoredPaths(rootDir);
     expect(ignoredFiles).toContain("file1.md");
     expect(ignoredFiles).toContain("dir/file2.md");
     expect(ignoredFiles).toContain("dir/file2.txt");
@@ -39,7 +39,7 @@ describe("getGitIgnoredFiles", () => {
     writePaths(PATHS_MD);
     writeFile(".gitignore", "*.md\ndir/subdir/");
 
-    expect(() => getGitIgnoredFiles(rootDir)).toThrowErrorMatchingInlineSnapshot(
+    expect(() => getGitIgnoredPaths(rootDir)).toThrowErrorMatchingInlineSnapshot(
       `
         "Failed to get git ignored files.
 
@@ -60,7 +60,7 @@ describe("getGitIgnoredFiles", () => {
       cwd: rootDir,
     });
 
-    const ignoredFiles = getGitIgnoredFiles(path.join(rootDir, pkgPath));
+    const ignoredFiles = getGitIgnoredPaths(path.join(rootDir, pkgPath));
     expect(ignoredFiles).toMatchInlineSnapshot(`
       [
         "packages/package/dir/file2.md",
@@ -68,32 +68,5 @@ describe("getGitIgnoredFiles", () => {
         "packages/package/file1.md",
       ]
     `);
-  });
-
-  test.skip("supports outside paths", () => {
-    const nativePkg = "packages/native";
-    writePaths(PATHS_TXT.map((p) => path.join(nativePkg, p)));
-    writePaths(PATHS_MD.map((p) => path.join(nativePkg, p)));
-    writePaths(["root-file.md", "root-file.txt"]);
-    writePaths(["packages/js/package.json"]);
-
-    writeFile(`.gitignore`, "*.md");
-    execSync("git init", {
-      cwd: rootDir,
-    });
-
-    debug();
-
-    const ignoredFiles = getGitIgnoredFiles(rootDir);
-    expect(ignoredFiles).toMatchInlineSnapshot(`
-      [
-        "packages/native/dir/file2.md",
-        "packages/native/dir/subdir/file3.md",
-        "packages/native/file1.md",
-        "root-file.md",
-      ]
-    `);
-    expect(ignoredFiles).toContain("../root-file.md");
-    expect(ignoredFiles).not.toContain("../native/file1.md");
   });
 });

@@ -8,7 +8,7 @@ import {
   calculateFingerprintSync,
   type FingerprintOptions,
   type FingerprintResult,
-  listGitIgnoredFiles,
+  getGitIgnoredPaths,
 } from "../src/index.js";
 
 const defaultOptions: FingerprintOptions = {
@@ -53,7 +53,7 @@ async function main() {
   console.log("Options:", options);
 
   const tsGitIgnore0 = performance.now();
-  const gitIgnoredPaths = listGitIgnoredFiles(rootDir);
+  const gitIgnoredPaths = getGitIgnoredPaths(rootDir);
   const tsGitIgnore1 = performance.now();
   console.log(
     `Git-Ignored paths (${(tsGitIgnore1 - tsGitIgnore0).toFixed(1)}ms):`,

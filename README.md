@@ -74,7 +74,17 @@ Sync version of `calculateFingerprint`:
 - generates the same hash value without awaiting
 - will be slower due to blocking filesystem reads
 
-### Examples
+### `getGitIgnoredPaths`
+
+```ts
+function getGitIgnoredPaths(rootPath: string): string[];
+```
+
+Helper function to get list of paths ignored by Git from `.gitignore` and other Git settings. This function invokes `git ls-files` command, so it requires Git to be installed and available in PATH.
+
+**Note**: this function might throw in case of errors (e.g. not a git repository). Use try/catch to handle errors.
+
+## Examples
 
 **Basic usage:**
 
@@ -107,11 +117,11 @@ const { hash } = await calculateFingerprint("./src", {
 **Using `.gitignore` file:**
 
 ```typescript
-// Will execute `git ls-files` to get ignored files
-const gitIgnoredFiles = getGitIgnoredFiles("./src");
+// Get list of git-ignored paths
+const gitIgnoredPaths = getGitIgnoredPaths("./src");
 
 const { hash } = await calculateFingerprint("./src", {
-  exclude: [...gitIgnoredFiles, "other/excludes/**"],
+  exclude: [...gitIgnoredPaths, "other/excludes/**"],
 });
 ```
 
