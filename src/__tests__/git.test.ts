@@ -27,6 +27,15 @@ describe("getGitIgnoredPaths", () => {
     });
 
     const ignoredFiles = getGitIgnoredPaths(rootDir);
+    expect(ignoredFiles).toMatchInlineSnapshot(`
+      [
+        "dir/file2.md",
+        "dir/file2.txt",
+        "dir/subdir/",
+        "file1.md",
+      ]
+    `);
+
     expect(ignoredFiles).toContain("file1.md");
     expect(ignoredFiles).toContain("dir/file2.md");
     expect(ignoredFiles).toContain("dir/file2.txt");
@@ -43,7 +52,7 @@ describe("getGitIgnoredPaths", () => {
       `
         "Failed to get git ignored files.
 
-        Command failed: git ls-files -z --others --ignored --exclude-standard --directory --full-name
+        Command failed: git ls-files -z --others --ignored --exclude-standard --directory
         fatal: not a git repository (or any of the parent directories): .git
         "
       `,
@@ -51,7 +60,7 @@ describe("getGitIgnoredPaths", () => {
   });
 
   test("supports higher-level gitignore", () => {
-    const pkgPath = "packages/package";
+    const pkgPath = "pkg/a";
     writePaths(PATHS_TXT.map((p) => path.join(pkgPath, p)));
     writePaths(PATHS_MD.map((p) => path.join(pkgPath, p)));
 
@@ -60,13 +69,17 @@ describe("getGitIgnoredPaths", () => {
       cwd: rootDir,
     });
 
-    const ignoredFiles = getGitIgnoredPaths(path.join(rootDir, pkgPath));
+    const packageDir = path.join(rootDir, pkgPath);
+    const ignoredFiles = getGitIgnoredPaths(packageDir);
     expect(ignoredFiles).toMatchInlineSnapshot(`
       [
-        "packages/package/dir/file2.md",
-        "packages/package/dir/subdir/file3.md",
-        "packages/package/file1.md",
+        "dir/file2.md",
+        "dir/subdir/file3.md",
+        "file1.md",
       ]
     `);
+    expect(ignoredFiles).toContain("file1.md");
+    expect(ignoredFiles).toContain("dir/file2.md");
+    expect(ignoredFiles).toContain("dir/subdir/file3.md");
   });
 });
