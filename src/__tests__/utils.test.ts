@@ -2,7 +2,13 @@ import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
 import type { FingerprintInputHash } from "../types.js";
-import { getFilesToHash, getFilesToHashSync, hashContent, mergeHashes } from "../utils.js";
+import {
+  getFilesToHash,
+  getFilesToHashSync,
+  hashContent,
+  mergeHashes,
+  remapPaths,
+} from "../utils.js";
 
 const baseConfig = {
   rootDir: "not-used",
@@ -130,5 +136,12 @@ describe("mergeHashes", () => {
   test("returns null when input is empty", () => {
     const result = mergeHashes([], baseConfig);
     expect(result).toBeNull();
+  });
+});
+
+describe.only("remapPaths", () => {
+  test("handles basic cases", () => {
+    expect(remapPaths("file.txt", "/a/b/c/", "/a/b/")).toEqual("../file.txt");
+    expect(remapPaths("file.txt", "/a/b/c/", "/a/")).toEqual("../../file.txt");
   });
 });

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import * as nodePath from "node:path";
 import { glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
@@ -83,3 +84,28 @@ type GenerateFileListOptions = {
   include?: string[];
   exclude?: string[];
 };
+
+export function getEffectiveRootDir(rootDir: string, include?: string[]): string {
+  const maxEscapeLevel = include?.map(extractEscapeLevel).reduce((a, b) => Math.max(a, b), 0) ?? 0;
+  if (maxEscapeLevel === 0) {
+    return rootDir || process.cwd();
+  }
+
+  return nodePath.resolve(rootDir, ...Array(maxEscapeLevel).fill(".."));
+}
+
+function extractEscapeLevel(path: string): number {
+  let level = 0;
+  while (path.startsWith("../")) {
+    level++;
+    path = path.slice(3);
+  }
+  return level;
+}
+
+export function remapPaths(path: string, fromRoot: string, toRoot: string): string {
+  console.log("Remapping path:", { path, fromRoot, toRoot });
+  const rootDiff = nodePath.relative(toRoot, fromRoot);
+  console.log("Root diff:", rootDiff);
+  return nodePath.normalize(nodePath.join(rootDiff, path));
+}

@@ -1,10 +1,15 @@
 import { execSync } from "node:child_process";
 import { escapePath } from "tinyglobby";
 
-export function getGitIgnoredPaths(rootPath: string): string[] {
+import { getEffectiveRootDir, remapPaths } from "./utils.js";
+
+export function getGitIgnoredPaths(rootPath: string, include: string[]): string[] {
   try {
+    const effectiveRootDir = getEffectiveRootDir(rootPath, include);
+    console.log("Root path:", rootPath);
+    console.log("Effective root dir:", effectiveRootDir);
     const output = execSync("git ls-files -z --others --ignored --exclude-standard --directory", {
-      cwd: rootPath,
+      cwd: effectiveRootDir,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -12,7 +17,7 @@ export function getGitIgnoredPaths(rootPath: string): string[] {
     return output
       .split("\0")
       .filter(Boolean)
-      .map((p) => escapePath(p))
+      .map((p) => remapPaths(escapePath(p), effectiveRootDir, rootPath))
       .sort();
   } catch (error) {
     const message = (error as Error)?.message || "Unknown error";

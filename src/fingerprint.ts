@@ -11,12 +11,14 @@ import type {
   FingerprintOptions,
   FingerprintResult,
 } from "./types.js";
-import { getFilesToHash, getFilesToHashSync, mergeHashes } from "./utils.js";
+import { getEffectiveRootDir, getFilesToHash, getFilesToHashSync, mergeHashes } from "./utils.js";
 
 export async function calculateFingerprint(
   rootDir: string,
   options?: FingerprintOptions,
 ): Promise<FingerprintResult> {
+  const effectiveRootDir = rootDir || process.cwd();
+
   const inputFiles = await getFilesToHash({
     rootDir,
     include: options?.include,

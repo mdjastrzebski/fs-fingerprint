@@ -26,7 +26,7 @@ describe("getGitIgnoredPaths", () => {
       cwd: rootDir,
     });
 
-    const ignoredFiles = getGitIgnoredPaths(rootDir);
+    const ignoredFiles = getGitIgnoredPaths(rootDir, []);
     expect(ignoredFiles).toMatchInlineSnapshot(`
       [
         "dir/file2.md",
@@ -48,7 +48,7 @@ describe("getGitIgnoredPaths", () => {
     writePaths(PATHS_MD);
     writeFile(".gitignore", "*.md\ndir/subdir/");
 
-    expect(() => getGitIgnoredPaths(rootDir)).toThrowErrorMatchingInlineSnapshot(`
+    expect(() => getGitIgnoredPaths(rootDir, [])).toThrowErrorMatchingInlineSnapshot(`
       "Failed to get git ignored files.
 
       Command failed: git ls-files -z --others --ignored --exclude-standard --directory
@@ -68,7 +68,7 @@ describe("getGitIgnoredPaths", () => {
     });
 
     const packageDir = path.join(rootDir, pkgPath);
-    const ignoredFiles = getGitIgnoredPaths(packageDir);
+    const ignoredFiles = getGitIgnoredPaths(packageDir, []);
     expect(ignoredFiles).toMatchInlineSnapshot(`
       [
         "dir/file2.md",
@@ -79,5 +79,33 @@ describe("getGitIgnoredPaths", () => {
     expect(ignoredFiles).toContain("file1.md");
     expect(ignoredFiles).toContain("dir/file2.md");
     expect(ignoredFiles).toContain("dir/subdir/file3.md");
+  });
+
+  test.only("supports outside paths", () => {
+    const nativePkg = "packages/native";
+    writePaths(PATHS_TXT.map((p) => path.join(nativePkg, p)));
+    writePaths(PATHS_MD.map((p) => path.join(nativePkg, p)));
+    writePaths(["root-file.md", "root-file.txt"]);
+    writePaths(["packages/js/package.json"]);
+
+    writeFile(`.gitignore`, "*.md");
+    execSync("git init", {
+      cwd: rootDir,
+    });
+
+    const ignoredFiles = getGitIgnoredPaths(path.join(rootDir, nativePkg), [
+      "../../root-file.md",
+      "../../packages/js/package.json",
+    ]);
+    expect(ignoredFiles).toMatchInlineSnapshot(`
+      [
+        "../../packages/native/dir/file2.md",
+        "../../packages/native/dir/subdir/file3.md",
+        "../../packages/native/file1.md",
+        "../../root-file.md",
+      ]
+    `);
+    expect(ignoredFiles).not.toContain("../root-file.md");
+    expect(ignoredFiles).not.toContain("../native/file1.md");
   });
 });
