@@ -8,10 +8,16 @@ import { createRootDir } from "../../test-utils/fs.js";
 import {
   calculateFingerprint,
   calculateFingerprintSync,
+  getGitIgnoredPaths,
   type FingerprintOptions,
 } from "../index.js";
+import { get } from "node:http";
+import { execSync } from "node:child_process";
 
-const { rootDir, prepareRootDir, writePaths } = createRootDir("fingerprint-test");
+const PATHS_TXT = ["file1.txt", "dir/file2.txt", "dir/subdir/file3.txt"];
+const PATHS_MD = ["file1.md", "dir/file2.md", "dir/subdir/file3.md"];
+
+const { rootDir, prepareRootDir, writePaths, writeFile } = createRootDir("fingerprint-test");
 
 beforeEach(() => {
   prepareRootDir();
@@ -279,5 +285,97 @@ describe("calculateFingerprint", () => {
 
     const fingerprintSync = calculateFingerprintSync(rootDir, options);
     expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test('handles includes outside of rootDir (e.g. "..")', async () => {
+    writePaths(PATHS_TXT.map((p) => path.join("pkg/a", p)));
+    writePaths(PATHS_TXT.map((p) => path.join("pkg/b", p)));
+    writePaths(["root-file.txt"]);
+
+    const options: FingerprintOptions = {
+      include: ["**/*.txt", "../../pkg/b/**/*.txt", "../../root-file.txt"],
+    };
+
+    const fingerprint = await calculateFingerprint(path.join(rootDir, "pkg/a"), options);
+    expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
+      "Hash: 16401631f9f764537c5c703054921b8ffe10724a
+      Inputs:
+        - ../../root-file.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - ../b/dir/file2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - ../b/dir/subdir/file3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - ../b/file1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - dir/file2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - dir/subdir/file3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - file1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      "
+    `);
+    expect(findInput(fingerprint.inputs, "file1.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "dir/file2.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "dir/subdir/file3.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "../../root-file.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "../b/file1.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "../b/dir/file2.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "../b/dir/subdir/file3.txt")).toBeTruthy();
+  });
+
+  test('handles includes outside of rootDir (e.g. "..") with .gitignore', async () => {
+    writePaths(PATHS_TXT.map((p) => path.join("pkg/a", p)));
+    writePaths(PATHS_MD.map((p) => path.join("pkg/a", p)));
+    writePaths(PATHS_TXT.map((p) => path.join("pkg/b", p)));
+    writePaths(PATHS_MD.map((p) => path.join("pkg/b", p)));
+    writePaths(["root-file.txt", "root-file.md"]);
+    writeFile(".gitignore", "*.md");
+
+    execSync("git init", {
+      cwd: rootDir,
+    });
+
+    const packageRootPath = path.join(rootDir, "pkg/a");
+    const ignoredPaths = getGitIgnoredPaths(packageRootPath);
+    expect(ignoredPaths).toMatchInlineSnapshot(`
+      [
+        "pkg/a/dir/file2.md",
+        "pkg/a/dir/subdir/file3.md",
+        "pkg/a/file1.md",
+      ]
+    `);
+
+    const options: FingerprintOptions = {
+      include: ["**/*.txt", "../../pkg/b", "../../root-file.*"],
+      exclude: [...ignoredPaths],
+    };
+
+    const fingerprint = await calculateFingerprint(packageRootPath, options);
+    expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
+      "Hash: fce4e4465574fed0e75ff8e60f8d74bc18ab00e1
+      Inputs:
+        - ../../root-file.md - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - ../../root-file.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - ../b/dir/file2.md - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - ../b/dir/file2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - ../b/dir/subdir/file3.md - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - ../b/dir/subdir/file3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - ../b/file1.md - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - ../b/file1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - dir/file2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - dir/subdir/file3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - file1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      "
+    `);
+    expect(findInput(fingerprint.inputs, "file1.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "dir/file2.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "dir/subdir/file3.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "../../root-file.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "../b/file1.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "../b/dir/file2.txt")).toBeTruthy();
+    expect(findInput(fingerprint.inputs, "../b/dir/subdir/file3.txt")).toBeTruthy();
+
+    expect(findInput(fingerprint.inputs, "file1.md")).toBeNull();
+    expect(findInput(fingerprint.inputs, "dir/file2.md")).toBeNull();
+    expect(findInput(fingerprint.inputs, "dir/subdir/file3.md")).toBeNull();
+    expect(findInput(fingerprint.inputs, "../../root-file.md")).toBeNull();
+    expect(findInput(fingerprint.inputs, "../b/file1.md")).toBeNull();
+    expect(findInput(fingerprint.inputs, "../b/dir/file2.md")).toBeNull();
+    expect(findInput(fingerprint.inputs, "../b/dir/subdir/file3.md")).toBeNull();
   });
 });
