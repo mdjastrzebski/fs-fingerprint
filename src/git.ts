@@ -4,19 +4,16 @@ import { escapePath } from "tinyglobby";
 
 import { remapPaths } from "./utils.js";
 
-export interface getGitIgnoredPathsOptions {
+export interface GetGitIgnoredPathsOptions {
   outsidePaths?: boolean;
 }
 
-export function getGitIgnoredPaths(
-  rootPath: string,
-  options?: getGitIgnoredPathsOptions,
-): string[] {
-  const effectiveRootDir = options?.outsidePaths ? getGitRootPath(rootPath) : rootPath;
+export function getGitIgnoredPaths(path: string, options?: GetGitIgnoredPathsOptions): string[] {
+  const cwd = options?.outsidePaths ? getGitRootPath(path) : path;
 
   try {
     const output = execSync("git ls-files -z --others --ignored --exclude-standard --directory", {
-      cwd: effectiveRootDir,
+      cwd,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -24,10 +21,10 @@ export function getGitIgnoredPaths(
     let result = output
       .split("\0")
       .filter(Boolean)
-      .map((path) => escapePath(path));
+      .map((filePath) => escapePath(filePath));
 
     if (options?.outsidePaths) {
-      result = result.map((path) => remapPaths(path, effectiveRootDir, rootPath));
+      result = result.map((filePath) => remapPaths(filePath, cwd, path));
     }
 
     return result.sort();
@@ -39,18 +36,15 @@ export function getGitIgnoredPaths(
   }
 }
 
-function getGitRootPath(cwd: string): string {
+function getGitRootPath(path: string): string {
   try {
     const output = execSync("git rev-parse --show-cdup", {
-      cwd,
+      cwd: path,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     }).trim();
-    if (!output.trim()) {
-      return cwd;
-    }
 
-    return nodePath.join(cwd, output || ".");
+    return output ? nodePath.join(path, output) : path;
   } catch (error) {
     const message = (error as Error)?.message || "Unknown error";
     throw new Error(`Failed to get git root path.\n\n${message}`, {
