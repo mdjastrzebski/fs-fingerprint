@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import { createRootDir } from "../../test-utils/fs.js";
 import { getGitIgnoredPaths } from "../git.js";
 
-const { rootDir, prepareRootDir, writePaths, writeFile, debug } = createRootDir("git-test");
+const { rootDir, prepareRootDir, writePaths, writeFile } = createRootDir("git-test");
 
 beforeEach(() => {
   prepareRootDir();
