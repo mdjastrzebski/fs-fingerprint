@@ -329,10 +329,6 @@ describe("calculateFingerprint", () => {
       cwd: rootDir,
     });
 
-    expect(rootDir).toMatchInlineSnapshot(
-      `"/var/folders/0q/fsh5sbmd1y5ff77l1y1w7fw00000gn/T/fingerprint-test"`,
-    );
-
     const packageRootPath = path.join(rootDir, "pkg/a");
     const ignoredPaths = getGitIgnoredPaths(packageRootPath, { outsidePaths: true });
     expect(ignoredPaths).toMatchInlineSnapshot(`
