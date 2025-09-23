@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../../test-utils/fs.js";
@@ -6,7 +5,7 @@ import { EMPTY_HASH } from "../../constants.js";
 import type { FingerprintConfig } from "../../types.js";
 import { calculateFileHash, calculateFileHashSync } from "../file.js";
 
-const { rootDir, writeFile } = createRootDir("file-test");
+const { rootDir, prepareRootDir, writeFile } = createRootDir("file-test");
 
 const baseConfig: FingerprintConfig = {
   rootDir,
@@ -14,11 +13,7 @@ const baseConfig: FingerprintConfig = {
 };
 
 beforeEach(() => {
-  if (fs.existsSync(baseConfig.rootDir)) {
-    fs.rmSync(baseConfig.rootDir, { recursive: true });
-  }
-
-  fs.mkdirSync(baseConfig.rootDir, { recursive: true });
+  prepareRootDir();
 });
 
 describe("calculateFileHash", () => {

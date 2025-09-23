@@ -1,6 +1,3 @@
-import { existsSync, readFileSync } from "node:fs";
-import * as path from "node:path";
-import ignore, { type Ignore } from "ignore";
 import pLimit from "p-limit";
 
 import { DEFAULT_CONCURRENCY, EMPTY_HASH } from "./constants.js";
@@ -14,18 +11,16 @@ import type {
   FingerprintOptions,
   FingerprintResult,
 } from "./types.js";
-import { generateFileList, generateFileListSync, mergeHashes } from "./utils.js";
+import { getFilesToHash, getFilesToHashSync, mergeHashes } from "./utils.js";
 
 export async function calculateFingerprint(
   rootDir: string,
   options?: FingerprintOptions,
 ): Promise<FingerprintResult> {
-  const ignoreObject = buildIgnoreObject(rootDir, options?.ignoreFilePath);
-  const inputFiles = await generateFileList({
+  const inputFiles = await getFilesToHash({
     rootDir,
     include: options?.include,
     exclude: options?.exclude,
-    excludeFn: ignoreObject ? (path) => ignoreObject.ignores(path) : undefined,
   });
 
   const limit = pLimit(options?.concurrency ?? DEFAULT_CONCURRENCY);
@@ -48,12 +43,10 @@ export function calculateFingerprintSync(
   rootDir: string,
   options?: FingerprintOptions,
 ): FingerprintResult {
-  const ignoreObject = buildIgnoreObject(rootDir, options?.ignoreFilePath);
-  const inputFiles = generateFileListSync({
+  const inputFiles = getFilesToHashSync({
     rootDir,
     include: options?.include,
     exclude: options?.exclude,
-    excludeFn: ignoreObject ? (path) => ignoreObject.ignores(path) : undefined,
   });
 
   const config: FingerprintConfig = {
@@ -87,18 +80,4 @@ function calculateExtraInputHashes(
   }
 
   return result;
-}
-
-function buildIgnoreObject(rootDir: string, ignoreFilePath?: string): Ignore | undefined {
-  if (!ignoreFilePath) {
-    return undefined;
-  }
-
-  const pathWithRoot = path.join(rootDir, ignoreFilePath);
-  if (!existsSync(pathWithRoot)) {
-    return undefined;
-  }
-
-  const rules = readFileSync(pathWithRoot, "utf8");
-  return ignore().add(rules);
 }

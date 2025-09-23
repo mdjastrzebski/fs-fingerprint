@@ -16,7 +16,7 @@ Perfect for building intelligent caching solutions that automatically invalidate
 
 ## Quick Start
 
-1. Install: `npm install fs-fingerprint`
+1. Install: `npm install fs-fingerprint` (or `yarn/pnpm/bun add fs-fingerprint`)
 2. Code:
 
 ```ts
@@ -25,7 +25,6 @@ import { calculateFingerprint } from "fs-fingerprint";
 const { hash } = await calculateFingerprint(rootPath, {
   include: ["ios", "package.json"],
   exclude: ["build"],
-  ignoreFilePath: ".gitignore",
 });
 ```
 
@@ -37,13 +36,12 @@ const { hash } = await calculateFingerprint(rootPath, {
 async function calculateFingerprint(
   rootDir: string, // Root directory path to scan
   options?: {
-    include?: string[]; // Files and directories to include (default: all) - NOTE: this are NOT a glob patterns
-    exclude?: string[]; // Glob patterns to exclude files and directories
+    include?: string[]; // Glob patterns to include files and directories (default: all)
+    exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
     extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
-    ignoreFilePath?: string; // Path (relative to "rootDir") to ignore file, e.g. ".gitignore".
-  }
-): Promise<FingerprintResult<
+  },
+): Promise<FingerprintResult>;
 ```
 
 Generates a fingerprint hash for filesystem state.
@@ -63,11 +61,10 @@ interface FingerprintResult {
 function calculateFingerprintSync(
   rootDir: string, // Root directory path to scan
   options?: {
-    include?: string[]; // Files and directories to include (default: all) - NOTE: this are NOT a glob patterns
-    exclude?: string[]; // Glob patterns to exclude files and directories
+    include?: string[]; // Glob patterns to include files and directories (default: all)
+    exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
     extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
-    ignoreFilePath?: string; // Path (relative to "rootDir") to ignore file, e.g. ".gitignore".
   },
 ): FingerprintResult;
 ```
@@ -77,7 +74,17 @@ Sync version of `calculateFingerprint`:
 - generates the same hash value without awaiting
 - will be slower due to blocking filesystem reads
 
-### Examples
+### `getGitIgnoredPaths`
+
+```ts
+function getGitIgnoredPaths(rootPath: string): string[];
+```
+
+Helper function to get list of paths ignored by Git from `.gitignore` and other Git settings. This function invokes `git ls-files` command, so it requires Git to be installed and available in PATH.
+
+**Note**: this function might throw in case of errors (e.g. not a git repository). Use try/catch to handle errors.
+
+## Examples
 
 **Basic usage:**
 
@@ -102,7 +109,7 @@ const { hash } = await calculateFingerprint("./src", {
   extraInputs: [
     { key: "some-config", content: "debug=true" },
     { key: "so-metadata", json: { version: "1.0", env: "prod" } },
-    { key: "much-envs": json: [process.env.BUILD_ENVIROMENT, process.env.FEATURE_ENABLED]
+    { key: "much-envs", json: [process.env.BUILD_ENVIROMENT, process.env.FEATURE_ENABLED] },
   ],
 });
 ```
@@ -110,8 +117,11 @@ const { hash } = await calculateFingerprint("./src", {
 **Using `.gitignore` file:**
 
 ```typescript
+// Get list of git-ignored paths
+const gitIgnoredPaths = getGitIgnoredPaths("./src");
+
 const { hash } = await calculateFingerprint("./src", {
-  ignoreFilePath: ".gitignore",
+  exclude: [...gitIgnoredPaths, "other/excludes/**"],
 });
 ```
 
@@ -136,11 +146,8 @@ const { hash } = calculateFingerprintSync("./src", {
 1. **File Hashing:**  
    A file’s hash is based only on its content, but not from the file’s own name or path.
 
-2. **Directory Hashing:**  
-   A directory’s hash is based only on the names and hashes of its immediate contents (files and subdirectories), but not from the directory’s own name or path.
-
-3. **Include/Exclude Patterns:**  
-   Entries listed in `include` are always processed, even if they match `exclude` patterns or are listed in ignore files (such as `.gitignore`). However, files and subdirectories within included directories are still subject to `exclude` and ignore rules. This allows you to always include specific files or directories, while still controlling which of their contents are considered.
+2. **Flat manifest:**  
+   Final hash is computed from list of all files and their hashes, sorted by their relative paths. This means that renaming or moving a file will change the final fingerprint, even if the file content remains unchanged.
 
 ## Contributing
 

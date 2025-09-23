@@ -44,6 +44,36 @@ export function mergeHashes(
   };
 }
 
+export async function getFilesToHash({
+  rootDir,
+  include = ["**"],
+  exclude,
+}: GenerateFileListOptions): Promise<string[]> {
+  const paths = await glob(include, {
+    cwd: rootDir,
+    ignore: exclude,
+    expandDirectories: true,
+  });
+
+  paths.sort();
+  return paths;
+}
+
+export function getFilesToHashSync({
+  rootDir,
+  include = ["**"],
+  exclude,
+}: GenerateFileListOptions): string[] {
+  const paths = globSync(include, {
+    cwd: rootDir,
+    ignore: exclude,
+    expandDirectories: true,
+  });
+
+  paths.sort();
+  return paths;
+}
+
 export function normalizeFilePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path;
 }
@@ -52,39 +82,4 @@ type GenerateFileListOptions = {
   rootDir: string;
   include?: string[];
   exclude?: string[];
-  excludeFn?: (path: string) => boolean;
 };
-
-export async function generateFileList({
-  rootDir,
-  include = ["**"],
-  exclude,
-  excludeFn,
-}: GenerateFileListOptions): Promise<string[]> {
-  const paths = await glob(include, {
-    cwd: rootDir,
-    ignore: exclude,
-    expandDirectories: true,
-  });
-
-  const result = excludeFn ? paths.filter((p) => !excludeFn(p)) : paths;
-  result.sort();
-  return result;
-}
-
-export function generateFileListSync({
-  rootDir,
-  include = ["**"],
-  exclude,
-  excludeFn,
-}: GenerateFileListOptions): string[] {
-  const paths = globSync(include, {
-    cwd: rootDir,
-    ignore: exclude,
-    expandDirectories: true,
-  });
-
-  const result = excludeFn ? paths.filter((p) => !excludeFn(p)) : paths;
-  result.sort();
-  return result;
-}
