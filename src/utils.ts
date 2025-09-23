@@ -45,11 +45,17 @@ export function mergeHashes(
   };
 }
 
-export async function getFilesToHash({
+type GetInputFilesOptions = {
+  rootDir: string;
+  include?: string[];
+  exclude?: string[];
+};
+
+export async function getInputFiles({
   rootDir,
   include = ["**"],
   exclude,
-}: GenerateFileListOptions): Promise<string[]> {
+}: GetInputFilesOptions): Promise<string[]> {
   const paths = await glob(include, {
     cwd: rootDir,
     ignore: exclude,
@@ -60,11 +66,11 @@ export async function getFilesToHash({
   return paths;
 }
 
-export function getFilesToHashSync({
+export function getInputFilesSync({
   rootDir,
   include = ["**"],
   exclude,
-}: GenerateFileListOptions): string[] {
+}: GetInputFilesOptions): string[] {
   const paths = globSync(include, {
     cwd: rootDir,
     ignore: exclude,
@@ -79,33 +85,11 @@ export function normalizeFilePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path;
 }
 
-type GenerateFileListOptions = {
-  rootDir: string;
-  include?: string[];
-  exclude?: string[];
-};
-
-export function getEffectiveRootDir(rootDir: string, include?: string[]): string {
-  const maxEscapeLevel = include?.map(extractEscapeLevel).reduce((a, b) => Math.max(a, b), 0) ?? 0;
-  if (maxEscapeLevel === 0) {
-    return rootDir || process.cwd();
-  }
-
-  return nodePath.resolve(rootDir, ...Array(maxEscapeLevel).fill(".."));
-}
-
-function extractEscapeLevel(path: string): number {
-  let level = 0;
-  while (path.startsWith("../")) {
-    level++;
-    path = path.slice(3);
-  }
-  return level;
-}
-
 export function remapPaths(path: string, fromRoot: string, toRoot: string): string {
-  console.log("Remapping path:", { path, fromRoot, toRoot });
-  const rootDiff = nodePath.relative(toRoot, fromRoot);
-  console.log("Root diff:", rootDiff);
-  return nodePath.normalize(nodePath.join(rootDiff, path));
+  const pathDiff = nodePath.relative(toRoot, nodePath.join(fromRoot, path));
+  if (path.endsWith("/") && !pathDiff.endsWith("/")) {
+    return `${pathDiff}/`;
+  }
+
+  return pathDiff;
 }

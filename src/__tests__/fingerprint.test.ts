@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { beforeEach, describe, expect, test } from "bun:test";
@@ -8,11 +9,9 @@ import { createRootDir } from "../../test-utils/fs.js";
 import {
   calculateFingerprint,
   calculateFingerprintSync,
-  getGitIgnoredPaths,
   type FingerprintOptions,
+  getGitIgnoredPaths,
 } from "../index.js";
-import { get } from "node:http";
-import { execSync } from "node:child_process";
 
 const PATHS_TXT = ["file1.txt", "dir/file2.txt", "dir/subdir/file3.txt"];
 const PATHS_MD = ["file1.md", "dir/file2.md", "dir/subdir/file3.md"];
@@ -330,13 +329,21 @@ describe("calculateFingerprint", () => {
       cwd: rootDir,
     });
 
+    expect(rootDir).toMatchInlineSnapshot(
+      `"/var/folders/0q/fsh5sbmd1y5ff77l1y1w7fw00000gn/T/fingerprint-test"`,
+    );
+
     const packageRootPath = path.join(rootDir, "pkg/a");
-    const ignoredPaths = getGitIgnoredPaths(packageRootPath);
+    const ignoredPaths = getGitIgnoredPaths(packageRootPath, { outsidePaths: true });
     expect(ignoredPaths).toMatchInlineSnapshot(`
       [
-        "pkg/a/dir/file2.md",
-        "pkg/a/dir/subdir/file3.md",
-        "pkg/a/file1.md",
+        "../../root-file.md",
+        "../b/dir/file2.md",
+        "../b/dir/subdir/file3.md",
+        "../b/file1.md",
+        "dir/file2.md",
+        "dir/subdir/file3.md",
+        "file1.md",
       ]
     `);
 
@@ -347,15 +354,11 @@ describe("calculateFingerprint", () => {
 
     const fingerprint = await calculateFingerprint(packageRootPath, options);
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-      "Hash: fce4e4465574fed0e75ff8e60f8d74bc18ab00e1
+      "Hash: 16401631f9f764537c5c703054921b8ffe10724a
       Inputs:
-        - ../../root-file.md - 943a702d06f34599aee1f8da8ef9f7296031d699
         - ../../root-file.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-        - ../b/dir/file2.md - 943a702d06f34599aee1f8da8ef9f7296031d699
         - ../b/dir/file2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-        - ../b/dir/subdir/file3.md - 943a702d06f34599aee1f8da8ef9f7296031d699
         - ../b/dir/subdir/file3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-        - ../b/file1.md - 943a702d06f34599aee1f8da8ef9f7296031d699
         - ../b/file1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
         - dir/file2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
         - dir/subdir/file3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
