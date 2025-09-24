@@ -4,7 +4,6 @@ import * as nodePath from "node:path";
 
 export function createRootDir(testName: string) {
   const rootDir = nodePath.join(os.tmpdir(), testName);
-
   fs.mkdirSync(rootDir, { recursive: true });
 
   return {

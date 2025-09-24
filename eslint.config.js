@@ -31,6 +31,15 @@ export default [
           groups: [["^\\u0000", "^node:", "^@?\\w", "^"], ["^\\."]],
         },
       ],
+      "no-restricted-properties": [
+        "error",
+        { object: "describe", property: "only" },
+        { object: "describe", property: "skip" },
+        { object: "it", property: "only" },
+        { object: "it", property: "skip" },
+        { object: "test", property: "only" },
+        { object: "test", property: "skip" },
+      ],
     },
   },
 ];

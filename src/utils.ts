@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import * as nodePath from "node:path";
 import { glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
@@ -44,11 +45,17 @@ export function mergeHashes(
   };
 }
 
-export async function getFilesToHash({
+export type GetInputFilesOptions = {
+  rootDir: string;
+  include?: string[];
+  exclude?: string[];
+};
+
+export async function getInputFiles({
   rootDir,
   include = ["**"],
   exclude,
-}: GenerateFileListOptions): Promise<string[]> {
+}: GetInputFilesOptions): Promise<string[]> {
   const paths = await glob(include, {
     cwd: rootDir,
     ignore: exclude,
@@ -59,11 +66,11 @@ export async function getFilesToHash({
   return paths;
 }
 
-export function getFilesToHashSync({
+export function getInputFilesSync({
   rootDir,
   include = ["**"],
   exclude,
-}: GenerateFileListOptions): string[] {
+}: GetInputFilesOptions): string[] {
   const paths = globSync(include, {
     cwd: rootDir,
     ignore: exclude,
@@ -78,8 +85,14 @@ export function normalizeFilePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path;
 }
 
-type GenerateFileListOptions = {
-  rootDir: string;
-  include?: string[];
-  exclude?: string[];
-};
+export function remapPaths(path: string, fromRoot: string, toRoot: string): string {
+  const rebasedPath = nodePath
+    .relative(toRoot, nodePath.join(fromRoot, path))
+    .split(nodePath.sep)
+    .join("/");
+  if (path.endsWith("/") && !rebasedPath.endsWith("/")) {
+    return `${rebasedPath}/`;
+  }
+
+  return rebasedPath;
+}

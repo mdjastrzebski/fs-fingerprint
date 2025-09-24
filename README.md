@@ -77,12 +77,22 @@ Sync version of `calculateFingerprint`:
 ### `getGitIgnoredPaths`
 
 ```ts
-function getGitIgnoredPaths(rootPath: string): string[];
+function getGitIgnoredPaths(
+  path: string,
+  options: {
+    entireRepo?: boolean;
+  },
+): string[];
 ```
 
 Helper function to get list of paths ignored by Git from `.gitignore` and other Git settings. This function invokes `git ls-files` command, so it requires Git to be installed and available in PATH.
 
 **Note**: this function might throw in case of errors (e.g. not a git repository). Use try/catch to handle errors.
+
+#### Options
+
+- `entireRepo` (boolean, default: false): when false, returns ignored paths inside passed `path`; when true, searches for ignored paths in the whole git repository. In both cases, the returned paths are relative to the provided `path`.
+  - Note: this option invokes the `git rev-parse --show-cdup` command to determine the git root directory, which may make the call slower.
 
 ## Examples
 
