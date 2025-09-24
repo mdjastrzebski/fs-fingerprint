@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
-import type { FingerprintInputHash } from "../types.js";
+import type { FileHash, FingerprintInputHash } from "../types.js";
 import {
   getInputFiles,
   getInputFilesSync,
@@ -121,21 +121,22 @@ describe("getFilesToHash", () => {
 
 describe("mergeHashes", () => {
   test("supports basic case", () => {
-    const inputs: FingerprintInputHash[] = [
-      { key: "a", hash: "hash-a", type: "file", path: "a" },
-      { key: "b", hash: "hash-b", type: "file", path: "b" },
-      { key: "c", hash: "hash-c", type: "file", path: "c" },
+    const files: FileHash[] = [
+      { path: "a", hash: "hash-a" },
+      { path: "b", hash: "hash-b" },
+      { path: "c", hash: "hash-c" },
     ];
-    const result = mergeHashes(inputs, baseConfig);
+    const inputs: FingerprintInputHash[] = [
+      { key: "input-a", hash: "hash-input-a", type: "content", content: "a" },
+      { key: "input-b", hash: "hash-input-b", type: "content", content: "b" },
+    ];
+
+    const result = mergeHashes(files, inputs, baseConfig);
     expect(result).toEqual({
-      hash: "f0e3d0fa0c0cd3f1a679754b1c44e7fdb426922f",
+      hash: "8a1f3072c02af07a9daeba4df2230fa541e8479e",
+      files,
       inputs,
     });
-  });
-
-  test("returns null when input is empty", () => {
-    const result = mergeHashes([], baseConfig);
-    expect(result).toBeNull();
   });
 });
 

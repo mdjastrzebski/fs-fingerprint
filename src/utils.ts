@@ -3,7 +3,7 @@ import * as nodePath from "node:path";
 import { glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
-import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
+import type { FileHash, Fingerprint, FingerprintConfig, FingerprintInputHash } from "./types.js";
 
 export function hashContent(content: string, config: FingerprintConfig) {
   if (config.hashAlgorithm === "null") {
@@ -16,32 +16,41 @@ export function hashContent(content: string, config: FingerprintConfig) {
 }
 
 export function mergeHashes(
-  hashes: readonly FingerprintInputHash[],
+  fileHashes: readonly FileHash[],
+  inputHashes: readonly FingerprintInputHash[],
   config: FingerprintConfig,
-): FingerprintResult | null {
-  if (hashes.length === 0) {
-    return null;
-  }
-
-  const sortedHashes = [...hashes].sort((a, b) => a.key.localeCompare(b.key));
+): Fingerprint {
+  const sortedFileHashes = [...fileHashes].sort((a, b) => a.path.localeCompare(b.path));
+  const sortedInputHashes = [...inputHashes].sort((a, b) => a.key.localeCompare(b.key));
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,
-      inputs: sortedHashes,
+      files: sortedFileHashes,
+      inputs: sortedInputHashes,
     };
   }
 
   const hasher = createHash(config.hashAlgorithm ?? DEFAULT_HASH_ALGORITHM);
-  for (const inputHash of sortedHashes) {
-    hasher.update(inputHash.key);
+  for (const file of sortedFileHashes) {
+    hasher.update(file.path);
     hasher.update("\0");
-    hasher.update(inputHash.hash);
+    hasher.update(file.hash);
+    hasher.update("\0\0");
+  }
+
+  hasher.update("\0\0");
+
+  for (const input of sortedInputHashes) {
+    hasher.update(input.key);
+    hasher.update("\0");
+    hasher.update(input.hash);
     hasher.update("\0\0");
   }
 
   return {
     hash: hasher.digest("hex"),
-    inputs: sortedHashes,
+    files: sortedFileHashes,
+    inputs: sortedInputHashes,
   };
 }
 

@@ -7,7 +7,7 @@ type StringWithAutoSuggest<T> = (string & {}) | T;
  */
 export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512">;
 
-export type FingerprintOptions = {
+export interface FingerprintOptions {
   /** File and directory paths to include (does NOT support globs) */
   include?: string[];
 
@@ -22,15 +22,15 @@ export type FingerprintOptions = {
 
   /** Maximum number of concurrently opened files */
   concurrency?: number;
-};
+}
 
 /**
  * Internal fingerprint config. Can change without semver.
  */
-export type FingerprintConfig = {
+export interface FingerprintConfig {
   rootDir: string;
   hashAlgorithm?: HashAlgorithm;
-};
+}
 
 export type FingerprintInput = FingerprintContentInput | FingerprintJsonInput;
 
@@ -44,15 +44,18 @@ export interface FingerprintJsonInput {
   json: unknown;
 }
 
-export type FingerprintResult = {
+export interface Fingerprint {
   hash: string;
+  files: FileHash[];
   inputs: FingerprintInputHash[];
-};
+}
 
-export type FingerprintInputHash =
-  | FingerprintContentHash
-  | FingerprintJsonHash
-  | FingerprintFileHash;
+export interface FileHash {
+  path: string;
+  hash: string;
+}
+
+export type FingerprintInputHash = FingerprintContentHash | FingerprintJsonHash;
 
 export interface FingerprintFileHash {
   type: "file";

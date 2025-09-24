@@ -1,17 +1,9 @@
-import { type FingerprintInputHash } from "../src/index.js";
+import type { FileHash, Fingerprint, FingerprintInputHash } from "../src/index.js";
 
-export function findInput(
-  inputs: FingerprintInputHash[] | undefined,
-  path: string,
-): FingerprintInputHash | null {
-  if (inputs == null) {
-    return null;
-  }
+export function findFile(fingerprint: Fingerprint, path: string): FileHash | null {
+  return fingerprint.files.find((file) => file.path === path) || null;
+}
 
-  const exactMatch = inputs.find((input) => input.key.split(":")[1] === path);
-  if (exactMatch) {
-    return exactMatch;
-  }
-
-  return null;
+export function findInput(fingerprint: Fingerprint, key: string): FingerprintInputHash | null {
+  return fingerprint.inputs.find((input) => input.key === `${input.type}:${key}`) || null;
 }

@@ -7,7 +7,7 @@ import {
   calculateFingerprint,
   calculateFingerprintSync,
   type FingerprintOptions,
-  type FingerprintResult,
+  type Fingerprint,
   getGitIgnoredPaths,
 } from "../src/index.js";
 
@@ -84,14 +84,14 @@ async function main() {
   const otherFilename = isBaseline ? `current-${projectType}.json` : `baseline-${projectType}.json`;
   if (existsSync(`${outputDir}/${otherFilename}`)) {
     const content = readFileSync(`${outputDir}/${otherFilename}`, "utf-8");
-    const otherFingerprint = JSON.parse(content) as FingerprintResult;
+    const otherFingerprint = JSON.parse(content) as Fingerprint;
     compareFingerprints(fingerprint, otherFingerprint, "Baseline fingerprint check");
   } else {
     console.log(`No ${outputDir}/${otherFilename} to compare against`);
   }
 }
 
-function formatFingerprint(fingerprint: FingerprintResult): string {
+function formatFingerprint(fingerprint: Fingerprint): string {
   let result = `Hash: ${fingerprint.hash}\n`;
   result += `Inputs:\n`;
   fingerprint.inputs.forEach((input) => {
@@ -102,11 +102,7 @@ function formatFingerprint(fingerprint: FingerprintResult): string {
   return result;
 }
 
-function compareFingerprints(
-  current: FingerprintResult,
-  baseline: FingerprintResult,
-  title: string,
-) {
+function compareFingerprints(current: Fingerprint, baseline: Fingerprint, title: string) {
   const isMatch = current.hash === baseline.hash;
   console.log(`${title}: ${isMatch ? "match ✅" : "mismatch ❌"}`);
 
