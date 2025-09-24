@@ -5,11 +5,11 @@ import { escapePath } from "tinyglobby";
 import { remapPaths } from "./utils.js";
 
 export interface GetGitIgnoredPathsOptions {
-  outsidePaths?: boolean;
+  fromRepoRoot?: boolean;
 }
 
 export function getGitIgnoredPaths(path: string, options?: GetGitIgnoredPathsOptions): string[] {
-  const cwd = options?.outsidePaths ? getGitRootPath(path) : path;
+  const cwd = options?.fromRepoRoot ? getGitRootPath(path) : path;
 
   try {
     const output = execSync("git ls-files -z --others --ignored --exclude-standard --directory", {
@@ -23,7 +23,7 @@ export function getGitIgnoredPaths(path: string, options?: GetGitIgnoredPathsOpt
       .filter(Boolean)
       .map((filePath) => escapePath(filePath));
 
-    if (options?.outsidePaths) {
+    if (options?.fromRepoRoot) {
       result = result.map((filePath) => remapPaths(filePath, cwd, path));
     }
 

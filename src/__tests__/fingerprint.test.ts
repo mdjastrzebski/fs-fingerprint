@@ -295,8 +295,8 @@ describe("calculateFingerprint", () => {
       include: ["**/*.txt", "../../pkg/b/**/*.txt", "../../root-file.txt"],
     };
 
-    const packatePath = path.join(rootDir, "pkg/a");
-    const fingerprint = await calculateFingerprint(packatePath, options);
+    const packagePath = path.join(rootDir, "pkg/a");
+    const fingerprint = await calculateFingerprint(packagePath, options);
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: 16401631f9f764537c5c703054921b8ffe10724a
       Inputs:
@@ -317,7 +317,7 @@ describe("calculateFingerprint", () => {
     expect(findInput(fingerprint.inputs, "../b/dir/file2.txt")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "../b/dir/subdir/file3.txt")).toBeTruthy();
 
-    const fingerprintSync = calculateFingerprintSync(packatePath, options);
+    const fingerprintSync = calculateFingerprintSync(packagePath, options);
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
@@ -334,7 +334,7 @@ describe("calculateFingerprint", () => {
     });
 
     const packageRootPath = path.join(rootDir, "pkg/a");
-    const ignoredPaths = getGitIgnoredPaths(packageRootPath, { outsidePaths: true });
+    const ignoredPaths = getGitIgnoredPaths(packageRootPath, { fromRepoRoot: true });
     expect(ignoredPaths).toMatchInlineSnapshot(`
       [
         "../../root-file.md",
