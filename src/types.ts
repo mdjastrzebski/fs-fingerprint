@@ -57,13 +57,6 @@ export interface FileHash {
 
 export type FingerprintInputHash = FingerprintContentHash | FingerprintJsonHash;
 
-export interface FingerprintFileHash {
-  type: "file";
-  key: string;
-  hash: string;
-  path: string;
-}
-
 export interface FingerprintContentHash {
   type: "content";
   key: string;
