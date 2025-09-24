@@ -86,10 +86,13 @@ export function normalizeFilePath(path: string): string {
 }
 
 export function remapPaths(path: string, fromRoot: string, toRoot: string): string {
-  const pathDiff = nodePath.relative(toRoot, nodePath.join(fromRoot, path));
-  if (path.endsWith("/") && !pathDiff.endsWith("/")) {
-    return `${pathDiff}/`;
+  const rebasedPath = nodePath
+    .relative(toRoot, nodePath.join(fromRoot, path))
+    .split(nodePath.sep)
+    .join("/");
+  if (path.endsWith("/") && !rebasedPath.endsWith("/")) {
+    return `${rebasedPath}/`;
   }
 
-  return pathDiff;
+  return rebasedPath;
 }
