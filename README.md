@@ -80,7 +80,7 @@ Sync version of `calculateFingerprint`:
 function getGitIgnoredPaths(
   path: string,
   options: {
-    fromRepoRoot?: boolean;
+    entireRepo?: boolean;
   },
 ): string[];
 ```
@@ -91,8 +91,8 @@ Helper function to get list of paths ignored by Git from `.gitignore` and other 
 
 #### Options
 
-- `fromRepoRoot` (boolean, default: false): when true, searches for ignored paths from the git repository root. When false, only checks the specified `path` directory. Either way, the returned paths are relative to the provided `path`.
-  - Note: this options invokes `git rev-parse --show-cdup` command to determine the git root directory, which makes the call slower.
+- `entireRepo` (boolean, default: false): when false, returns ignored paths inside passed `path`; when true, searches for ignored paths in the whole git repository. In both cases, the returned paths are relative to the provided `path`.
+  - Note: this option invokes the `git rev-parse --show-cdup` command to determine the git root directory, which may make the call slower.
 
 ## Examples
 

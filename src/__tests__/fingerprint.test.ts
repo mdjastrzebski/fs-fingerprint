@@ -334,7 +334,7 @@ describe("calculateFingerprint", () => {
     });
 
     const packageRootPath = path.join(rootDir, "pkg/a");
-    const ignoredPaths = getGitIgnoredPaths(packageRootPath, { fromRepoRoot: true });
+    const ignoredPaths = getGitIgnoredPaths(packageRootPath, { entireRepo: true });
     expect(ignoredPaths).toMatchInlineSnapshot(`
       [
         "../../root-file.md",
