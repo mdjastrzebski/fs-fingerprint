@@ -24,13 +24,13 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: a7ee23ee0b180e85386a5d3c89904407abf15ee4
-    Inputs:
-      - dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
+      "Hash: a7ee23ee0b180e85386a5d3c89904407abf15ee4
+      Inputs:
+        - dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      "
+    `);
 
     expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "dir-1/file-2.txt")).toBeTruthy();
@@ -51,12 +51,12 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 99cb8f1cc97b0302838cd30059514fe892034fed
-    Inputs:
-      - test-content-1 - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - test-content-2 - 94912be8b3fb47d4161ea50e5948c6296af6ca05
-    "
-  `);
+      "Hash: 99cb8f1cc97b0302838cd30059514fe892034fed
+      Inputs:
+        - test-content-1 - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - test-content-2 - 94912be8b3fb47d4161ea50e5948c6296af6ca05
+      "
+    `);
 
     expect(findInput(fingerprint.inputs, "test-content-1")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "test-content-2")).toBeTruthy();
@@ -82,7 +82,7 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 30ed44060ae76efc2623835dc5ec5efc0c493a7c
+      "Hash: 30ed44060ae76efc2623835dc5ec5efc0c493a7c
       Inputs:
         - test-json-1 - 2e0706ddb09be38781b9b2bcc14c75d7b028ce61
         - test-json-2 - 5ed10667370d4eee8fd1ec08cffef2c2002d2ce9
@@ -93,7 +93,7 @@ describe("calculateFingerprint", () => {
         - test-json-7 - 2be88ca4242c76e8253ac62474851065032d6833
         - test-json-8 - d5d4cd07616a542891b7ec2d0257b3a24b69856e
       "
-    `);
+      `);
 
     expect(findInput(fingerprint.inputs, "test-json-1")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "test-json-2")).toBeTruthy();
