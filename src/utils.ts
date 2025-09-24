@@ -45,7 +45,7 @@ export function mergeHashes(
   };
 }
 
-type GetInputFilesOptions = {
+export type GetInputFilesOptions = {
   rootDir: string;
   include?: string[];
   exclude?: string[];
