@@ -14,12 +14,11 @@ describe("calculateJsonHash", () => {
     const hash = calculateJsonHash(content, baseConfig);
     expect(hash).toEqual({
       hash: "2e0706ddb09be38781b9b2bcc14c75d7b028ce61",
-      json: {
+      data: {
         baz: 123,
         foo: "bar",
       },
-      key: "json:json-1",
-      type: "json",
+      key: "json-1",
     });
   });
 
@@ -32,8 +31,7 @@ describe("calculateJsonHash", () => {
     const hash = calculateJsonHash(content, baseConfig);
     expect(hash).toMatchInlineSnapshot(`
     {
-      "hash": "6d952fb59198645d50da66727722a90cc27e5ca3",
-      "json": [
+      "data": [
         1,
         {
           "baz": 123,
@@ -45,8 +43,8 @@ describe("calculateJsonHash", () => {
           "array",
         ],
       ],
-      "key": "json:json-1",
-      "type": "json",
+      "hash": "6d952fb59198645d50da66727722a90cc27e5ca3",
+      "key": "json-1",
     }
   `);
   });
@@ -91,12 +89,11 @@ describe("calculateJsonHash", () => {
     const hash = calculateJsonHash(content, testConfig);
     expect(hash).toMatchInlineSnapshot(`
     {
-      "hash": "(null)",
-      "json": {
+      "data": {
         "foo": "bar",
       },
-      "key": "json:json-1",
-      "type": "json",
+      "hash": "(null)",
+      "key": "json-1",
     }
   `);
   });

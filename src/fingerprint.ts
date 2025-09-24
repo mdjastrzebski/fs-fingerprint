@@ -5,11 +5,11 @@ import { calculateContentHash } from "./inputs/content.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
 import { calculateJsonHash } from "./inputs/json.js";
 import type {
+  DataHash,
   FileHash,
   Fingerprint,
   FingerprintConfig,
   FingerprintInput,
-  FingerprintInputHash,
   FingerprintOptions,
 } from "./types.js";
 import { getInputFiles, getInputFilesSync, mergeHashes } from "./utils.js";
@@ -34,10 +34,10 @@ export async function calculateFingerprint(
     inputFiles.map((path) => limit(() => calculateFileHash(path, config))),
   );
 
-  const inputHashes: FingerprintInputHash[] =
-    options?.extraInputs?.map((input) => calculateExtraInputHash(input, config)) ?? [];
+  const dataHashes: DataHash[] =
+    options?.extraInputs?.map((input) => calculateDataHash(input, config)) ?? [];
 
-  return mergeHashes(fileHashes, inputHashes, config);
+  return mergeHashes(fileHashes, dataHashes, config);
 }
 
 export function calculateFingerprintSync(
@@ -56,16 +56,12 @@ export function calculateFingerprintSync(
   };
 
   const fileHashes = inputFiles.map((path) => calculateFileHashSync(path, config));
-  const inputHashes =
-    options?.extraInputs?.map((input) => calculateExtraInputHash(input, config)) ?? [];
+  const dataHash = options?.extraInputs?.map((input) => calculateDataHash(input, config)) ?? [];
 
-  return mergeHashes(fileHashes, inputHashes, config);
+  return mergeHashes(fileHashes, dataHash, config);
 }
 
-function calculateExtraInputHash(
-  input: FingerprintInput,
-  config: FingerprintConfig,
-): FingerprintInputHash {
+function calculateDataHash(input: FingerprintInput, config: FingerprintConfig): DataHash {
   if ("content" in input) {
     return calculateContentHash(input, config);
   } else if ("json" in input) {

@@ -15,9 +15,8 @@ describe("calculateContentHash", () => {
     const hash = calculateContentHash(content, baseConfig);
     expect(hash).toEqual({
       hash: "943a702d06f34599aee1f8da8ef9f7296031d699",
-      key: "content:content-1",
-      type: "content",
-      content: "Hello, world!",
+      key: "content-1",
+      data: "Hello, world!",
     });
   });
 
@@ -28,9 +27,8 @@ describe("calculateContentHash", () => {
     const hash = calculateContentHash(content, testConfig);
     expect(hash).toEqual({
       hash: EMPTY_HASH,
-      key: "content:content-1",
-      type: "content",
-      content: "Hello, world!",
+      key: "content-1",
+      data: "Hello, world!",
     });
   });
 });

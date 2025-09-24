@@ -3,7 +3,7 @@ import * as nodePath from "node:path";
 import { glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
-import type { FileHash, Fingerprint, FingerprintConfig, FingerprintInputHash } from "./types.js";
+import type { DataHash, FileHash, Fingerprint, FingerprintConfig } from "./types.js";
 
 export function hashContent(content: string, config: FingerprintConfig) {
   if (config.hashAlgorithm === "null") {
@@ -17,16 +17,16 @@ export function hashContent(content: string, config: FingerprintConfig) {
 
 export function mergeHashes(
   fileHashes: readonly FileHash[],
-  inputHashes: readonly FingerprintInputHash[],
+  dataHashes: readonly DataHash[],
   config: FingerprintConfig,
 ): Fingerprint {
   const sortedFileHashes = [...fileHashes].sort((a, b) => a.path.localeCompare(b.path));
-  const sortedInputHashes = [...inputHashes].sort((a, b) => a.key.localeCompare(b.key));
+  const sortedDataHashes = [...dataHashes].sort((a, b) => a.key.localeCompare(b.key));
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,
       files: sortedFileHashes,
-      inputs: sortedInputHashes,
+      data: sortedDataHashes,
     };
   }
 
@@ -40,7 +40,7 @@ export function mergeHashes(
 
   hasher.update("\0\0");
 
-  for (const input of sortedInputHashes) {
+  for (const input of sortedDataHashes) {
     hasher.update(input.key);
     hasher.update("\0");
     hasher.update(input.hash);
@@ -50,7 +50,7 @@ export function mergeHashes(
   return {
     hash: hasher.digest("hex"),
     files: sortedFileHashes,
-    inputs: sortedInputHashes,
+    data: sortedDataHashes,
   };
 }
 

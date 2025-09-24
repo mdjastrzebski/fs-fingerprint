@@ -47,7 +47,7 @@ export interface FingerprintJsonInput {
 export interface Fingerprint {
   hash: string;
   files: FileHash[];
-  inputs: FingerprintInputHash[];
+  data: DataHash[];
 }
 
 export interface FileHash {
@@ -55,18 +55,8 @@ export interface FileHash {
   hash: string;
 }
 
-export type FingerprintInputHash = FingerprintContentHash | FingerprintJsonHash;
-
-export interface FingerprintContentHash {
-  type: "content";
+export interface DataHash {
   key: string;
   hash: string;
-  content: string;
-}
-
-export interface FingerprintJsonHash {
-  type: "json";
-  key: string;
-  hash: string;
-  json: unknown;
+  data: unknown;
 }

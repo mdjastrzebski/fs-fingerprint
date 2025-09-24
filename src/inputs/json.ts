@@ -1,20 +1,19 @@
-import type { FingerprintConfig, FingerprintJsonHash, FingerprintJsonInput } from "../types.js";
+import type { DataHash, FingerprintConfig, FingerprintJsonInput } from "../types.js";
 import { hashContent } from "../utils.js";
 
 export function calculateJsonHash(
   input: FingerprintJsonInput,
   config: FingerprintConfig,
-): FingerprintJsonHash {
+): DataHash {
   const normalizedData = normalizeObject(input.json);
 
   // JSON.stringify will return "undefined" for undefined values, instead of serializing them as "undefined"
   const jsonString = normalizedData === undefined ? "undefined" : JSON.stringify(normalizedData);
 
   return {
-    type: "json",
-    key: `json:${input.key}`,
+    key: input.key,
     hash: hashContent(jsonString, config),
-    json: normalizedData,
+    data: normalizedData,
   };
 }
 

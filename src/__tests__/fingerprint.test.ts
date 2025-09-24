@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { findFile, findInput } from "../../test-utils/assert.js";
+import { findData, findFile } from "../../test-utils/assert.js";
 import { formatFingerprint } from "../../test-utils/format.js";
 import { createRootDir } from "../../test-utils/fs.js";
 import {
@@ -34,7 +34,7 @@ describe("calculateFingerprint", () => {
       - dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Inputs:
+      Data:
       "
     `);
 
@@ -57,16 +57,16 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-      "Hash: 3e4e7efb4fb2b777bb2e5ab5d5143e502ba8fa38
+      "Hash: d0ea126b88b40478b2683d693b535fc623ed1385
       Files:
-      Inputs:
-      - content:test-content-1 - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - content:test-content-2 - 94912be8b3fb47d4161ea50e5948c6296af6ca05
+      Data:
+      - test-content-1 - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - test-content-2 - 94912be8b3fb47d4161ea50e5948c6296af6ca05
       "
     `);
 
-    expect(findInput(fingerprint, "test-content-1")).toBeTruthy();
-    expect(findInput(fingerprint, "test-content-2")).toBeTruthy();
+    expect(findData(fingerprint, "test-content-1")).toBeTruthy();
+    expect(findData(fingerprint, "test-content-2")).toBeTruthy();
 
     const fingerprintSync = calculateFingerprintSync(rootDir, options);
     expect(fingerprintSync).toEqual(fingerprint);
@@ -89,28 +89,28 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-      "Hash: 52d2991a1b2e3a60584c2b23d92eebc33bad2218
+      "Hash: d53331feb87aba85f603d1aa0ef82201a5f7745d
       Files:
-      Inputs:
-      - json:test-json-1 - 2e0706ddb09be38781b9b2bcc14c75d7b028ce61
-      - json:test-json-2 - 5ed10667370d4eee8fd1ec08cffef2c2002d2ce9
-      - json:test-json-3 - bea2c9d7fd040292e0424938af39f7d6334e8d8a
-      - json:test-json-4 - 40bd001563085fc35165329ea1ff5c5ecbdbbeef
-      - json:test-json-5 - 5ffe533b830f08a0326348a9160afafc8ada44db
-      - json:test-json-6 - 7cb6efb98ba5972a9b5090dc2e517fe14d12cb04
-      - json:test-json-7 - 2be88ca4242c76e8253ac62474851065032d6833
-      - json:test-json-8 - d5d4cd07616a542891b7ec2d0257b3a24b69856e
+      Data:
+      - test-json-1 - 2e0706ddb09be38781b9b2bcc14c75d7b028ce61
+      - test-json-2 - 5ed10667370d4eee8fd1ec08cffef2c2002d2ce9
+      - test-json-3 - bea2c9d7fd040292e0424938af39f7d6334e8d8a
+      - test-json-4 - 40bd001563085fc35165329ea1ff5c5ecbdbbeef
+      - test-json-5 - 5ffe533b830f08a0326348a9160afafc8ada44db
+      - test-json-6 - 7cb6efb98ba5972a9b5090dc2e517fe14d12cb04
+      - test-json-7 - 2be88ca4242c76e8253ac62474851065032d6833
+      - test-json-8 - d5d4cd07616a542891b7ec2d0257b3a24b69856e
       "
       `);
 
-    expect(findInput(fingerprint, "test-json-1")).toBeTruthy();
-    expect(findInput(fingerprint, "test-json-2")).toBeTruthy();
-    expect(findInput(fingerprint, "test-json-3")).toBeTruthy();
-    expect(findInput(fingerprint, "test-json-4")).toBeTruthy();
-    expect(findInput(fingerprint, "test-json-5")).toBeTruthy();
-    expect(findInput(fingerprint, "test-json-6")).toBeTruthy();
-    expect(findInput(fingerprint, "test-json-7")).toBeTruthy();
-    expect(findInput(fingerprint, "test-json-8")).toBeTruthy();
+    expect(findData(fingerprint, "test-json-1")).toBeTruthy();
+    expect(findData(fingerprint, "test-json-2")).toBeTruthy();
+    expect(findData(fingerprint, "test-json-3")).toBeTruthy();
+    expect(findData(fingerprint, "test-json-4")).toBeTruthy();
+    expect(findData(fingerprint, "test-json-5")).toBeTruthy();
+    expect(findData(fingerprint, "test-json-6")).toBeTruthy();
+    expect(findData(fingerprint, "test-json-7")).toBeTruthy();
+    expect(findData(fingerprint, "test-json-8")).toBeTruthy();
 
     const fingerprintSync = calculateFingerprintSync(rootDir, options);
     expect(fingerprintSync).toEqual(fingerprint);
@@ -146,7 +146,7 @@ describe("calculateFingerprint", () => {
       - dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Inputs:
+      Data:
       "
     `);
 
@@ -185,7 +185,7 @@ describe("calculateFingerprint", () => {
       - dir-2/nested/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir-3/file-7.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Inputs:
+      Data:
       "
     `);
 
@@ -227,7 +227,7 @@ describe("calculateFingerprint", () => {
       - dir-1/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir-2/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Inputs:
+      Data:
       "
     `);
 
@@ -257,7 +257,7 @@ describe("calculateFingerprint", () => {
       "Hash: 4e8e0ad25176ea41bb7a701b9619a044a27b50da
       Files:
       - dir-1/file-link1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Inputs:
+      Data:
       "
     `);
 
@@ -282,7 +282,7 @@ describe("calculateFingerprint", () => {
       - dir-1/file-2.txt - (null)
       - dir-2/nested/file-3.txt - (null)
       - file-1.txt - (null)
-      Inputs:
+      Data:
       "
     `);
 
@@ -315,7 +315,7 @@ describe("calculateFingerprint", () => {
       - dir/file2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir/subdir/file3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Inputs:
+      Data:
       "
     `);
     expect(findFile(fingerprint, "file1.txt")).toBeTruthy();
@@ -372,7 +372,7 @@ describe("calculateFingerprint", () => {
       - dir/file2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir/subdir/file3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Inputs:
+      Data:
       "
     `);
     expect(findFile(fingerprint, "file1.txt")).toBeTruthy();

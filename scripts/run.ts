@@ -93,10 +93,13 @@ async function main() {
 
 function formatFingerprint(fingerprint: Fingerprint): string {
   let result = `Hash: ${fingerprint.hash}\n`;
-  result += `Inputs:\n`;
-  fingerprint.inputs.forEach((input) => {
-    const name = input.key.split(":")[1];
-    result += `    - ${input.type.toUpperCase()} ${name} - ${input.hash}\n`;
+  result += `Files:\n`;
+  fingerprint.files.forEach((input) => {
+    result += `- ${input.path} - ${input.hash}\n`;
+  });
+  result += `Data:\n`;
+  fingerprint.data.forEach((input) => {
+    result += `- ${input.key} - ${input.hash}\n`;
   });
 
   return result;
