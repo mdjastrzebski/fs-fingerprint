@@ -23,9 +23,7 @@ describe("calculateFileHash", () => {
     const hash = await calculateFileHash("file-1.txt", baseConfig);
     expect(hash).toEqual({
       hash: "943a702d06f34599aee1f8da8ef9f7296031d699",
-      key: "file:file-1.txt",
       path: "file-1.txt",
-      type: "file",
     });
 
     const hashSync = calculateFileHashSync("file-1.txt", baseConfig);
@@ -46,9 +44,7 @@ describe("calculateFileHash", () => {
     const hash = await calculateFileHash("file-1.txt", testConfig);
     expect(hash).toEqual({
       hash: EMPTY_HASH,
-      key: "file:file-1.txt",
       path: "file-1.txt",
-      type: "file",
     });
 
     const hashSync = calculateFileHashSync("file-1.txt", testConfig);

@@ -6,8 +6,8 @@ import gitDiff from "git-diff";
 import {
   calculateFingerprint,
   calculateFingerprintSync,
-  type FingerprintOptions,
   type Fingerprint,
+  type FingerprintOptions,
   getGitIgnoredPaths,
 } from "../src/index.js";
 

@@ -1,19 +1,18 @@
 import pLimit from "p-limit";
 
-import { DEFAULT_CONCURRENCY, EMPTY_HASH } from "./constants.js";
+import { DEFAULT_CONCURRENCY } from "./constants.js";
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
 import { calculateJsonHash } from "./inputs/json.js";
 import type {
+  FileHash,
+  Fingerprint,
   FingerprintConfig,
   FingerprintInput,
   FingerprintInputHash,
   FingerprintOptions,
-  Fingerprint,
-  FileHash,
 } from "./types.js";
 import { getInputFiles, getInputFilesSync, mergeHashes } from "./utils.js";
-import { file } from "bun";
 
 export async function calculateFingerprint(
   rootDir: string,
@@ -35,7 +34,7 @@ export async function calculateFingerprint(
     inputFiles.map((path) => limit(() => calculateFileHash(path, config))),
   );
 
-  let inputHashes: FingerprintInputHash[] =
+  const inputHashes: FingerprintInputHash[] =
     options?.extraInputs?.map((input) => calculateExtraInputHash(input, config)) ?? [];
 
   return mergeHashes(fileHashes, inputHashes, config);
