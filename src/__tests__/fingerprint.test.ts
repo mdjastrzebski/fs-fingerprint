@@ -295,7 +295,8 @@ describe("calculateFingerprint", () => {
       include: ["**/*.txt", "../../pkg/b/**/*.txt", "../../root-file.txt"],
     };
 
-    const fingerprint = await calculateFingerprint(path.join(rootDir, "pkg/a"), options);
+    const packatePath = path.join(rootDir, "pkg/a");
+    const fingerprint = await calculateFingerprint(packatePath, options);
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: 16401631f9f764537c5c703054921b8ffe10724a
       Inputs:
@@ -315,6 +316,9 @@ describe("calculateFingerprint", () => {
     expect(findInput(fingerprint.inputs, "../b/file1.txt")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "../b/dir/file2.txt")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "../b/dir/subdir/file3.txt")).toBeTruthy();
+
+    const fingerprintSync = calculateFingerprintSync(packatePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
   });
 
   test('handles includes outside of rootDir (e.g. "..") with .gitignore', async () => {
@@ -376,5 +380,8 @@ describe("calculateFingerprint", () => {
     expect(findInput(fingerprint.inputs, "../b/file1.md")).toBeNull();
     expect(findInput(fingerprint.inputs, "../b/dir/file2.md")).toBeNull();
     expect(findInput(fingerprint.inputs, "../b/dir/subdir/file3.md")).toBeNull();
+
+    const fingerprintSync = calculateFingerprintSync(packageRootPath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
   });
 });
