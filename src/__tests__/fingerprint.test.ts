@@ -24,13 +24,13 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: a7ee23ee0b180e85386a5d3c89904407abf15ee4
-    Inputs:
-      - dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
+      "Hash: a7ee23ee0b180e85386a5d3c89904407abf15ee4
+      Inputs:
+        - dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      "
+    `);
 
     expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "dir-1/file-2.txt")).toBeTruthy();
@@ -51,12 +51,12 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 99cb8f1cc97b0302838cd30059514fe892034fed
-    Inputs:
-      - test-content-1 - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - test-content-2 - 94912be8b3fb47d4161ea50e5948c6296af6ca05
-    "
-  `);
+      "Hash: 99cb8f1cc97b0302838cd30059514fe892034fed
+      Inputs:
+        - test-content-1 - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - test-content-2 - 94912be8b3fb47d4161ea50e5948c6296af6ca05
+      "
+    `);
 
     expect(findInput(fingerprint.inputs, "test-content-1")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "test-content-2")).toBeTruthy();
@@ -81,21 +81,19 @@ describe("calculateFingerprint", () => {
 
     const fingerprint = await calculateFingerprint(rootDir, options);
 
-    expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(
-      `
-    "Hash: 30ed44060ae76efc2623835dc5ec5efc0c493a7c
-    Inputs:
-      - test-json-1 - 2e0706ddb09be38781b9b2bcc14c75d7b028ce61
-      - test-json-2 - 5ed10667370d4eee8fd1ec08cffef2c2002d2ce9
-      - test-json-3 - bea2c9d7fd040292e0424938af39f7d6334e8d8a
-      - test-json-4 - 40bd001563085fc35165329ea1ff5c5ecbdbbeef
-      - test-json-5 - 5ffe533b830f08a0326348a9160afafc8ada44db
-      - test-json-6 - 7cb6efb98ba5972a9b5090dc2e517fe14d12cb04
-      - test-json-7 - 2be88ca4242c76e8253ac62474851065032d6833
-      - test-json-8 - d5d4cd07616a542891b7ec2d0257b3a24b69856e
-    "
-  `,
-    );
+    expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
+      "Hash: 30ed44060ae76efc2623835dc5ec5efc0c493a7c
+      Inputs:
+        - test-json-1 - 2e0706ddb09be38781b9b2bcc14c75d7b028ce61
+        - test-json-2 - 5ed10667370d4eee8fd1ec08cffef2c2002d2ce9
+        - test-json-3 - bea2c9d7fd040292e0424938af39f7d6334e8d8a
+        - test-json-4 - 40bd001563085fc35165329ea1ff5c5ecbdbbeef
+        - test-json-5 - 5ffe533b830f08a0326348a9160afafc8ada44db
+        - test-json-6 - 7cb6efb98ba5972a9b5090dc2e517fe14d12cb04
+        - test-json-7 - 2be88ca4242c76e8253ac62474851065032d6833
+        - test-json-8 - d5d4cd07616a542891b7ec2d0257b3a24b69856e
+      "
+      `);
 
     expect(findInput(fingerprint.inputs, "test-json-1")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "test-json-2")).toBeTruthy();
@@ -134,15 +132,14 @@ describe("calculateFingerprint", () => {
     };
 
     const fingerprint = await calculateFingerprint(rootDir, options);
-
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: a7ee23ee0b180e85386a5d3c89904407abf15ee4
-    Inputs:
-      - dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
+      "Hash: a7ee23ee0b180e85386a5d3c89904407abf15ee4
+      Inputs:
+        - dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      "
+    `);
 
     expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "dir-1/file-2.txt")).toBeTruthy();
@@ -174,13 +171,13 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 8eae035d400562fab2acee2bfb7a7f5c6151454d
-    Inputs:
-      - dir-2/nested/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - dir-3/file-7.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
+      "Hash: 8eae035d400562fab2acee2bfb7a7f5c6151454d
+      Inputs:
+        - dir-2/nested/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - dir-3/file-7.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      "
+    `);
 
     expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "dir-2/nested/file-5.txt")).toBeTruthy();
@@ -215,13 +212,13 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: efa0eaf39af3352f4a6138a382b315a1a33dff01
-    Inputs:
-      - dir-1/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - dir-2/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
+      "Hash: efa0eaf39af3352f4a6138a382b315a1a33dff01
+      Inputs:
+        - dir-1/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - dir-2/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+        - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      "
+    `);
 
     expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "dir-1/file-3.txt")).toBeTruthy();
@@ -246,13 +243,16 @@ describe("calculateFingerprint", () => {
 
     const fingerprint = await calculateFingerprint(rootDir, options);
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: 1ac27c550eb0af4de10ecd3c5cbe5fb3b6a16848
-    Inputs:
-      - dir-1/file-link1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-    "
-  `);
+      "Hash: 1ac27c550eb0af4de10ecd3c5cbe5fb3b6a16848
+      Inputs:
+        - dir-1/file-link1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      "
+    `);
 
     expect(findInput(fingerprint.inputs, "dir-1/file-link1.txt")).toBeTruthy();
+
+    const fingerprintSync = calculateFingerprintSync(rootDir, options);
+    expect(fingerprintSync).toEqual(fingerprint);
   });
 
   test("handles null hashing algorithm", async () => {
@@ -265,13 +265,13 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-    "Hash: (null)
-    Inputs:
-      - dir-1/file-2.txt - (null)
-      - dir-2/nested/file-3.txt - (null)
-      - file-1.txt - (null)
-    "
-  `);
+      "Hash: (null)
+      Inputs:
+        - dir-1/file-2.txt - (null)
+        - dir-2/nested/file-3.txt - (null)
+        - file-1.txt - (null)
+      "
+    `);
 
     expect(findInput(fingerprint.inputs, "file-1.txt")).toBeTruthy();
     expect(findInput(fingerprint.inputs, "dir-1/file-2.txt")).toBeTruthy();

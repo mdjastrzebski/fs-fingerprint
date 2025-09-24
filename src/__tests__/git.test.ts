@@ -48,15 +48,13 @@ describe("getGitIgnoredPaths", () => {
     writePaths(PATHS_MD);
     writeFile(".gitignore", "*.md\ndir/subdir/");
 
-    expect(() => getGitIgnoredPaths(rootDir)).toThrowErrorMatchingInlineSnapshot(
-      `
-        "Failed to get git ignored files.
+    expect(() => getGitIgnoredPaths(rootDir)).toThrowErrorMatchingInlineSnapshot(`
+      "Failed to get git ignored files.
 
-        Command failed: git ls-files -z --others --ignored --exclude-standard --directory
-        fatal: not a git repository (or any of the parent directories): .git
-        "
-      `,
-    );
+      Command failed: git ls-files -z --others --ignored --exclude-standard --directory
+      fatal: not a git repository (or any of the parent directories): .git
+      "
+    `);
   });
 
   test("supports higher-level gitignore", () => {
