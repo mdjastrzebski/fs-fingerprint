@@ -22,7 +22,7 @@ export function calculateContentHash(input: Input, config: Config): ContentHash 
   if ("envs" in input) {
     const envJson: Record<string, string | undefined> = {};
     for (const key of input.envs) {
-      envJson[key] = process.env[key] ?? "(undefined)";
+      envJson[key] = process.env[key] ?? "";
     }
 
     const content = safeJsonStringify(normalizeJson(envJson));

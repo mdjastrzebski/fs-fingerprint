@@ -143,10 +143,10 @@ describe("calculateContentHash", () => {
       "{
         "TEST_ENV_1": "value1",
         "TEST_ENV_2": "value2",
-        "TEST_ENV_3": "(undefined)"
+        "TEST_ENV_3": ""
       }"
       ,
-        "hash": "84ad42a198a520463f83848b938c24e9faf7dfdb",
+        "hash": "3a671da9c07c4ec27fe5a01f7dbef7b6e01dca54",
         "key": "env-1",
       }
     `);
