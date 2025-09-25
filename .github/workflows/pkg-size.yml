@@ -1,4 +1,4 @@
-name: Check Package Size
+name: Package Size
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-size:
+  pkg-size:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
