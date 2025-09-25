@@ -129,4 +129,26 @@ describe("calculateContentHash", () => {
     }
   `);
   });
+
+  test("handles env input", () => {
+    process.env["TEST_ENV_1"] = "value1";
+    process.env["TEST_ENV_2"] = "value2";
+
+    const content = { key: "env-1", envs: ["TEST_ENV_1", "TEST_ENV_2", "TEST_ENV_3"] };
+
+    const hash = calculateContentHash(content, baseConfig);
+    expect(hash).toMatchInlineSnapshot(`
+      {
+        "content": 
+      "{
+        "TEST_ENV_1": "value1",
+        "TEST_ENV_2": "value2",
+        "TEST_ENV_3": "(undefined)"
+      }"
+      ,
+        "hash": "84ad42a198a520463f83848b938c24e9faf7dfdb",
+        "key": "env-1",
+      }
+    `);
+  });
 });

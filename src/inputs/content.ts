@@ -19,6 +19,20 @@ export function calculateContentHash(input: Input, config: Config): ContentHash 
     };
   }
 
+  if ("envs" in input) {
+    const envJson: Record<string, string | undefined> = {};
+    for (const key of input.envs) {
+      envJson[key] = process.env[key] ?? "(undefined)";
+    }
+
+    const content = safeJsonStringify(normalizeJson(envJson));
+    return {
+      key: input.key,
+      hash: hashContent(content, config),
+      content,
+    };
+  }
+
   throw new Error(`Unsupported input type: ${JSON.stringify(input, null, 2)}`);
 }
 
@@ -42,7 +56,7 @@ function normalizeJson<T>(value: T): T {
 
 function safeJsonStringify(value: unknown): string {
   if (value === undefined) {
-    return "undefined";
+    return "(undefined)";
   }
 
   return JSON.stringify(value, null, 2);

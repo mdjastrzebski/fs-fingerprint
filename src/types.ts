@@ -32,7 +32,7 @@ export interface Config {
   hashAlgorithm?: HashAlgorithm;
 }
 
-export type Input = ContentInput | JsonInput;
+export type Input = ContentInput | JsonInput | EnvInput;
 
 export interface ContentInput {
   key: string;
@@ -42,6 +42,11 @@ export interface ContentInput {
 export interface JsonInput {
   key: string;
   json: unknown;
+}
+
+export interface EnvInput {
+  key: string;
+  envs: string[];
 }
 
 export interface Fingerprint {

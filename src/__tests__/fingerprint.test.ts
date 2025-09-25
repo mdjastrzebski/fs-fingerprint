@@ -89,7 +89,7 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-      "Hash: 12aab1bd194c5501db50c9ce829c899f8659e8eb
+      "Hash: 94c38b3e91afbd7723b623ef3778364015b2031d
       Files:
       Content:
       - test-json-1 - 7391dce2d9080f78b92f62bb43b308a2f073b0e5
@@ -99,7 +99,7 @@ describe("calculateFingerprint", () => {
       - test-json-5 - 5ffe533b830f08a0326348a9160afafc8ada44db
       - test-json-6 - 7cb6efb98ba5972a9b5090dc2e517fe14d12cb04
       - test-json-7 - 2be88ca4242c76e8253ac62474851065032d6833
-      - test-json-8 - d5d4cd07616a542891b7ec2d0257b3a24b69856e
+      - test-json-8 - fd4fceaeaaaee7126a8ab895b8ac0ca73d18d54b
       "
       `);
 
