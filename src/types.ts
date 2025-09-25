@@ -18,7 +18,7 @@ export interface FingerprintOptions {
   ignores?: readonly string[];
 
   /** Extra inputs to include in the fingerprint: content, json, etc */
-  extraInputs?: Input[];
+  contentInputs?: Input[];
 
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;

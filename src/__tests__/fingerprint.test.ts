@@ -48,7 +48,7 @@ describe("calculateFingerprint", () => {
 
   test("supports content inputs", async () => {
     const options: FingerprintOptions = {
-      extraInputs: [
+      contentInputs: [
         { key: "test-content-1", content: "Hello, world!" },
         { key: "test-content-2", content: "Lorem ipsum" },
       ],
@@ -74,7 +74,7 @@ describe("calculateFingerprint", () => {
 
   test("supports json inputs", async () => {
     const options: FingerprintOptions = {
-      extraInputs: [
+      contentInputs: [
         { key: "test-json-1", json: { foo: "bar", baz: 123 } },
         { key: "test-json-2", json: ["Hello", 123, null, { foo: "bar" }, ["nested", "array"]] },
         { key: "test-json-3", json: "Hello, world!" },
@@ -119,7 +119,7 @@ describe("calculateFingerprint", () => {
   test("throws for unsupported input type", async () => {
     const options: FingerprintOptions = {
       // @ts-expect-error - This is intentionally invalid input type
-      extraInputs: [{ key: "test-json-1", unknown: "This will throw" }],
+      contentInputs: [{ key: "test-json-1", unknown: "This will throw" }],
     };
 
     expect(() => calculateFingerprint(options)).toThrow(/Unsupported input type/);

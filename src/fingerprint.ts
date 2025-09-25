@@ -17,7 +17,7 @@ export async function calculateFingerprint({
   hashAlgorithm,
   files,
   ignores,
-  extraInputs,
+  contentInputs,
   concurrency,
 }: FingerprintOptions = {}): Promise<Fingerprint> {
   const config: Config = {
@@ -39,7 +39,7 @@ export async function calculateFingerprint({
     );
   }
 
-  const content = extraInputs?.map((input) => calculateContentHash(input, config)) ?? [];
+  const content = contentInputs?.map((input) => calculateContentHash(input, config)) ?? [];
 
   return mergeHashes(fileHashes, content, config);
 }
@@ -49,7 +49,7 @@ export function calculateFingerprintSync({
   hashAlgorithm,
   files,
   ignores,
-  extraInputs,
+  contentInputs,
 }: FingerprintOptions = {}): Fingerprint {
   const config: Config = {
     basePath,
@@ -69,7 +69,7 @@ export function calculateFingerprintSync({
     );
   }
 
-  const contentHashes = extraInputs?.map((input) => calculateContentHash(input, config)) ?? [];
+  const contentHashes = contentInputs?.map((input) => calculateContentHash(input, config)) ?? [];
 
   return mergeHashes(fileHashes, contentHashes, config);
 }

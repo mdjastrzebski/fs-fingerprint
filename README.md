@@ -35,10 +35,10 @@ const { hash } = await calculateFingerprint({
 
 ```ts
 async function calculateFingerprint(options?: {
-  basePath: string; // Path to directory that the config applies to, if not provided, only `extraInputs` are considered
+  basePath: string; // Path to directory that the config applies to, if not provided, only `contentInputs` are considered
   files?: string[]; // Glob patterns to include files and directories (default: all)
   ignores?: string[]; // Glob patterns to exclude files and directories (default: none)
-  extraInputs?: Input[]; // Additional inputs: content, JSON
+  contentInputs?: Input[]; // Additional inputs: content, JSON
   hashAlgorithm?: string; // Hash algorithm (default: sha1)
 }): Promise<Fingerprint>;
 ```
@@ -61,10 +61,10 @@ interface Fingerprint {
 
 ```ts
 function calculateFingerprintSync(options?: {
-  basePath: string; // Path to directory that the config applies to, if not provided, only `extraInputs` are considered
+  basePath: string; // Path to directory that the config applies to, if not provided, only `contentInputs` are considered
   include?: string[]; // Glob patterns to include files and directories (default: all)
   exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
-  extraInputs?: Input[]; // Additional inputs: content, JSON
+  contentInputs?: Input[]; // Additional inputs: content, JSON
   hashAlgorithm?: string; // Hash algorithm (default: sha1)
 }): Fingerprint;
 ```
@@ -118,7 +118,7 @@ const { hash } = await calculateFingerprint({
 
 ```typescript
 const { hash } = await calculateFingerprint({
-  extraInputs: [
+  contentInputs: [
     { key: "some-config", content: "debug=true" }, // text input
     { key: "so-metadata", json: { version: "1.0", env: "prod" } }, // JSON data: objects, arrays, primitives
     { key: "much-envs", envs: ["BUILD_ENVIROMENT", "FEATURE_FLAG"] }, // env variables
