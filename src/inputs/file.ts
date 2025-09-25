@@ -15,8 +15,8 @@ export async function calculateFileHash(path: string, config: Config): Promise<F
     };
   }
 
-  const pathWithRoot = join(config.basePath, path);
-  const content = await readFile(pathWithRoot, "utf8");
+  const pathWithBase = join(config.basePath, path);
+  const content = await readFile(pathWithBase, "utf8");
   return {
     path: normalizedPath,
     hash: hashContent(content, config),
@@ -32,8 +32,8 @@ export function calculateFileHashSync(path: string, config: Config): FileHash {
     };
   }
 
-  const pathWithRoot = join(config.basePath, path);
-  const content = readFileSync(pathWithRoot, "utf8");
+  const pathWithBase = join(config.basePath, path);
+  const content = readFileSync(pathWithBase, "utf8");
   return {
     path: normalizedPath,
     hash: hashContent(content, config),
