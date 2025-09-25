@@ -6,7 +6,7 @@ export function calculateContentHash(input: Input, config: Config): ContentHash 
     return {
       key: input.key,
       hash: hashContent(input.content, config),
-      content: input.content,
+      content: input.secret ? undefined : input.content,
     };
   }
 
@@ -15,7 +15,21 @@ export function calculateContentHash(input: Input, config: Config): ContentHash 
     return {
       key: input.key,
       hash: hashContent(content, config),
-      content,
+      content: input.secret ? undefined : content,
+    };
+  }
+
+  if ("envs" in input) {
+    const envJson: Record<string, string | undefined> = {};
+    for (const key of input.envs) {
+      envJson[key] = process.env[key] ?? "";
+    }
+
+    const content = safeJsonStringify(normalizeJson(envJson));
+    return {
+      key: input.key,
+      hash: hashContent(content, config),
+      content: input.secret ? undefined : content,
     };
   }
 
@@ -42,7 +56,7 @@ function normalizeJson<T>(value: T): T {
 
 function safeJsonStringify(value: unknown): string {
   if (value === undefined) {
-    return "undefined";
+    return "(undefined)";
   }
 
   return JSON.stringify(value, null, 2);

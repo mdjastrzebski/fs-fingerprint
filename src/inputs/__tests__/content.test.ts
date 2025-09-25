@@ -129,4 +129,80 @@ describe("calculateContentHash", () => {
     }
   `);
   });
+
+  test("handles env input", () => {
+    process.env["TEST_ENV_1"] = "value1";
+    process.env["TEST_ENV_2"] = "value2";
+
+    const content = { key: "env-1", envs: ["TEST_ENV_1", "TEST_ENV_2", "TEST_ENV_3"] };
+
+    const hash = calculateContentHash(content, baseConfig);
+    expect(hash).toMatchInlineSnapshot(`
+      {
+        "content": 
+      "{
+        "TEST_ENV_1": "value1",
+        "TEST_ENV_2": "value2",
+        "TEST_ENV_3": ""
+      }"
+      ,
+        "hash": "3a671da9c07c4ec27fe5a01f7dbef7b6e01dca54",
+        "key": "env-1",
+      }
+    `);
+  });
+
+  test('content handles "secret" option', () => {
+    const content = { key: "content-1", content: "MY-SECRET-CONTENT" };
+
+    const hash = calculateContentHash({ ...content, secret: true }, baseConfig);
+    expect(hash).toMatchInlineSnapshot(`
+      {
+        "content": undefined,
+        "hash": "e422c1d049d179dddc0d9c81923133dfd1c43dd0",
+        "key": "content-1",
+      }
+    `);
+    expect(hash.content).toBeUndefined();
+
+    const check = calculateContentHash(content, baseConfig);
+    expect(hash.hash).toBe(check.hash);
+  });
+
+  test('json handles "secret" option', () => {
+    const content = { key: "json-1", json: { foo: "bar", baz: 123 } };
+
+    const hash = calculateContentHash({ ...content, secret: true }, baseConfig);
+    expect(hash).toMatchInlineSnapshot(`
+      {
+        "content": undefined,
+        "hash": "7391dce2d9080f78b92f62bb43b308a2f073b0e5",
+        "key": "json-1",
+      }
+    `);
+    expect(hash.content).toBeUndefined();
+
+    const check = calculateContentHash(content, baseConfig);
+    expect(hash.hash).toBe(check.hash);
+  });
+
+  test('env handles "secret" option', () => {
+    process.env["TEST_ENV_1"] = "value1";
+    process.env["TEST_ENV_2"] = "value2";
+
+    const content = { key: "env-1", envs: ["TEST_ENV_1", "TEST_ENV_2"] };
+
+    const hash = calculateContentHash({ ...content, secret: true }, baseConfig);
+    expect(hash).toMatchInlineSnapshot(`
+      {
+        "content": undefined,
+        "hash": "1c93d4a1173659eeb47f774df05fce7a90c47a56",
+        "key": "env-1",
+      }
+    `);
+    expect(hash.content).toBeUndefined();
+
+    const check = calculateContentHash(content, baseConfig);
+    expect(hash.hash).toBe(check.hash);
+  });
 });
