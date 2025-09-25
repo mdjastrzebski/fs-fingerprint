@@ -34,7 +34,7 @@ const { hash } = await calculateFingerprint(rootPath, {
 
 ```ts
 async function calculateFingerprint(
-  basePath: string, // Root directory path to scan
+  basePath: string, // Path to directory that the config applies to
   options?: {
     files?: string[]; // Glob patterns to include files and directories (default: all)
     ignores?: string[]; // Glob patterns to exclude files and directories (default: none)
@@ -62,7 +62,7 @@ interface Fingerprint {
 
 ```ts
 function calculateFingerprintSync(
-  basePath: string, // Root directory path to scan
+  basePath: string, // Path to directory that the config applies to
   options?: {
     include?: string[]; // Glob patterns to include files and directories (default: all)
     exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
@@ -81,7 +81,7 @@ Sync version of `calculateFingerprint`:
 
 ```ts
 function getGitIgnoredPaths(
-  path: string,
+  basePath: string,
   options: {
     entireRepo?: boolean;
   },
