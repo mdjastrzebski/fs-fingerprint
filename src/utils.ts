@@ -55,8 +55,8 @@ export function mergeHashes(
 
 export type GetInputFilesOptions = {
   rootDir: string;
-  include?: string[];
-  exclude?: string[];
+  include?: readonly string[];
+  exclude?: readonly string[];
 };
 
 export async function getInputFiles({

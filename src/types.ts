@@ -9,10 +9,10 @@ export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512">;
 
 export interface FingerprintOptions {
   /** File and directory paths to include (does NOT support globs) */
-  include?: string[];
+  include?: readonly string[];
 
   /** Paths to exclude (support globs, "picomatch" syntax) */
-  exclude?: string[];
+  exclude?: ReadonlyArray<string>;
 
   /** Extra inputs to include in the fingerprint: content, json, etc */
   extraInputs?: Input[];
