@@ -8,6 +8,9 @@ type StringWithAutoSuggest<T> = (string & {}) | T;
 export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512">;
 
 export interface FingerprintOptions {
+  /** Base path for the fingerprint calculation */
+  basePath?: string;
+
   /** Glob patterns indicating files (and directories) to include */
   files?: readonly string[];
 
@@ -28,6 +31,11 @@ export interface FingerprintOptions {
  * Internal fingerprint config. Can change without semver.
  */
 export interface Config {
+  basePath?: string;
+  hashAlgorithm?: HashAlgorithm;
+}
+
+export interface ConfigWithBasePath {
   basePath: string;
   hashAlgorithm?: HashAlgorithm;
 }

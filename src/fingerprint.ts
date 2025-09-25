@@ -3,53 +3,73 @@ import pLimit from "p-limit";
 import { DEFAULT_CONCURRENCY } from "./constants.js";
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
-import type { Config, ContentHash, FileHash, Fingerprint, FingerprintOptions } from "./types.js";
+import type {
+  Config,
+  ConfigWithBasePath,
+  FileHash,
+  Fingerprint,
+  FingerprintOptions,
+} from "./types.js";
 import { getInputFiles, getInputFilesSync, mergeHashes } from "./utils.js";
 
-export async function calculateFingerprint(
-  basePath: string,
-  options?: FingerprintOptions,
-): Promise<Fingerprint> {
-  const inputFiles = await getInputFiles({
-    basePath,
-    files: options?.files,
-    ignores: options?.ignores,
-  });
-
+export async function calculateFingerprint({
+  basePath,
+  hashAlgorithm,
+  files,
+  ignores,
+  extraInputs,
+  concurrency,
+}: FingerprintOptions = {}): Promise<Fingerprint> {
   const config: Config = {
     basePath,
-    hashAlgorithm: options?.hashAlgorithm,
+    hashAlgorithm,
   };
 
-  const limit = pLimit(options?.concurrency ?? DEFAULT_CONCURRENCY);
-  const fileHashes: FileHash[] = await Promise.all(
-    inputFiles.map((path) => limit(() => calculateFileHash(path, config))),
-  );
+  let fileHashes: FileHash[] = [];
+  if (basePath) {
+    const inputFiles = await getInputFiles({
+      basePath,
+      files,
+      ignores,
+    });
 
-  const contentHashes: ContentHash[] =
-    options?.extraInputs?.map((input) => calculateContentHash(input, config)) ?? [];
+    const limit = pLimit(concurrency ?? DEFAULT_CONCURRENCY);
+    fileHashes = await Promise.all(
+      inputFiles.map((path) => limit(() => calculateFileHash(path, config as ConfigWithBasePath))),
+    );
+  }
 
-  return mergeHashes(fileHashes, contentHashes, config);
+  const content = extraInputs?.map((input) => calculateContentHash(input, config)) ?? [];
+
+  return mergeHashes(fileHashes, content, config);
 }
 
-export function calculateFingerprintSync(
-  basePath: string,
-  options?: FingerprintOptions,
-): Fingerprint {
-  const inputFiles = getInputFilesSync({
-    basePath,
-    files: options?.files,
-    ignores: options?.ignores,
-  });
-
+export function calculateFingerprintSync({
+  basePath,
+  hashAlgorithm,
+  files,
+  ignores,
+  extraInputs,
+}: FingerprintOptions = {}): Fingerprint {
   const config: Config = {
     basePath,
-    hashAlgorithm: options?.hashAlgorithm,
+    hashAlgorithm,
   };
 
-  const fileHashes = inputFiles.map((path) => calculateFileHashSync(path, config));
-  const contentHashes =
-    options?.extraInputs?.map((input) => calculateContentHash(input, config)) ?? [];
+  let fileHashes: FileHash[] = [];
+  if (basePath) {
+    const inputFiles = getInputFilesSync({
+      basePath,
+      files,
+      ignores,
+    });
+
+    fileHashes = inputFiles.map((path) =>
+      calculateFileHashSync(path, config as ConfigWithBasePath),
+    );
+  }
+
+  const contentHashes = extraInputs?.map((input) => calculateContentHash(input, config)) ?? [];
 
   return mergeHashes(fileHashes, contentHashes, config);
 }

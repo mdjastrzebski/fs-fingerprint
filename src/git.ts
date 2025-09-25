@@ -3,14 +3,12 @@ import * as nodePath from "node:path";
 import { escapePath } from "tinyglobby";
 
 export interface GetGitIgnoredPathsOptions {
+  basePath: string;
   entireRepo?: boolean;
 }
 
-export function getGitIgnoredPaths(
-  basePath: string,
-  options?: GetGitIgnoredPathsOptions,
-): string[] {
-  const cwd = options?.entireRepo ? getGitRootPath(basePath) : basePath;
+export function getGitIgnoredPaths({ basePath, entireRepo }: GetGitIgnoredPathsOptions): string[] {
+  const cwd = entireRepo ? getGitRootPath(basePath) : basePath;
 
   try {
     const output = execSync("git ls-files -z --others --ignored --exclude-standard --directory", {
@@ -24,7 +22,7 @@ export function getGitIgnoredPaths(
       .filter(Boolean)
       .map((filePath) => escapePath(filePath));
 
-    if (options?.entireRepo) {
+    if (entireRepo) {
       result = result.map((filePath) => remapPaths(filePath, cwd, basePath));
     }
 

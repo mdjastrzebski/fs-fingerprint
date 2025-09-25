@@ -26,7 +26,7 @@ describe("getGitIgnoredPaths", () => {
       cwd: basePath,
     });
 
-    const ignoredFiles = getGitIgnoredPaths(basePath);
+    const ignoredFiles = getGitIgnoredPaths({ basePath });
     expect(ignoredFiles).toMatchInlineSnapshot(`
       [
         "dir/file2.md",
@@ -42,7 +42,7 @@ describe("getGitIgnoredPaths", () => {
     expect(ignoredFiles).toContain("dir/subdir/");
     expect(ignoredFiles).not.toContain("file1.txt");
 
-    const ignoredFilesWithOutside = getGitIgnoredPaths(basePath, { entireRepo: true });
+    const ignoredFilesWithOutside = getGitIgnoredPaths({ basePath, entireRepo: true });
     expect(ignoredFilesWithOutside).toEqual(ignoredFiles);
   });
 
@@ -51,7 +51,7 @@ describe("getGitIgnoredPaths", () => {
     writePaths(PATHS_MD);
     writeFile(".gitignore", "*.md\ndir/subdir/");
 
-    expect(() => getGitIgnoredPaths(basePath)).toThrowErrorMatchingInlineSnapshot(`
+    expect(() => getGitIgnoredPaths({ basePath })).toThrowErrorMatchingInlineSnapshot(`
       "Failed to get git ignored files.
 
       Command failed: git ls-files -z --others --ignored --exclude-standard --directory
@@ -59,7 +59,7 @@ describe("getGitIgnoredPaths", () => {
       "
     `);
 
-    expect(() => getGitIgnoredPaths(basePath, { entireRepo: true }))
+    expect(() => getGitIgnoredPaths({ basePath, entireRepo: true }))
       .toThrowErrorMatchingInlineSnapshot(`
       "Failed to get git root path.
 
@@ -79,8 +79,8 @@ describe("getGitIgnoredPaths", () => {
       cwd: basePath,
     });
 
-    const packageDir = path.join(basePath, pkgPath);
-    const ignoredFiles = getGitIgnoredPaths(packageDir);
+    const options = { basePath: path.join(basePath, pkgPath) };
+    const ignoredFiles = getGitIgnoredPaths(options);
     expect(ignoredFiles).toMatchInlineSnapshot(`
       [
         "dir/file2.md",
@@ -93,7 +93,7 @@ describe("getGitIgnoredPaths", () => {
     expect(ignoredFiles).toContain("dir/file2.md");
     expect(ignoredFiles).toContain("dir/subdir/file3.md");
 
-    const ignoredFilesWithOutside = getGitIgnoredPaths(packageDir, { entireRepo: true });
+    const ignoredFilesWithOutside = getGitIgnoredPaths({ ...options, entireRepo: true });
     expect(ignoredFilesWithOutside).toEqual(ignoredFiles);
   });
 
@@ -108,7 +108,7 @@ describe("getGitIgnoredPaths", () => {
     execSync("git init", { cwd: basePath });
 
     const jsPkgPath = path.join(basePath, "pkg/js");
-    const ignoredFiles = getGitIgnoredPaths(jsPkgPath, { entireRepo: true });
+    const ignoredFiles = getGitIgnoredPaths({ basePath: jsPkgPath, entireRepo: true });
     expect(ignoredFiles).toMatchInlineSnapshot(`
       [
         "../../root-file.md",

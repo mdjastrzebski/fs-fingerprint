@@ -3,10 +3,13 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { EMPTY_HASH } from "../constants.js";
-import type { Config, FileHash } from "../types.js";
+import type { ConfigWithBasePath, FileHash } from "../types.js";
 import { hashContent, normalizeFilePath } from "../utils.js";
 
-export async function calculateFileHash(path: string, config: Config): Promise<FileHash> {
+export async function calculateFileHash(
+  path: string,
+  config: ConfigWithBasePath,
+): Promise<FileHash> {
   const normalizedPath = normalizeFilePath(path);
   if (config.hashAlgorithm === "null") {
     return {
@@ -23,7 +26,7 @@ export async function calculateFileHash(path: string, config: Config): Promise<F
   };
 }
 
-export function calculateFileHashSync(path: string, config: Config): FileHash {
+export function calculateFileHashSync(path: string, config: ConfigWithBasePath): FileHash {
   const normalizedPath = normalizeFilePath(path);
   if (config.hashAlgorithm === "null") {
     return {
