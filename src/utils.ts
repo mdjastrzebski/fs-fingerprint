@@ -54,19 +54,19 @@ export function mergeHashes(
 }
 
 export type GetInputFilesOptions = {
-  rootDir: string;
-  include?: readonly string[];
-  exclude?: readonly string[];
+  basePath: string;
+  files?: readonly string[];
+  ignores?: readonly string[];
 };
 
 export async function getInputFiles({
-  rootDir,
-  include = ["**"],
-  exclude,
+  basePath,
+  files = ["**"],
+  ignores,
 }: GetInputFilesOptions): Promise<string[]> {
-  const paths = await glob(include, {
-    cwd: rootDir,
-    ignore: exclude,
+  const paths = await glob(files, {
+    cwd: basePath,
+    ignore: ignores,
     expandDirectories: true,
   });
 
@@ -75,13 +75,13 @@ export async function getInputFiles({
 }
 
 export function getInputFilesSync({
-  rootDir,
-  include = ["**"],
-  exclude,
+  basePath,
+  files = ["**"],
+  ignores,
 }: GetInputFilesOptions): string[] {
-  const paths = globSync(include, {
-    cwd: rootDir,
-    ignore: exclude,
+  const paths = globSync(files, {
+    cwd: basePath,
+    ignore: ignores,
     expandDirectories: true,
   });
 

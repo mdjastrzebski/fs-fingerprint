@@ -5,7 +5,7 @@ import type { Config, ContentInput, JsonInput } from "../../types.js";
 import { calculateContentHash } from "../content.js";
 
 const baseConfig: Config = {
-  rootDir: "not-used",
+  basePath: "not-used",
 };
 
 describe("calculateContentHash", () => {

@@ -7,17 +7,17 @@ import type { Config, ContentHash, FileHash, Fingerprint, FingerprintOptions } f
 import { getInputFiles, getInputFilesSync, mergeHashes } from "./utils.js";
 
 export async function calculateFingerprint(
-  rootDir: string,
+  basePath: string,
   options?: FingerprintOptions,
 ): Promise<Fingerprint> {
   const inputFiles = await getInputFiles({
-    rootDir,
-    include: options?.include,
-    exclude: options?.exclude,
+    basePath,
+    files: options?.files,
+    ignores: options?.ignores,
   });
 
   const config: Config = {
-    rootDir,
+    basePath,
     hashAlgorithm: options?.hashAlgorithm,
   };
 
@@ -33,17 +33,17 @@ export async function calculateFingerprint(
 }
 
 export function calculateFingerprintSync(
-  rootDir: string,
+  basePath: string,
   options?: FingerprintOptions,
 ): Fingerprint {
   const inputFiles = getInputFilesSync({
-    rootDir,
-    include: options?.include,
-    exclude: options?.exclude,
+    basePath,
+    files: options?.files,
+    ignores: options?.ignores,
   });
 
   const config: Config = {
-    rootDir,
+    basePath,
     hashAlgorithm: options?.hashAlgorithm,
   };
 

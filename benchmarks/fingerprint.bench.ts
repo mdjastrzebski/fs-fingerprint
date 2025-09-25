@@ -67,8 +67,8 @@ async function runBenchmarks(): Promise<void> {
 
   // React Native benchmarks
   const reactNativeOptions: FingerprintOptions = {
-    include: ["packages", "package.json", "README.md"],
-    exclude: ["**/node_modules/**", "**/.git/**"],
+    files: ["packages", "package.json", "README.md"],
+    ignores: ["**/node_modules/**", "**/.git/**"],
   };
 
   const reactNativePath = repoPaths.get("react-native");
@@ -97,11 +97,11 @@ async function runBenchmarks(): Promise<void> {
   // Expensify benchmarks
   const expensifyPath = repoPaths.get("expensify");
   const iosOptions: FingerprintOptions = {
-    include: ["ios", "package.json"],
+    files: ["ios", "package.json"],
   };
 
   const androidOptions: FingerprintOptions = {
-    include: ["android", "package.json"],
+    files: ["android", "package.json"],
   };
 
   if (expensifyPath) {

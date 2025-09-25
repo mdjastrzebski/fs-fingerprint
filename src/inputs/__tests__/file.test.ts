@@ -5,10 +5,10 @@ import { EMPTY_HASH } from "../../constants.js";
 import type { Config } from "../../types.js";
 import { calculateFileHash, calculateFileHashSync } from "../file.js";
 
-const { rootDir, prepareRootDir, writeFile } = createRootDir("file-test");
+const { basePath, prepareRootDir, writeFile } = createRootDir("file-test");
 
 const baseConfig: Config = {
-  rootDir,
+  basePath,
   hashAlgorithm: "sha1",
 };
 

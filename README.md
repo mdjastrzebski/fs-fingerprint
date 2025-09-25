@@ -23,8 +23,8 @@ Perfect for building intelligent caching solutions that automatically invalidate
 import { calculateFingerprint } from "fs-fingerprint";
 
 const { hash } = await calculateFingerprint(rootPath, {
-  include: ["ios/", "package.json"],
-  exclude: ["build/"],
+  files: ["ios/", "package.json"],
+  ignores: ["build/"],
 });
 ```
 
@@ -34,10 +34,10 @@ const { hash } = await calculateFingerprint(rootPath, {
 
 ```ts
 async function calculateFingerprint(
-  rootDir: string, // Root directory path to scan
+  basePath: string, // Root directory path to scan
   options?: {
-    include?: string[]; // Glob patterns to include files and directories (default: all)
-    exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
+    files?: string[]; // Glob patterns to include files and directories (default: all)
+    ignores?: string[]; // Glob patterns to exclude files and directories (default: none)
     extraInputs?: Input[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
   },
@@ -62,7 +62,7 @@ interface Fingerprint {
 
 ```ts
 function calculateFingerprintSync(
-  rootDir: string, // Root directory path to scan
+  basePath: string, // Root directory path to scan
   options?: {
     include?: string[]; // Glob patterns to include files and directories (default: all)
     exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
@@ -113,8 +113,8 @@ console.log(hash); // "abc123..."
 
 ```typescript
 const { hash } = await calculateFingerprint("./project", {
-  include: ["src/", "package.json"],
-  exclude: ["**/*.test.ts", "dist"],
+  files: ["src/", "package.json"],
+  ignores: ["**/*.test.ts", "dist"],
 });
 ```
 
@@ -138,7 +138,7 @@ const { hash } = await calculateFingerprint("./src", {
 const gitIgnoredPaths = getGitIgnoredPaths("./src");
 
 const { hash } = await calculateFingerprint("./src", {
-  exclude: [...gitIgnoredPaths, "other/excludes/**"],
+  ignores: [...gitIgnoredPaths, "other/excludes/**"],
 });
 ```
 
