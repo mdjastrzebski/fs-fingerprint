@@ -1,14 +1,8 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
-import type { DataHash, FileHash } from "../types.js";
-import {
-  getInputFiles,
-  getInputFilesSync,
-  hashContent,
-  mergeHashes,
-  remapPaths,
-} from "../utils.js";
+import type { ContentHash, FileHash } from "../types.js";
+import { getInputFiles, getInputFilesSync, hashContent, mergeHashes } from "../utils.js";
 
 const baseConfig = {
   rootDir: "not-used",
@@ -126,23 +120,16 @@ describe("mergeHashes", () => {
       { path: "b", hash: "hash-b" },
       { path: "c", hash: "hash-c" },
     ];
-    const data: DataHash[] = [
-      { key: "input-a", hash: "hash-input-a", data: "a" },
-      { key: "input-b", hash: "hash-input-b", data: "b" },
+    const content: ContentHash[] = [
+      { key: "input-a", hash: "hash-input-a", content: "a" },
+      { key: "input-b", hash: "hash-input-b", content: "b" },
     ];
 
-    const result = mergeHashes(files, data, baseConfig);
+    const result = mergeHashes(files, content, baseConfig);
     expect(result).toEqual({
       hash: "8a1f3072c02af07a9daeba4df2230fa541e8479e",
       files,
-      data,
+      content,
     });
-  });
-});
-
-describe("remapPaths", () => {
-  test("handles basic cases", () => {
-    expect(remapPaths("file.txt", "/a/b/", "/a/b/c/")).toEqual("../file.txt");
-    expect(remapPaths("file.txt", "/a/", "/a/b/c/")).toEqual("../../file.txt");
   });
 });

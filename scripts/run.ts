@@ -97,8 +97,8 @@ function formatFingerprint(fingerprint: Fingerprint): string {
   fingerprint.files.forEach((input) => {
     result += `- ${input.path} - ${input.hash}\n`;
   });
-  result += `Data:\n`;
-  fingerprint.data.forEach((input) => {
+  result += `Content:\n`;
+  fingerprint.content.forEach((input) => {
     result += `- ${input.key} - ${input.hash}\n`;
   });
 

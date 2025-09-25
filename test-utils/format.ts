@@ -8,8 +8,8 @@ export function formatFingerprint(fingerprint: Fingerprint): string {
     result += `- ${file.path} - ${file.hash}\n`;
   }
 
-  result += `Data:\n`;
-  for (const input of fingerprint.data) {
+  result += `Content:\n`;
+  for (const input of fingerprint.content) {
     result += `- ${input.key} - ${input.hash}\n`;
   }
 

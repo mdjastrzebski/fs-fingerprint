@@ -15,7 +15,7 @@ export interface FingerprintOptions {
   exclude?: string[];
 
   /** Extra inputs to include in the fingerprint: content, json, etc */
-  extraInputs?: FingerprintInput[];
+  extraInputs?: Input[];
 
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
@@ -27,19 +27,19 @@ export interface FingerprintOptions {
 /**
  * Internal fingerprint config. Can change without semver.
  */
-export interface FingerprintConfig {
+export interface Config {
   rootDir: string;
   hashAlgorithm?: HashAlgorithm;
 }
 
-export type FingerprintInput = FingerprintContentInput | FingerprintJsonInput;
+export type Input = ContentInput | JsonInput;
 
-export interface FingerprintContentInput {
+export interface ContentInput {
   key: string;
   content: string;
 }
 
-export interface FingerprintJsonInput {
+export interface JsonInput {
   key: string;
   json: unknown;
 }
@@ -47,7 +47,7 @@ export interface FingerprintJsonInput {
 export interface Fingerprint {
   hash: string;
   files: FileHash[];
-  data: DataHash[];
+  content: ContentHash[];
 }
 
 export interface FileHash {
@@ -55,8 +55,8 @@ export interface FileHash {
   hash: string;
 }
 
-export interface DataHash {
+export interface ContentHash {
   key: string;
   hash: string;
-  data: unknown;
+  content: string;
 }

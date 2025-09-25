@@ -34,7 +34,7 @@ describe("calculateFingerprint", () => {
       - dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Data:
+      Content:
       "
     `);
 
@@ -59,7 +59,7 @@ describe("calculateFingerprint", () => {
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: d0ea126b88b40478b2683d693b535fc623ed1385
       Files:
-      Data:
+      Content:
       - test-content-1 - 943a702d06f34599aee1f8da8ef9f7296031d699
       - test-content-2 - 94912be8b3fb47d4161ea50e5948c6296af6ca05
       "
@@ -89,11 +89,11 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(rootDir, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-      "Hash: d53331feb87aba85f603d1aa0ef82201a5f7745d
+      "Hash: 12aab1bd194c5501db50c9ce829c899f8659e8eb
       Files:
-      Data:
-      - test-json-1 - 2e0706ddb09be38781b9b2bcc14c75d7b028ce61
-      - test-json-2 - 5ed10667370d4eee8fd1ec08cffef2c2002d2ce9
+      Content:
+      - test-json-1 - 7391dce2d9080f78b92f62bb43b308a2f073b0e5
+      - test-json-2 - d055f20cb008001f5d37a94456391aecf0b1e724
       - test-json-3 - bea2c9d7fd040292e0424938af39f7d6334e8d8a
       - test-json-4 - 40bd001563085fc35165329ea1ff5c5ecbdbbeef
       - test-json-5 - 5ffe533b830f08a0326348a9160afafc8ada44db
@@ -146,7 +146,7 @@ describe("calculateFingerprint", () => {
       - dir-1/file-2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir-2/nested/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Data:
+      Content:
       "
     `);
 
@@ -185,7 +185,7 @@ describe("calculateFingerprint", () => {
       - dir-2/nested/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir-3/file-7.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Data:
+      Content:
       "
     `);
 
@@ -227,7 +227,7 @@ describe("calculateFingerprint", () => {
       - dir-1/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir-2/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Data:
+      Content:
       "
     `);
 
@@ -257,7 +257,7 @@ describe("calculateFingerprint", () => {
       "Hash: 4e8e0ad25176ea41bb7a701b9619a044a27b50da
       Files:
       - dir-1/file-link1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Data:
+      Content:
       "
     `);
 
@@ -282,7 +282,7 @@ describe("calculateFingerprint", () => {
       - dir-1/file-2.txt - (null)
       - dir-2/nested/file-3.txt - (null)
       - file-1.txt - (null)
-      Data:
+      Content:
       "
     `);
 
@@ -315,7 +315,7 @@ describe("calculateFingerprint", () => {
       - dir/file2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir/subdir/file3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Data:
+      Content:
       "
     `);
     expect(findFile(fingerprint, "file1.txt")).toBeTruthy();
@@ -372,7 +372,7 @@ describe("calculateFingerprint", () => {
       - dir/file2.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir/subdir/file3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
-      Data:
+      Content:
       "
     `);
     expect(findFile(fingerprint, "file1.txt")).toBeTruthy();

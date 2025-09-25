@@ -1,11 +1,10 @@
 import { createHash } from "node:crypto";
-import * as nodePath from "node:path";
 import { glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
-import type { DataHash, FileHash, Fingerprint, FingerprintConfig } from "./types.js";
+import type { Config, ContentHash, FileHash, Fingerprint } from "./types.js";
 
-export function hashContent(content: string, config: FingerprintConfig) {
+export function hashContent(content: string | Uint8Array, config: Config) {
   if (config.hashAlgorithm === "null") {
     return EMPTY_HASH;
   }
@@ -17,16 +16,16 @@ export function hashContent(content: string, config: FingerprintConfig) {
 
 export function mergeHashes(
   fileHashes: readonly FileHash[],
-  dataHashes: readonly DataHash[],
-  config: FingerprintConfig,
+  contentHashes: readonly ContentHash[],
+  config: Config,
 ): Fingerprint {
   const sortedFileHashes = [...fileHashes].sort((a, b) => a.path.localeCompare(b.path));
-  const sortedDataHashes = [...dataHashes].sort((a, b) => a.key.localeCompare(b.key));
+  const sortedContentHashes = [...contentHashes].sort((a, b) => a.key.localeCompare(b.key));
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,
       files: sortedFileHashes,
-      data: sortedDataHashes,
+      content: sortedContentHashes,
     };
   }
 
@@ -40,17 +39,17 @@ export function mergeHashes(
 
   hasher.update("\0\0");
 
-  for (const input of sortedDataHashes) {
-    hasher.update(input.key);
+  for (const entry of sortedContentHashes) {
+    hasher.update(entry.key);
     hasher.update("\0");
-    hasher.update(input.hash);
+    hasher.update(entry.hash);
     hasher.update("\0\0");
   }
 
   return {
     hash: hasher.digest("hex"),
     files: sortedFileHashes,
-    data: sortedDataHashes,
+    content: sortedContentHashes,
   };
 }
 
@@ -92,16 +91,4 @@ export function getInputFilesSync({
 
 export function normalizeFilePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path;
-}
-
-export function remapPaths(path: string, fromRoot: string, toRoot: string): string {
-  const rebasedPath = nodePath
-    .relative(toRoot, nodePath.join(fromRoot, path))
-    .split(nodePath.sep)
-    .join("/");
-  if (path.endsWith("/") && !rebasedPath.endsWith("/")) {
-    return `${rebasedPath}/`;
-  }
-
-  return rebasedPath;
 }

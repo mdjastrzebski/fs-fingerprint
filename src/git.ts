@@ -2,8 +2,6 @@ import { execSync } from "node:child_process";
 import * as nodePath from "node:path";
 import { escapePath } from "tinyglobby";
 
-import { remapPaths } from "./utils.js";
-
 export interface GetGitIgnoredPathsOptions {
   entireRepo?: boolean;
 }
@@ -51,4 +49,16 @@ function getGitRootPath(path: string): string {
       cause: error,
     });
   }
+}
+
+export function remapPaths(path: string, fromRoot: string, toRoot: string): string {
+  const rebasedPath = nodePath
+    .relative(toRoot, nodePath.join(fromRoot, path))
+    .split(nodePath.sep)
+    .join("/");
+  if (path.endsWith("/") && !rebasedPath.endsWith("/")) {
+    return `${rebasedPath}/`;
+  }
+
+  return rebasedPath;
 }

@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../../test-utils/fs.js";
 import { EMPTY_HASH } from "../../constants.js";
-import type { FingerprintConfig } from "../../types.js";
+import type { Config } from "../../types.js";
 import { calculateFileHash, calculateFileHashSync } from "../file.js";
 
 const { rootDir, prepareRootDir, writeFile } = createRootDir("file-test");
 
-const baseConfig: FingerprintConfig = {
+const baseConfig: Config = {
   rootDir,
   hashAlgorithm: "sha1",
 };
