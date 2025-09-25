@@ -15,7 +15,7 @@ export interface FingerprintOptions {
   files?: readonly string[];
 
   /** Glob patterns indicating files (and directories) to ignore */
-  ignores?: ReadonlyArray<string>;
+  ignores?: readonly string[];
 
   /** Extra inputs to include in the fingerprint: content, json, etc */
   extraInputs?: Input[];
