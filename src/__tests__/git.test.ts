@@ -3,7 +3,7 @@ import * as path from "node:path";
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
-import { getGitIgnoredPaths } from "../git.js";
+import { getGitIgnoredPaths, remapPaths } from "../git.js";
 
 const { rootDir, prepareRootDir, writePaths, writeFile } = createRootDir("git-test");
 
@@ -122,5 +122,12 @@ describe("getGitIgnoredPaths", () => {
     expect(ignoredFiles).toContain("../native/file1.md");
     expect(ignoredFiles).toContain("../native/dir/file2.md");
     expect(ignoredFiles).toContain("../native/dir/subdir/file3.md");
+  });
+});
+
+describe("remapPaths", () => {
+  test("handles basic cases", () => {
+    expect(remapPaths("file.txt", "/a/b/", "/a/b/c/")).toEqual("../file.txt");
+    expect(remapPaths("file.txt", "/a/", "/a/b/c/")).toEqual("../../file.txt");
   });
 });

@@ -3,53 +3,39 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { EMPTY_HASH } from "../constants.js";
-import type { FingerprintConfig, FingerprintFileHash } from "../types.js";
+import type { Config, FileHash } from "../types.js";
 import { hashContent, normalizeFilePath } from "../utils.js";
 
-export async function calculateFileHash(
-  path: string,
-  config: FingerprintConfig,
-): Promise<FingerprintFileHash> {
+export async function calculateFileHash(path: string, config: Config): Promise<FileHash> {
   const normalizedPath = normalizeFilePath(path);
   if (config.hashAlgorithm === "null") {
     return {
-      type: "file",
-      key: `file:${normalizedPath}`,
-      hash: EMPTY_HASH,
       path: normalizedPath,
+      hash: EMPTY_HASH,
     };
   }
 
   const pathWithRoot = join(config.rootDir, path);
   const content = await readFile(pathWithRoot, "utf8");
   return {
-    type: "file",
-    key: `file:${normalizedPath}`,
-    hash: hashContent(content, config),
     path: normalizedPath,
+    hash: hashContent(content, config),
   };
 }
 
-export function calculateFileHashSync(
-  path: string,
-  config: FingerprintConfig,
-): FingerprintFileHash {
+export function calculateFileHashSync(path: string, config: Config): FileHash {
   const normalizedPath = normalizeFilePath(path);
   if (config.hashAlgorithm === "null") {
     return {
-      type: "file",
-      key: `file:${normalizedPath}`,
-      hash: EMPTY_HASH,
       path: normalizedPath,
+      hash: EMPTY_HASH,
     };
   }
 
   const pathWithRoot = join(config.rootDir, path);
   const content = readFileSync(pathWithRoot, "utf8");
   return {
-    type: "file",
-    key: `file:${normalizedPath}`,
-    hash: hashContent(content, config),
     path: normalizedPath,
+    hash: hashContent(content, config),
   };
 }

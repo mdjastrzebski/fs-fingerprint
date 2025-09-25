@@ -7,70 +7,56 @@ type StringWithAutoSuggest<T> = (string & {}) | T;
  */
 export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512">;
 
-export type FingerprintOptions = {
+export interface FingerprintOptions {
   /** File and directory paths to include (does NOT support globs) */
-  include?: string[];
+  include?: readonly string[];
 
   /** Paths to exclude (support globs, "picomatch" syntax) */
-  exclude?: string[];
+  exclude?: ReadonlyArray<string>;
 
   /** Extra inputs to include in the fingerprint: content, json, etc */
-  extraInputs?: FingerprintInput[];
+  extraInputs?: Input[];
 
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
 
   /** Maximum number of concurrently opened files */
   concurrency?: number;
-};
+}
 
 /**
  * Internal fingerprint config. Can change without semver.
  */
-export type FingerprintConfig = {
+export interface Config {
   rootDir: string;
   hashAlgorithm?: HashAlgorithm;
-};
+}
 
-export type FingerprintInput = FingerprintContentInput | FingerprintJsonInput;
+export type Input = ContentInput | JsonInput;
 
-export interface FingerprintContentInput {
+export interface ContentInput {
   key: string;
   content: string;
 }
 
-export interface FingerprintJsonInput {
+export interface JsonInput {
   key: string;
   json: unknown;
 }
 
-export type FingerprintResult = {
+export interface Fingerprint {
   hash: string;
-  inputs: FingerprintInputHash[];
-};
+  files: FileHash[];
+  content: ContentHash[];
+}
 
-export type FingerprintInputHash =
-  | FingerprintContentHash
-  | FingerprintJsonHash
-  | FingerprintFileHash;
-
-export interface FingerprintFileHash {
-  type: "file";
-  key: string;
-  hash: string;
+export interface FileHash {
   path: string;
+  hash: string;
 }
 
-export interface FingerprintContentHash {
-  type: "content";
+export interface ContentHash {
   key: string;
   hash: string;
   content: string;
-}
-
-export interface FingerprintJsonHash {
-  type: "json";
-  key: string;
-  hash: string;
-  json: unknown;
 }

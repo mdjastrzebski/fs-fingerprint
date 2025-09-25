@@ -1,8 +1,7 @@
-export * from "./fingerprint.js";
-export * from "./inputs/file.js";
-export * from "./inputs/content.js";
-export * from "./inputs/json.js";
-export * from "./git.js";
-export * from "./utils.js";
+export { calculateFingerprint, calculateFingerprintSync } from "./fingerprint.js";
+export { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
+export { calculateContentHash } from "./inputs/content.js";
+export { getGitIgnoredPaths } from "./git.js";
+export { hashContent, mergeHashes } from "./utils.js";
 
 export type * from "./types.js";

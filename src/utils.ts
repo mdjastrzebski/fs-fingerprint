@@ -1,11 +1,10 @@
 import { createHash } from "node:crypto";
-import * as nodePath from "node:path";
 import { glob, globSync } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
-import type { FingerprintConfig, FingerprintInputHash, FingerprintResult } from "./types.js";
+import type { Config, ContentHash, FileHash, Fingerprint } from "./types.js";
 
-export function hashContent(content: string, config: FingerprintConfig) {
+export function hashContent(content: string | Uint8Array, config: Config) {
   if (config.hashAlgorithm === "null") {
     return EMPTY_HASH;
   }
@@ -16,39 +15,48 @@ export function hashContent(content: string, config: FingerprintConfig) {
 }
 
 export function mergeHashes(
-  hashes: readonly FingerprintInputHash[],
-  config: FingerprintConfig,
-): FingerprintResult | null {
-  if (hashes.length === 0) {
-    return null;
-  }
-
-  const sortedHashes = [...hashes].sort((a, b) => a.key.localeCompare(b.key));
+  fileHashes: readonly FileHash[],
+  contentHashes: readonly ContentHash[],
+  config: Config,
+): Fingerprint {
+  const sortedFileHashes = [...fileHashes].sort();
+  const sortedContentHashes = [...contentHashes].sort();
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,
-      inputs: sortedHashes,
+      files: sortedFileHashes,
+      content: sortedContentHashes,
     };
   }
 
   const hasher = createHash(config.hashAlgorithm ?? DEFAULT_HASH_ALGORITHM);
-  for (const inputHash of sortedHashes) {
-    hasher.update(inputHash.key);
+  for (const file of sortedFileHashes) {
+    hasher.update(file.path);
     hasher.update("\0");
-    hasher.update(inputHash.hash);
+    hasher.update(file.hash);
+    hasher.update("\0\0");
+  }
+
+  hasher.update("\0\0");
+
+  for (const entry of sortedContentHashes) {
+    hasher.update(entry.key);
+    hasher.update("\0");
+    hasher.update(entry.hash);
     hasher.update("\0\0");
   }
 
   return {
     hash: hasher.digest("hex"),
-    inputs: sortedHashes,
+    files: sortedFileHashes,
+    content: sortedContentHashes,
   };
 }
 
 export type GetInputFilesOptions = {
   rootDir: string;
-  include?: string[];
-  exclude?: string[];
+  include?: readonly string[];
+  exclude?: readonly string[];
 };
 
 export async function getInputFiles({
@@ -83,16 +91,4 @@ export function getInputFilesSync({
 
 export function normalizeFilePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path;
-}
-
-export function remapPaths(path: string, fromRoot: string, toRoot: string): string {
-  const rebasedPath = nodePath
-    .relative(toRoot, nodePath.join(fromRoot, path))
-    .split(nodePath.sep)
-    .join("/");
-  if (path.endsWith("/") && !rebasedPath.endsWith("/")) {
-    return `${rebasedPath}/`;
-  }
-
-  return rebasedPath;
 }

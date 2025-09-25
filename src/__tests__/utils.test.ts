@@ -1,14 +1,8 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
-import type { FingerprintInputHash } from "../types.js";
-import {
-  getInputFiles,
-  getInputFilesSync,
-  hashContent,
-  mergeHashes,
-  remapPaths,
-} from "../utils.js";
+import type { ContentHash, FileHash } from "../types.js";
+import { getInputFiles, getInputFilesSync, hashContent, mergeHashes } from "../utils.js";
 
 const baseConfig = {
   rootDir: "not-used",
@@ -32,15 +26,15 @@ describe("hashContent", () => {
   });
 });
 
-const PATHS_TXT = ["file1.txt", "dir/file2.txt", "dir/subdir/file3.txt"];
-const PATHS_MD = ["file1.md", "dir/file2.md", "dir/subdir/file3.md"];
+const PATHS_TXT = ["file1.txt", "dir/file2.txt", "dir/subdir/file3.txt"].sort();
+const PATHS_MD = ["file1.md", "dir/file2.md", "dir/subdir/file3.md"].sort();
 
 describe("getFilesToHash", () => {
   test("returns all files when include is not specified", async () => {
     writePaths(PATHS_TXT);
 
     const result = await getInputFiles({ rootDir });
-    expect(result).toEqual(PATHS_TXT.sort());
+    expect(result).toEqual(PATHS_TXT);
 
     const resultSync = getInputFilesSync({ rootDir });
     expect(resultSync).toEqual(result);
@@ -84,7 +78,7 @@ describe("getFilesToHash", () => {
     expect(resultSync1).toEqual(result1);
 
     const result2 = await getInputFiles({ rootDir, include: ["**/*.txt"] });
-    expect(result2).toEqual(PATHS_TXT.sort());
+    expect(result2).toEqual(PATHS_TXT);
     const resultSync2 = getInputFilesSync({ rootDir, include: ["**/*.txt"] });
     expect(resultSync2).toEqual(result2);
   });
@@ -112,7 +106,7 @@ describe("getFilesToHash", () => {
     writePaths([...PATHS_TXT, ...PATHS_MD]);
 
     const result1 = await getInputFiles({ rootDir, exclude: ["**/*.md"] });
-    expect(result1).toEqual(PATHS_TXT.sort());
+    expect(result1).toEqual(PATHS_TXT);
 
     const resultSync1 = getInputFilesSync({ rootDir, exclude: ["**/*.md"] });
     expect(resultSync1).toEqual(result1);
@@ -121,27 +115,21 @@ describe("getFilesToHash", () => {
 
 describe("mergeHashes", () => {
   test("supports basic case", () => {
-    const inputs: FingerprintInputHash[] = [
-      { key: "a", hash: "hash-a", type: "file", path: "a" },
-      { key: "b", hash: "hash-b", type: "file", path: "b" },
-      { key: "c", hash: "hash-c", type: "file", path: "c" },
+    const files: FileHash[] = [
+      { path: "a", hash: "hash-a" },
+      { path: "b", hash: "hash-b" },
+      { path: "c", hash: "hash-c" },
     ];
-    const result = mergeHashes(inputs, baseConfig);
+    const content: ContentHash[] = [
+      { key: "input-a", hash: "hash-input-a", content: "a" },
+      { key: "input-b", hash: "hash-input-b", content: "b" },
+    ];
+
+    const result = mergeHashes(files, content, baseConfig);
     expect(result).toEqual({
-      hash: "f0e3d0fa0c0cd3f1a679754b1c44e7fdb426922f",
-      inputs,
+      hash: "8a1f3072c02af07a9daeba4df2230fa541e8479e",
+      files,
+      content,
     });
-  });
-
-  test("returns null when input is empty", () => {
-    const result = mergeHashes([], baseConfig);
-    expect(result).toBeNull();
-  });
-});
-
-describe("remapPaths", () => {
-  test("handles basic cases", () => {
-    expect(remapPaths("file.txt", "/a/b/", "/a/b/c/")).toEqual("../file.txt");
-    expect(remapPaths("file.txt", "/a/", "/a/b/c/")).toEqual("../../file.txt");
   });
 });

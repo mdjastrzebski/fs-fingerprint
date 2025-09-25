@@ -1,17 +1,17 @@
 # FS Fingerprint 🫆
 
-Generate unique fingerprint hashes from filesystem (and other) state.
+Generate unique fingerprint hashes from filesystem state and other inputs (content, JSON).
 
 ## What's This?
 
-A fast Node.js library to generate unique fingerprints (hashes) based on the state of your filesystem: files, directories, and other content (string, JSON, etc).
+A fast Node.js library to generate unique fingerprints (hashes) based on the state of your filesystem: files paths and contents, and other inputs: text content, JSON.
 
 Perfect for building intelligent caching solutions that automatically invalidate when your code or data changes. ⚡
 
 ## Features
 
-- Fingerprint files, directories, strings, and JSON data
-- Fast change detection (great for build systems)
+- Fast change detection
+- Hightly customizable (include/exclude patterns, extra inputs)
 - Simple TypeScript API
 
 ## Quick Start
@@ -23,8 +23,8 @@ Perfect for building intelligent caching solutions that automatically invalidate
 import { calculateFingerprint } from "fs-fingerprint";
 
 const { hash } = await calculateFingerprint(rootPath, {
-  include: ["ios", "package.json"],
-  exclude: ["build"],
+  include: ["ios/", "package.json"],
+  exclude: ["build/"],
 });
 ```
 
@@ -38,10 +38,10 @@ async function calculateFingerprint(
   options?: {
     include?: string[]; // Glob patterns to include files and directories (default: all)
     exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
-    extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
+    extraInputs?: Input[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
   },
-): Promise<FingerprintResult>;
+): Promise<Fingerprint>;
 ```
 
 Generates a fingerprint hash for filesystem state.
@@ -49,9 +49,12 @@ Generates a fingerprint hash for filesystem state.
 #### Return value
 
 ```typescript
-interface FingerprintResult {
-  hash: string; // Generated fingerprint hash
-  inputs: FingerprintInputHash[]; // Hashes for each provided input
+interface Fingerprint {
+  hash: string; // Hash value representing the overall fingerprint
+
+  // Component hashes of the fingerprint:
+  files: FileHash[]; // File hashes included in the fingerprint
+  content: ContentHash[]; // Content hashes included in the fingerprint
 }
 ```
 
@@ -63,10 +66,10 @@ function calculateFingerprintSync(
   options?: {
     include?: string[]; // Glob patterns to include files and directories (default: all)
     exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
-    extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
+    extraInputs?: Input[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
   },
-): FingerprintResult;
+): Fingerprint;
 ```
 
 Sync version of `calculateFingerprint`:
@@ -91,8 +94,11 @@ Helper function to get list of paths ignored by Git from `.gitignore` and other 
 
 #### Options
 
-- `entireRepo` (boolean, default: false): when false, returns ignored paths inside passed `path`; when true, searches for ignored paths in the whole git repository. In both cases, the returned paths are relative to the provided `path`.
-  - Note: this option invokes the `git rev-parse --show-cdup` command to determine the git root directory, which may make the call slower.
+- `entireRepo` (boolean, default: `false`):
+  - when false, returns ignored paths inside passed `path`
+  - when true, searches for ignored paths in the whole git repository. Note: this option invokes the `git rev-parse --show-cdup` command to determine the git root directory, which may make the call slower.
+  - In both cases, the returned paths are relative to the provided `path`.
+  -
 
 ## Examples
 
@@ -107,7 +113,7 @@ console.log(hash); // "abc123..."
 
 ```typescript
 const { hash } = await calculateFingerprint("./project", {
-  include: ["src", "package.json"],
+  include: ["src/", "package.json"],
   exclude: ["**/*.test.ts", "dist"],
 });
 ```
@@ -146,18 +152,16 @@ const { hash } = await calculateFingerprint("./src", {
 **Synchronous call (slower):**
 
 ```typescript
-const { hash } = calculateFingerprintSync("./src", {
-  hashAlgorithm: "sha512",
-});
+const { hash } = calculateFingerprintSync("./src", { ...options });
 ```
 
 ## Design Considerations
 
-1. **File Hashing:**  
-   A file’s hash is based only on its content, but not from the file’s own name or path.
-
-2. **Flat manifest:**  
+1. **Flat manifest:**  
    Final hash is computed from list of all files and their hashes, sorted by their relative paths. This means that renaming or moving a file will change the final fingerprint, even if the file content remains unchanged.
+
+2. **File Hashing:**  
+   Individual file’s hash is based only on its content, but not from the file’s own name or path. The final hash takes both file paths and their content hashes into account.
 
 ## Contributing
 
