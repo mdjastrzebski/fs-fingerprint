@@ -125,8 +125,8 @@ const { hash } = await calculateFingerprint("./src", {
   extraInputs: [
     { key: "some-config", content: "debug=true" }, // text input
     { key: "so-metadata", json: { version: "1.0", env: "prod" } }, // JSON data: objects, arrays, primitives
-    { key: "much-envs", env: ["BUILD_ENVIROMENT", "FEATURE_FLAG"] }, // env variables
-    { key: "api-key", env: ["API_KEY"], secret: true }, // secret env input, do not include value in fingerprint details
+    { key: "much-envs", envs: ["BUILD_ENVIROMENT", "FEATURE_FLAG"] }, // env variables
+    { key: "api-key", envs: ["API_KEY"], secret: true }, // secret env input, do not include value in fingerprint details
   ],
 });
 ```
