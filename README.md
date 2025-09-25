@@ -38,10 +38,10 @@ async function calculateFingerprint(
   options?: {
     include?: string[]; // Glob patterns to include files and directories (default: all)
     exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
-    extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
+    extraInputs?: Input[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
   },
-): Promise<FingerprintResult>;
+): Promise<Fingerprint>;
 ```
 
 Generates a fingerprint hash for filesystem state.
@@ -49,9 +49,10 @@ Generates a fingerprint hash for filesystem state.
 #### Return value
 
 ```typescript
-interface FingerprintResult {
+interface Fingerprint {
   hash: string; // Generated fingerprint hash
-  inputs: FingerprintInputHash[]; // Hashes for each provided input
+  files: FileHash[]; // Hashes for each provided input
+  content: ContentHash[]; // Hashes for each extra input
 }
 ```
 
@@ -63,10 +64,10 @@ function calculateFingerprintSync(
   options?: {
     include?: string[]; // Glob patterns to include files and directories (default: all)
     exclude?: string[]; // Glob patterns to exclude files and directories (default: none)
-    extraInputs?: FingerprintInput[]; // Additional inputs: content, JSON
+    extraInputs?: Input[]; // Additional inputs: content, JSON
     hashAlgorithm?: string; // Hash algorithm (default: sha1)
   },
-): FingerprintResult;
+): Fingerprint;
 ```
 
 Sync version of `calculateFingerprint`:

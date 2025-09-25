@@ -19,8 +19,8 @@ export function mergeHashes(
   contentHashes: readonly ContentHash[],
   config: Config,
 ): Fingerprint {
-  const sortedFileHashes = [...fileHashes].sort((a, b) => a.path.localeCompare(b.path));
-  const sortedContentHashes = [...contentHashes].sort((a, b) => a.key.localeCompare(b.key));
+  const sortedFileHashes = [...fileHashes].sort();
+  const sortedContentHashes = [...contentHashes].sort();
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,

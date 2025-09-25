@@ -26,15 +26,15 @@ describe("hashContent", () => {
   });
 });
 
-const PATHS_TXT = ["file1.txt", "dir/file2.txt", "dir/subdir/file3.txt"];
-const PATHS_MD = ["file1.md", "dir/file2.md", "dir/subdir/file3.md"];
+const PATHS_TXT = ["file1.txt", "dir/file2.txt", "dir/subdir/file3.txt"].sort();
+const PATHS_MD = ["file1.md", "dir/file2.md", "dir/subdir/file3.md"].sort();
 
 describe("getFilesToHash", () => {
   test("returns all files when include is not specified", async () => {
     writePaths(PATHS_TXT);
 
     const result = await getInputFiles({ rootDir });
-    expect(result).toEqual(PATHS_TXT.sort());
+    expect(result).toEqual(PATHS_TXT);
 
     const resultSync = getInputFilesSync({ rootDir });
     expect(resultSync).toEqual(result);
@@ -78,7 +78,7 @@ describe("getFilesToHash", () => {
     expect(resultSync1).toEqual(result1);
 
     const result2 = await getInputFiles({ rootDir, include: ["**/*.txt"] });
-    expect(result2).toEqual(PATHS_TXT.sort());
+    expect(result2).toEqual(PATHS_TXT);
     const resultSync2 = getInputFilesSync({ rootDir, include: ["**/*.txt"] });
     expect(resultSync2).toEqual(result2);
   });
@@ -106,7 +106,7 @@ describe("getFilesToHash", () => {
     writePaths([...PATHS_TXT, ...PATHS_MD]);
 
     const result1 = await getInputFiles({ rootDir, exclude: ["**/*.md"] });
-    expect(result1).toEqual(PATHS_TXT.sort());
+    expect(result1).toEqual(PATHS_TXT);
 
     const resultSync1 = getInputFilesSync({ rootDir, exclude: ["**/*.md"] });
     expect(resultSync1).toEqual(result1);
