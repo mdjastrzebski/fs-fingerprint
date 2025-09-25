@@ -1,10 +1,10 @@
 # FS Fingerprint 🫆
 
-Generate unique fingerprint hashes from filesystem state and other inputs (content, JSON).
+Generate unique fingerprint hashes from filesystem state and other inputs (content, JSON, envs).
 
 ## What's This?
 
-A fast Node.js library to generate unique fingerprints (hashes) based on the state of your filesystem: files paths and contents, and other inputs: text content, JSON.
+A fast Node.js library to generate unique fingerprints (hashes) based on the state of your filesystem: files paths and contents, and other inputs: text content, JSON, env variables.
 
 Perfect for building intelligent caching solutions that automatically invalidate when your code or data changes. ⚡
 
@@ -118,14 +118,15 @@ const { hash } = await calculateFingerprint("./project", {
 });
 ```
 
-**Using extra inputs:**
+**Using content inputs:**
 
 ```typescript
 const { hash } = await calculateFingerprint("./src", {
   extraInputs: [
-    { key: "some-config", content: "debug=true" },
-    { key: "so-metadata", json: { version: "1.0", env: "prod" } },
-    { key: "much-envs", json: [process.env.BUILD_ENVIROMENT, process.env.FEATURE_ENABLED] },
+    { key: "some-config", content: "debug=true" }, // text input
+    { key: "so-metadata", json: { version: "1.0", env: "prod" } }, // JSON data: objects, arrays, primitives
+    { key: "much-envs", env: ["BUILD_ENVIROMENT", "FEATURE_FLAG"] }, // env variables
+    { key: "api-key", env: ["API_KEY"], secret: true }, // secret env input, do not include value in fingerprint details
   ],
 });
 ```

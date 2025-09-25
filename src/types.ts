@@ -37,16 +37,19 @@ export type Input = ContentInput | JsonInput | EnvInput;
 export interface ContentInput {
   key: string;
   content: string;
+  secret?: boolean;
 }
 
 export interface JsonInput {
   key: string;
   json: unknown;
+  secret?: boolean;
 }
 
 export interface EnvInput {
   key: string;
   envs: string[];
+  secret?: boolean;
 }
 
 export interface Fingerprint {
@@ -63,5 +66,5 @@ export interface FileHash {
 export interface ContentHash {
   key: string;
   hash: string;
-  content: string;
+  content?: string;
 }

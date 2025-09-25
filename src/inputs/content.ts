@@ -6,7 +6,7 @@ export function calculateContentHash(input: Input, config: Config): ContentHash 
     return {
       key: input.key,
       hash: hashContent(input.content, config),
-      content: input.content,
+      content: input.secret ? undefined : input.content,
     };
   }
 
@@ -15,7 +15,7 @@ export function calculateContentHash(input: Input, config: Config): ContentHash 
     return {
       key: input.key,
       hash: hashContent(content, config),
-      content,
+      content: input.secret ? undefined : content,
     };
   }
 
@@ -29,7 +29,7 @@ export function calculateContentHash(input: Input, config: Config): ContentHash 
     return {
       key: input.key,
       hash: hashContent(content, config),
-      content,
+      content: input.secret ? undefined : content,
     };
   }
 
