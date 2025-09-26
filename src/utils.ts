@@ -19,8 +19,12 @@ export function mergeHashes(
   contentHashes: readonly ContentHash[],
   config: Config,
 ): Fingerprint {
-  const sortedFileHashes = [...fileHashes].sort();
-  const sortedContentHashes = [...contentHashes].sort();
+  const sortedFileHashes = [...fileHashes].sort((a, b) =>
+    a.path < b.path ? -1 : a.path > b.path ? 1 : 0,
+  );
+  const sortedContentHashes = [...contentHashes].sort((a, b) =>
+    a.key < b.key ? -1 : a.key > b.key ? 1 : 0,
+  );
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,
