@@ -28,7 +28,6 @@ describe("calculateFingerprint", () => {
     writePaths(["file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);
 
     const fingerprint = await calculateFingerprint(basePath);
-
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: b2ecd14046c04602378fbac3a04a2ec0408f4db0
       Files:
@@ -49,14 +48,13 @@ describe("calculateFingerprint", () => {
 
   test("supports content inputs", async () => {
     const options: FingerprintOptions = {
-      contentInputs: {
+      content: {
         "test-content-1": { content: "Hello, world!" },
         "test-content-2": { content: "Lorem ipsum" },
       },
     };
 
     const fingerprint = await calculateFingerprint(basePath, options);
-
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: d0ea126b88b40478b2683d693b535fc623ed1385
       Files:
@@ -75,7 +73,7 @@ describe("calculateFingerprint", () => {
 
   test("supports json inputs", async () => {
     const options: FingerprintOptions = {
-      contentInputs: {
+      content: {
         "test-json-1": jsonContent({ foo: "bar", baz: 123 }),
         "test-json-2": jsonContent(["Hello", 123, null, { foo: "bar" }, ["nested", "array"]]),
         "test-json-3": jsonContent("Hello, world!"),
@@ -88,7 +86,6 @@ describe("calculateFingerprint", () => {
     };
 
     const fingerprint = await calculateFingerprint(basePath, options);
-
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: 94c38b3e91afbd7723b623ef3778364015b2031d
       Files:
@@ -163,7 +160,6 @@ describe("calculateFingerprint", () => {
     };
 
     const fingerprint = await calculateFingerprint(basePath, options);
-
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: c18e6d8402009e2e2213ce0d1f845435703e6411
       Files:
@@ -205,7 +201,6 @@ describe("calculateFingerprint", () => {
     };
 
     const fingerprint = await calculateFingerprint(basePath, options);
-
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: 1cb4f6d53cae1ab8068780c4e64cd4db9eabed45
       Files:
@@ -263,7 +258,6 @@ describe("calculateFingerprint", () => {
     };
 
     const fingerprint = await calculateFingerprint(basePath, options);
-
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: (null)
       Files:
@@ -282,7 +276,7 @@ describe("calculateFingerprint", () => {
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
-  test('handles includes outside of basePath (e.g. "..")', async () => {
+  test('handles "files" outside of "basePath" (e.g. "..")', async () => {
     writePaths(PATHS_TXT.map((p) => path.join("pkg/a", p)));
     writePaths(PATHS_TXT.map((p) => path.join("pkg/b", p)));
     writePaths(["root-file.txt"]);
@@ -318,7 +312,7 @@ describe("calculateFingerprint", () => {
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
-  test('handles includes outside of basePath (e.g. "..") with .gitignore', async () => {
+  test('handles "files" outside of "basePath" (e.g. "..") with .gitignore', async () => {
     writePaths(PATHS_TXT.map((p) => path.join("pkg/a", p)));
     writePaths(PATHS_MD.map((p) => path.join("pkg/a", p)));
     writePaths(PATHS_TXT.map((p) => path.join("pkg/b", p)));

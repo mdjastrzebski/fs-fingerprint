@@ -14,7 +14,7 @@ import { getInputFiles, getInputFilesSync, mergeHashes } from "./utils.js";
 
 export async function calculateFingerprint(
   basePath: string,
-  { hashAlgorithm, files, ignores, contentInputs, concurrency }: FingerprintOptions = {},
+  { hashAlgorithm, files, ignores, content, concurrency }: FingerprintOptions = {},
 ): Promise<Fingerprint> {
   const config: Config = {
     basePath,
@@ -32,8 +32,8 @@ export async function calculateFingerprint(
     inputFiles.map((path) => limit(() => calculateFileHash(path, config))),
   );
 
-  const contentHashes = contentInputs
-    ? getContentInputs(contentInputs)?.map((input) => calculateContentHash(input, config))
+  const contentHashes = content
+    ? getContentInputs(content)?.map((input) => calculateContentHash(input, config))
     : [];
 
   return mergeHashes(fileHashes, contentHashes, config);
@@ -41,7 +41,7 @@ export async function calculateFingerprint(
 
 export function calculateFingerprintSync(
   basePath: string,
-  { hashAlgorithm, files, ignores, contentInputs }: FingerprintOptions = {},
+  { hashAlgorithm, files, ignores, content }: FingerprintOptions = {},
 ): Fingerprint {
   const config: Config = {
     basePath,
@@ -56,15 +56,15 @@ export function calculateFingerprintSync(
 
   const fileHashes = inputFiles.map((path) => calculateFileHashSync(path, config));
 
-  const contentHashes = contentInputs
-    ? getContentInputs(contentInputs)?.map((input) => calculateContentHash(input, config))
+  const contentHashes = content
+    ? getContentInputs(content)?.map((input) => calculateContentHash(input, config))
     : [];
 
   return mergeHashes(fileHashes, contentHashes, config);
 }
 
-function getContentInputs(contentInputs: Record<string, ContentValue>): ContentInput[] {
-  return Object.entries(contentInputs).map(([key, value]) => {
+function getContentInputs(content: Record<string, ContentValue>): ContentInput[] {
+  return Object.entries(content).map(([key, value]) => {
     return { key, ...value };
   });
 }

@@ -1,18 +1,22 @@
 # FS Fingerprint 🫆
 
-Generate unique fingerprint hashes from filesystem state and other inputs (content, JSON, envs).
+Generate unique fingerprint hashes from filesystem state and other inputs (text, JSON, envs).
 
 ## What's This?
 
-A fast Node.js library to generate unique fingerprints (hashes) based on the state of your filesystem: files paths and contents, and other inputs: text content, JSON, env variables.
+A fast Node.js library to generate unique fingerprints based on:
+
+- files & directories in your project
+- other inputs: text content, JSON data, environment variables
 
 Perfect for building intelligent caching solutions that automatically invalidate when your code or data changes. ⚡
 
 ## Features
 
-- Fast change detection
-- Hightly customizable (include/exclude patterns, extra inputs)
-- Simple TypeScript API
+- Fast change detection (we have benchmarks!)
+- Highly customizable: include/exclude glob patterns, additional inputs, hashing algorithms
+- Simple TypeScript API, both sync and async versions
+- Supports `.gitignore` files
 
 ## Quick Start
 
@@ -24,7 +28,7 @@ import { calculateFingerprint } from "fs-fingerprint";
 
 const { hash } = await calculateFingerprint("/project/path", {
   files: ["ios/", "package.json"],
-  ignores: ["build/"],
+  ignores: ["ios/build/"],
 });
 ```
 
@@ -34,12 +38,13 @@ const { hash } = await calculateFingerprint("/project/path", {
 
 ```ts
 async function calculateFingerprint(
-  basePath: string; // Path to directory that the config applies to, if not provided, only `contentInputs` are considered
+  basePath: string; // Base path to relsolve "files" and "ignores" patterns against
   options?: {
-    files?: string[]; // Glob patterns to include files and directories (default: all)
-    ignores?: string[]; // Glob patterns to exclude files and directories (default: none)
-    contentInputs?: Input[]; // Additional inputs: content, JSON
-    hashAlgorithm?: string; // Hash algorithm (default: sha1)
+    files?: string[]; // Glob patterns to include files and directories (default: include all)
+    ignores?: string[]; // Glob patterns to exclude files and directories (default: ignore none)
+    content?: Input[]; // Additional inputs: text, JSON, envs, etc.
+    hashAlgorithm?: string; // Hash algorithm (default: "sha1")
+    concurrency?: number; // Number of concurrent file reads (default: 16)
   }
 ): Promise<Fingerprint>;
 ```
@@ -50,9 +55,10 @@ Generates a fingerprint hash for filesystem state.
 
 ```typescript
 interface Fingerprint {
-  hash: string; // Overall project hash
+  // Overall project fingerprint hash:
+  hash: string;
 
-  // Fingerprint manifest:
+  // Fingerprint manifest, what's included in the fingerprint:
   files: FileHash[]; // File hashes included in the fingerprint
   content: ContentHash[]; // Content hashes included in the fingerprint
 }
@@ -64,10 +70,10 @@ interface Fingerprint {
 function calculateFingerprintSync(
   basePath: string; // Base path to relsolve "files" and "ignores" patterns against
   options?: {
-    files?: string[]; // Glob patterns to include files and directories (default: all)
-    ignores?: string[]; // Glob patterns to exclude files and directories (default: none)
-    contentInputs?: Input[]; // Additional inputs: content, JSON
-    hashAlgorithm?: string; // Hash algorithm (default: sha1)
+    files?: string[]; // Glob patterns to include files and directories (default: include all)
+    ignores?: string[]; // Glob patterns to exclude files and directories (default: ignore none)
+    content?: Input[]; // Additional inputs: text, JSON, envs, etc.
+    hashAlgorithm?: string; // Hash algorithm (default: "sha1")
   }
 ): Fingerprint;
 ```
@@ -75,15 +81,15 @@ function calculateFingerprintSync(
 Sync version of `calculateFingerprint`:
 
 - generates the same hash value without awaiting
-- will be slower due to blocking filesystem reads
+- but will be slower due to blocking filesystem reads
 
 ### `getGitIgnoredPaths`
 
 ```ts
 function getGitIgnoredPaths(
-  basePath: string; // Path where to look for git ignores
+  basePath: string; // Base path to look for git ignored paths
   options: {
-    entireRepo?: boolean; // Whether to search the rest of the  git repository (default: false)
+    entireRepo?: boolean; // If passed basePath is not the git root, search for ignored paths in the whole git repository (default: false)
   }
 ): string[];
 ```
@@ -94,11 +100,7 @@ Helper function to get list of paths ignored by Git from `.gitignore` and other 
 
 #### Options
 
-- `entireRepo` (boolean, default: `false`):
-  - when false, returns ignored paths inside passed `path`
-  - when true, searches for ignored paths in the whole git repository. Note: this option invokes the `git rev-parse --show-cdup` command to determine the git root directory, which may make the call slower.
-  - In both cases, the returned paths are relative to the provided `path`.
-  -
+- `entireRepo`: If passed basePath is not the git root, use this option to search for ignored paths in the whole git repository (default: false). Always returns paths relative to the provided `basePath`.
 
 ## Examples
 
@@ -122,11 +124,11 @@ const { hash } = await calculateFingerprint("/project/path", {
 
 ```typescript
 const { hash } = await calculateFingerprint("/project/path", {
-  contentInputs: {
-    someConfig: textContent("debug=true"), // text content
-    soMetadata: jsonContent({ version: "1.0", env: "prod" }), // JSON data: objects, arrays, primitives
-    muchEnvs: envContent(["BUILD_ENVIRONMENT", "FEATURE_FLAG"]), // env variables
-    apiKey: envContent(["API_KEY"], { secret: true }), // secret env input, do not include value in fingerprint details
+  content: {
+    "app-config": textContent("debug=true"), // text content
+    "app-metadata": jsonContent({ version: "1.0", env: "prod" }), // JSON data: objects, arrays, primitives
+    "app-envs": envContent(["BUILD_ENVIRONMENT", "FEATURE_FLAG"]), // env variables
+    "signing-key": envContent(["API_KEY"], { secret: true }), // secret env input, do not include value in fingerprint details
   },
 });
 ```
@@ -138,7 +140,7 @@ const { hash } = await calculateFingerprint("/project/path", {
 const gitIgnoredPaths = getGitIgnoredPaths("/project/path");
 
 const { hash } = await calculateFingerprint("/project/path", {
-  ignores: [...gitIgnoredPaths, "other/excludes/**"],
+  ignores: [...gitIgnoredPaths, "other/ignores/**"],
 });
 ```
 
