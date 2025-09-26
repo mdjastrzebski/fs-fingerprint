@@ -26,7 +26,7 @@ describe("calculateFingerprint", () => {
   test("supports files and directories", async () => {
     writePaths(["file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);
 
-    const fingerprint = await calculateFingerprint({ basePath });
+    const fingerprint = await calculateFingerprint(basePath);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: b2ecd14046c04602378fbac3a04a2ec0408f4db0
@@ -42,7 +42,7 @@ describe("calculateFingerprint", () => {
     expect(findFile(fingerprint, "dir-1/file-2.txt")).toBeTruthy();
     expect(findFile(fingerprint, "dir-2/nested/file-3.txt")).toBeTruthy();
 
-    const fingerprintSync = calculateFingerprintSync({ basePath });
+    const fingerprintSync = calculateFingerprintSync(basePath);
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
@@ -54,7 +54,7 @@ describe("calculateFingerprint", () => {
       ],
     };
 
-    const fingerprint = await calculateFingerprint(options);
+    const fingerprint = await calculateFingerprint(basePath, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: d0ea126b88b40478b2683d693b535fc623ed1385
@@ -68,7 +68,7 @@ describe("calculateFingerprint", () => {
     expect(findData(fingerprint, "test-content-1")).toBeTruthy();
     expect(findData(fingerprint, "test-content-2")).toBeTruthy();
 
-    const fingerprintSync = calculateFingerprintSync(options);
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
@@ -86,7 +86,7 @@ describe("calculateFingerprint", () => {
       ],
     };
 
-    const fingerprint = await calculateFingerprint(options);
+    const fingerprint = await calculateFingerprint(basePath, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: 94c38b3e91afbd7723b623ef3778364015b2031d
@@ -112,7 +112,7 @@ describe("calculateFingerprint", () => {
     expect(findData(fingerprint, "test-json-7")).toBeTruthy();
     expect(findData(fingerprint, "test-json-8")).toBeTruthy();
 
-    const fingerprintSync = calculateFingerprintSync(options);
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
@@ -122,19 +122,18 @@ describe("calculateFingerprint", () => {
       contentInputs: [{ key: "test-json-1", unknown: "This will throw" }],
     };
 
-    expect(() => calculateFingerprint(options)).toThrow(/Unsupported input type/);
-    expect(() => calculateFingerprintSync(options)).toThrow(/Unsupported input type/);
+    expect(() => calculateFingerprint(basePath, options)).toThrow(/Unsupported input type/);
+    expect(() => calculateFingerprintSync(basePath, options)).toThrow(/Unsupported input type/);
   });
 
   test("supports file patterns", async () => {
     writePaths(["file-0.txt", "file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);
 
     const options: FingerprintOptions = {
-      basePath,
       files: ["file-1.txt", "dir-1/file-2.txt", "dir-2/", "non-existent.txt", "non-existent-dir/"],
     };
 
-    const fingerprint = await calculateFingerprint(options);
+    const fingerprint = await calculateFingerprint(basePath, options);
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: b2ecd14046c04602378fbac3a04a2ec0408f4db0
       Files:
@@ -153,7 +152,7 @@ describe("calculateFingerprint", () => {
     expect(findFile(fingerprint, "non-existent.txt")).toBeNull();
     expect(findFile(fingerprint, "non-existent-dir")).toBeNull();
 
-    const fingerprintSync = calculateFingerprintSync(options);
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
@@ -169,11 +168,10 @@ describe("calculateFingerprint", () => {
     ]);
 
     const options: FingerprintOptions = {
-      basePath,
       ignores: ["**/*.md", "dir-1"],
     };
 
-    const fingerprint = await calculateFingerprint(options);
+    const fingerprint = await calculateFingerprint(basePath, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: c18e6d8402009e2e2213ce0d1f845435703e6411
@@ -194,7 +192,7 @@ describe("calculateFingerprint", () => {
     expect(findFile(fingerprint, "dir-1/file-4.md")).toBeNull();
     expect(findFile(fingerprint, "dir-2/nested/file-6.md")).toBeNull();
 
-    const fingerprintSync = calculateFingerprintSync(options);
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
@@ -211,12 +209,11 @@ describe("calculateFingerprint", () => {
     ]);
 
     const options: FingerprintOptions = {
-      basePath,
       files: ["file-1.txt", "dir-1/", "dir-2"],
       ignores: ["**/*.md", "dir-2/nested"],
     };
 
-    const fingerprint = await calculateFingerprint(options);
+    const fingerprint = await calculateFingerprint(basePath, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: 1cb4f6d53cae1ab8068780c4e64cd4db9eabed45
@@ -237,7 +234,7 @@ describe("calculateFingerprint", () => {
     expect(findFile(fingerprint, "dir-2/nested/file-6.md")).toBeNull();
     expect(findFile(fingerprint, "dir-3/file-8.txt")).toBeNull();
 
-    const fingerprintSync = calculateFingerprintSync(options);
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
@@ -249,11 +246,10 @@ describe("calculateFingerprint", () => {
     );
 
     const options: FingerprintOptions = {
-      basePath,
       files: ["dir-1/file-link1.txt"],
     };
 
-    const fingerprint = await calculateFingerprint(options);
+    const fingerprint = await calculateFingerprint(basePath, options);
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: 4e8e0ad25176ea41bb7a701b9619a044a27b50da
       Files:
@@ -264,7 +260,7 @@ describe("calculateFingerprint", () => {
 
     expect(findFile(fingerprint, "dir-1/file-link1.txt")).toBeTruthy();
 
-    const fingerprintSync = calculateFingerprintSync(options);
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
@@ -272,11 +268,10 @@ describe("calculateFingerprint", () => {
     writePaths(["file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);
 
     const options: FingerprintOptions = {
-      basePath,
       hashAlgorithm: "null",
     };
 
-    const fingerprint = await calculateFingerprint(options);
+    const fingerprint = await calculateFingerprint(basePath, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: (null)
@@ -292,7 +287,7 @@ describe("calculateFingerprint", () => {
     expect(findFile(fingerprint, "dir-1/file-2.txt")).toBeTruthy();
     expect(findFile(fingerprint, "dir-2/nested/file-3.txt")).toBeTruthy();
 
-    const fingerprintSync = calculateFingerprintSync(options);
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
@@ -302,11 +297,11 @@ describe("calculateFingerprint", () => {
     writePaths(["root-file.txt"]);
 
     const options: FingerprintOptions = {
-      basePath: path.join(basePath, "pkg/a"),
       files: ["**/*.txt", "../../pkg/b/**/*.txt", "../../root-file.txt"],
     };
 
-    const fingerprint = await calculateFingerprint(options);
+    const packagePath = path.join(basePath, "pkg/a");
+    const fingerprint = await calculateFingerprint(packagePath, options);
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: 517f0f053c6726df50bdf41e4d2f2f1f8c58feca
       Files:
@@ -328,7 +323,7 @@ describe("calculateFingerprint", () => {
     expect(findFile(fingerprint, "../b/dir/file2.txt")).toBeTruthy();
     expect(findFile(fingerprint, "../b/dir/subdir/file3.txt")).toBeTruthy();
 
-    const fingerprintSync = calculateFingerprintSync(options);
+    const fingerprintSync = calculateFingerprintSync(packagePath, options);
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
@@ -344,8 +339,8 @@ describe("calculateFingerprint", () => {
       cwd: basePath,
     });
 
-    const packagePath = path.join(basePath, "pkg/a");
-    const ignoredPaths = getGitIgnoredPaths({ basePath: packagePath, entireRepo: true });
+    const packageRootPath = path.join(basePath, "pkg/a");
+    const ignoredPaths = getGitIgnoredPaths(packageRootPath, { entireRepo: true });
     expect(ignoredPaths).toMatchInlineSnapshot(`
       [
         "../../root-file.md",
@@ -359,12 +354,11 @@ describe("calculateFingerprint", () => {
     `);
 
     const options: FingerprintOptions = {
-      basePath: packagePath,
       files: ["**/*.txt", "../../pkg/b", "../../root-file.*"],
       ignores: [...ignoredPaths],
     };
 
-    const fingerprint = await calculateFingerprint(options);
+    const fingerprint = await calculateFingerprint(packageRootPath, options);
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: 517f0f053c6726df50bdf41e4d2f2f1f8c58feca
       Files:
@@ -394,7 +388,7 @@ describe("calculateFingerprint", () => {
     expect(findFile(fingerprint, "../b/dir/file2.md")).toBeNull();
     expect(findFile(fingerprint, "../b/dir/subdir/file3.md")).toBeNull();
 
-    const fingerprintSync = calculateFingerprintSync(options);
+    const fingerprintSync = calculateFingerprintSync(packageRootPath, options);
     expect(fingerprintSync).toEqual(fingerprint);
   });
 });

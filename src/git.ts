@@ -3,11 +3,13 @@ import * as nodePath from "node:path";
 import { escapePath } from "tinyglobby";
 
 export interface GetGitIgnoredPathsOptions {
-  basePath: string;
   entireRepo?: boolean;
 }
 
-export function getGitIgnoredPaths({ basePath, entireRepo }: GetGitIgnoredPathsOptions): string[] {
+export function getGitIgnoredPaths(
+  basePath: string,
+  { entireRepo }: GetGitIgnoredPathsOptions = {},
+): string[] {
   const cwd = entireRepo ? getGitRootPath(basePath) : nodePath.resolve(basePath);
 
   try {

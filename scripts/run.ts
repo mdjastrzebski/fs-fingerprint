@@ -11,6 +11,21 @@ import {
   getGitIgnoredPaths,
 } from "../src/index.js";
 
+const defaultOptions: FingerprintOptions = {
+  files: ["android", "package.json"],
+  ignores: ["node_modules", "dist"],
+};
+
+const iosOptions: FingerprintOptions = {
+  files: ["ios", "package.json"],
+  ignores: ["node_modules", "dist"],
+};
+
+const androidOptions: FingerprintOptions = {
+  files: ["android", "package.json"],
+  ignores: ["node_modules", "dist"],
+};
+
 const { values, positionals } = parseArgs({
   options: {
     baseline: { type: "boolean" },
@@ -19,24 +34,6 @@ const { values, positionals } = parseArgs({
   },
   allowPositionals: true,
 });
-
-const defaultOptions: FingerprintOptions = {
-  basePath: positionals[0] ?? process.cwd(),
-  files: ["android", "package.json"],
-  ignores: ["node_modules", "dist"],
-};
-
-const iosOptions: FingerprintOptions = {
-  basePath: positionals[0] ?? process.cwd(),
-  files: ["ios", "package.json"],
-  ignores: ["node_modules", "dist"],
-};
-
-const androidOptions: FingerprintOptions = {
-  basePath: positionals[0] ?? process.cwd(),
-  files: ["android", "package.json"],
-  ignores: ["node_modules", "dist"],
-};
 
 const isBaseline = values.baseline ?? false;
 
@@ -56,7 +53,7 @@ async function main() {
   console.log("Options:", options);
 
   const tsGitIgnore0 = performance.now();
-  const gitIgnoredPaths = getGitIgnoredPaths({ basePath });
+  const gitIgnoredPaths = getGitIgnoredPaths(basePath);
   const tsGitIgnore1 = performance.now();
   console.log(
     `Git-Ignored paths (${(tsGitIgnore1 - tsGitIgnore0).toFixed(1)}ms):`,
@@ -67,12 +64,12 @@ async function main() {
   const outputDir = join(basePath, ".fingerprint");
 
   const tsSync0 = performance.now();
-  const fingerprintSync = calculateFingerprintSync(options);
+  const fingerprintSync = calculateFingerprintSync(basePath, options);
   const tsSync1 = performance.now();
   console.log(`Sync Fingerprint: ${(tsSync1 - tsSync0).toFixed(1)}ms`);
 
   const tsAsync0 = performance.now();
-  const fingerprint = await calculateFingerprint(options);
+  const fingerprint = await calculateFingerprint(basePath, options);
   const tsAsync1 = performance.now();
   console.log(`Async Fingerprint: ${(tsAsync1 - tsAsync0).toFixed(1)}ms`);
   compareFingerprints(fingerprint, fingerprintSync, "Sync Fingerprint check");

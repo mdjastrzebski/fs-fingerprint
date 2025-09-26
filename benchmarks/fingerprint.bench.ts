@@ -36,10 +36,10 @@ async function runBenchmarks(): Promise<void> {
   const lodashPath = repoPaths.get("lodash");
   if (lodashPath) {
     bench.add("lodash-sync", () => {
-      calculateFingerprintSync({ basePath: lodashPath });
+      calculateFingerprintSync(lodashPath);
     });
     bench.add("lodash", async () => {
-      await calculateFingerprint({ basePath: lodashPath });
+      await calculateFingerprint(lodashPath);
     });
   }
 
@@ -47,10 +47,10 @@ async function runBenchmarks(): Promise<void> {
   const expressPath = repoPaths.get("express");
   if (expressPath) {
     bench.add("express-sync", () => {
-      calculateFingerprintSync({ basePath: expressPath });
+      calculateFingerprintSync(expressPath);
     });
     bench.add("express", async () => {
-      await calculateFingerprint({ basePath: expressPath });
+      await calculateFingerprint(expressPath);
     });
   }
 
@@ -58,37 +58,36 @@ async function runBenchmarks(): Promise<void> {
   const reactPath = repoPaths.get("react");
   if (reactPath) {
     bench.add("react-sync", () => {
-      calculateFingerprintSync({ basePath: reactPath });
+      calculateFingerprintSync(reactPath);
     });
     bench.add("react", async () => {
-      await calculateFingerprint({ basePath: reactPath });
+      await calculateFingerprint(reactPath);
     });
   }
 
   // React Native benchmarks
+  const reactNativeOptions: FingerprintOptions = {
+    files: ["packages", "package.json", "README.md"],
+    ignores: ["**/node_modules/**", "**/.git/**"],
+  };
+
   const reactNativePath = repoPaths.get("react-native");
   if (reactNativePath) {
-    const reactNativeOptions: FingerprintOptions = {
-      basePath: reactNativePath,
-      files: ["packages", "package.json", "README.md"],
-      ignores: ["**/node_modules/**", "**/.git/**"],
-    };
-
     bench.add("react-native-sync", () => {
-      calculateFingerprintSync(reactNativeOptions);
+      calculateFingerprintSync(reactNativePath, reactNativeOptions);
     });
     bench.add("react-native", async () => {
-      await calculateFingerprint(reactNativeOptions);
+      await calculateFingerprint(reactNativePath, reactNativeOptions);
     });
 
     bench.add("react-native (null hash)-sync", () => {
-      calculateFingerprintSync({
+      calculateFingerprintSync(reactNativePath, {
         ...reactNativeOptions,
         hashAlgorithm: "null",
       });
     });
     bench.add("react-native (null hash)", async () => {
-      await calculateFingerprint({
+      await calculateFingerprint(reactNativePath, {
         ...reactNativeOptions,
         hashAlgorithm: "null",
       });
@@ -97,28 +96,26 @@ async function runBenchmarks(): Promise<void> {
 
   // Expensify benchmarks
   const expensifyPath = repoPaths.get("expensify");
+  const iosOptions: FingerprintOptions = {
+    files: ["ios", "package.json"],
+  };
+
+  const androidOptions: FingerprintOptions = {
+    files: ["android", "package.json"],
+  };
 
   if (expensifyPath) {
-    const iosOptions: FingerprintOptions = {
-      basePath: expensifyPath,
-      files: ["ios/", "package.json"],
-    };
-
-    const androidOptions: FingerprintOptions = {
-      basePath: expensifyPath,
-      files: ["android/", "package.json"],
-    };
     bench.add("expensify-ios-sync", () => {
-      calculateFingerprintSync(iosOptions);
+      calculateFingerprintSync(expensifyPath, iosOptions);
     });
     bench.add("expensify-ios", async () => {
-      await calculateFingerprint(iosOptions);
+      await calculateFingerprint(expensifyPath, iosOptions);
     });
     bench.add("expensify-android-sync", () => {
-      calculateFingerprintSync(androidOptions);
+      calculateFingerprintSync(expensifyPath, androidOptions);
     });
     bench.add("expensify-android", async () => {
-      await calculateFingerprint(androidOptions);
+      await calculateFingerprint(expensifyPath, androidOptions);
     });
   }
 
