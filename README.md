@@ -22,7 +22,7 @@ Perfect for building intelligent caching solutions that automatically invalidate
 ```ts
 import { calculateFingerprint } from "fs-fingerprint";
 
-const { hash } = await calculateFingerprint("path/to/project", {
+const { hash } = await calculateFingerprint("/project/path", {
   files: ["ios/", "package.json"],
   ignores: ["build/"],
 });
@@ -105,14 +105,14 @@ Helper function to get list of paths ignored by Git from `.gitignore` and other 
 **Basic usage:**
 
 ```typescript
-const { hash } = await calculateFingerprint("path/to/project");
+const { hash } = await calculateFingerprint("/project/path");
 console.log(hash); // "abc123..."
 ```
 
 **Using include/exclude patterns:**
 
 ```typescript
-const { hash } = await calculateFingerprint("path/to/project", {
+const { hash } = await calculateFingerprint("/project/path", {
   files: ["src/", "package.json"],
   ignores: ["**/*.test.ts", "dist"],
 });
@@ -121,7 +121,7 @@ const { hash } = await calculateFingerprint("path/to/project", {
 **Using content inputs:**
 
 ```typescript
-const { hash } = await calculateFingerprint("path/to/project", {
+const { hash } = await calculateFingerprint("/project/path", {
   contentInputs: {
     someConfig: textContent("debug=true"), // text content
     soMetadata: jsonContent({ version: "1.0", env: "prod" }), // JSON data: objects, arrays, primitives
@@ -135,9 +135,9 @@ const { hash } = await calculateFingerprint("path/to/project", {
 
 ```typescript
 // Get list of git-ignored paths
-const gitIgnoredPaths = getGitIgnoredPaths("path/to/project");
+const gitIgnoredPaths = getGitIgnoredPaths("/project/path");
 
-const { hash } = await calculateFingerprint("path/to/project", {
+const { hash } = await calculateFingerprint("/project/path", {
   ignores: [...gitIgnoredPaths, "other/excludes/**"],
 });
 ```
@@ -145,7 +145,7 @@ const { hash } = await calculateFingerprint("path/to/project", {
 **Custom hash algorithm:**
 
 ```typescript
-const { hash } = await calculateFingerprint("path/to/project", {
+const { hash } = await calculateFingerprint("/project/path", {
   hashAlgorithm: "sha512",
 });
 ```
@@ -153,7 +153,7 @@ const { hash } = await calculateFingerprint("path/to/project", {
 **Synchronous call (slower):**
 
 ```typescript
-const { hash } = calculateFingerprintSync("path/to/project", { ...options });
+const { hash } = calculateFingerprintSync("/project/path", { ...options });
 ```
 
 ## Design Considerations
