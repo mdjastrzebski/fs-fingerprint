@@ -12,6 +12,7 @@ import {
   type FingerprintOptions,
   getGitIgnoredPaths,
 } from "../index.js";
+import { jsonContent } from "../inputs/content.js";
 
 const PATHS_TXT = ["file1.txt", "dir/file2.txt", "dir/subdir/file3.txt"];
 const PATHS_MD = ["file1.md", "dir/file2.md", "dir/subdir/file3.md"];
@@ -48,10 +49,10 @@ describe("calculateFingerprint", () => {
 
   test("supports content inputs", async () => {
     const options: FingerprintOptions = {
-      contentInputs: [
-        { key: "test-content-1", content: "Hello, world!" },
-        { key: "test-content-2", content: "Lorem ipsum" },
-      ],
+      contentInputs: {
+        "test-content-1": { content: "Hello, world!" },
+        "test-content-2": { content: "Lorem ipsum" },
+      },
     };
 
     const fingerprint = await calculateFingerprint(basePath, options);
@@ -74,16 +75,16 @@ describe("calculateFingerprint", () => {
 
   test("supports json inputs", async () => {
     const options: FingerprintOptions = {
-      contentInputs: [
-        { key: "test-json-1", json: { foo: "bar", baz: 123 } },
-        { key: "test-json-2", json: ["Hello", 123, null, { foo: "bar" }, ["nested", "array"]] },
-        { key: "test-json-3", json: "Hello, world!" },
-        { key: "test-json-4", json: 123 },
-        { key: "test-json-5", json: true },
-        { key: "test-json-6", json: false },
-        { key: "test-json-7", json: null },
-        { key: "test-json-8", json: undefined },
-      ],
+      contentInputs: {
+        "test-json-1": jsonContent({ foo: "bar", baz: 123 }),
+        "test-json-2": jsonContent(["Hello", 123, null, { foo: "bar" }, ["nested", "array"]]),
+        "test-json-3": jsonContent("Hello, world!"),
+        "test-json-4": jsonContent(123),
+        "test-json-5": jsonContent(true),
+        "test-json-6": jsonContent(false),
+        "test-json-7": jsonContent(null),
+        "test-json-8": jsonContent(undefined),
+      },
     };
 
     const fingerprint = await calculateFingerprint(basePath, options);
@@ -114,16 +115,6 @@ describe("calculateFingerprint", () => {
 
     const fingerprintSync = calculateFingerprintSync(basePath, options);
     expect(fingerprintSync).toEqual(fingerprint);
-  });
-
-  test("throws for unsupported input type", async () => {
-    const options: FingerprintOptions = {
-      // @ts-expect-error - This is intentionally invalid input type
-      contentInputs: [{ key: "test-json-1", unknown: "This will throw" }],
-    };
-
-    expect(() => calculateFingerprint(basePath, options)).toThrow(/Unsupported input type/);
-    expect(() => calculateFingerprintSync(basePath, options)).toThrow(/Unsupported input type/);
   });
 
   test("supports file patterns", async () => {

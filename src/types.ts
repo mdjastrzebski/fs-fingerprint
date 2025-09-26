@@ -15,7 +15,7 @@ export interface FingerprintOptions {
   ignores?: readonly string[];
 
   /** Extra inputs to include in the fingerprint: content, json, etc */
-  contentInputs?: Input[];
+  contentInputs?: Record<string, ContentValue>;
 
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
@@ -32,23 +32,14 @@ export interface Config {
   hashAlgorithm?: HashAlgorithm;
 }
 
-export type Input = ContentInput | JsonInput | EnvInput;
-
 export interface ContentInput {
   key: string;
   content: string;
   secret?: boolean;
 }
 
-export interface JsonInput {
-  key: string;
-  json: unknown;
-  secret?: boolean;
-}
-
-export interface EnvInput {
-  key: string;
-  envs: string[];
+export interface ContentValue {
+  content: string;
   secret?: boolean;
 }
 

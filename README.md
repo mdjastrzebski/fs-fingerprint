@@ -122,12 +122,12 @@ const { hash } = await calculateFingerprint("path/to/project", {
 
 ```typescript
 const { hash } = await calculateFingerprint("path/to/project", {
-  contentInputs: [
-    { key: "some-config", content: "debug=true" }, // text input
-    { key: "so-metadata", json: { version: "1.0", env: "prod" } }, // JSON data: objects, arrays, primitives
-    { key: "much-envs", envs: ["BUILD_ENVIRONMENT", "FEATURE_FLAG"] }, // env variables
-    { key: "api-key", envs: ["API_KEY"], secret: true }, // secret env input, do not include value in fingerprint details
-  ],
+  contentInputs: {
+    someConfig: textContent("debug=true"), // text content
+    soMetadata: jsonContent({ version: "1.0", env: "prod" }), // JSON data: objects, arrays, primitives
+    muchEnvs: envContent(["BUILD_ENVIRONMENT", "FEATURE_FLAG"]), // env variables
+    apiKey: envContent(["API_KEY"], { secret: true }), // secret env input, do not include value in fingerprint details
+  },
 });
 ```
 

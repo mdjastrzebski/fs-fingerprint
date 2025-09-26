@@ -3,7 +3,13 @@ import pLimit from "p-limit";
 import { DEFAULT_CONCURRENCY } from "./constants.js";
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
-import type { Config, Fingerprint, FingerprintOptions } from "./types.js";
+import type {
+  Config,
+  ContentInput,
+  ContentValue,
+  Fingerprint,
+  FingerprintOptions,
+} from "./types.js";
 import { getInputFiles, getInputFilesSync, mergeHashes } from "./utils.js";
 
 export async function calculateFingerprint(
@@ -26,9 +32,11 @@ export async function calculateFingerprint(
     inputFiles.map((path) => limit(() => calculateFileHash(path, config))),
   );
 
-  const content = contentInputs?.map((input) => calculateContentHash(input, config)) ?? [];
+  const contentHashes = contentInputs
+    ? getContentInputs(contentInputs)?.map((input) => calculateContentHash(input, config))
+    : [];
 
-  return mergeHashes(fileHashes, content, config);
+  return mergeHashes(fileHashes, contentHashes, config);
 }
 
 export function calculateFingerprintSync(
@@ -48,7 +56,15 @@ export function calculateFingerprintSync(
 
   const fileHashes = inputFiles.map((path) => calculateFileHashSync(path, config));
 
-  const contentHashes = contentInputs?.map((input) => calculateContentHash(input, config)) ?? [];
+  const contentHashes = contentInputs
+    ? getContentInputs(contentInputs)?.map((input) => calculateContentHash(input, config))
+    : [];
 
   return mergeHashes(fileHashes, contentHashes, config);
+}
+
+function getContentInputs(contentInputs: Record<string, ContentValue>): ContentInput[] {
+  return Object.entries(contentInputs).map(([key, value]) => {
+    return { key, ...value };
+  });
 }
