@@ -48,7 +48,7 @@ describe("calculateFingerprint", () => {
 
   test("supports content inputs", async () => {
     const options: FingerprintOptions = {
-      content: {
+      extraInputs: {
         "test-content-1": { content: "Hello, world!" },
         "test-content-2": { content: "Lorem ipsum" },
       },
@@ -73,7 +73,7 @@ describe("calculateFingerprint", () => {
 
   test("supports json inputs", async () => {
     const options: FingerprintOptions = {
-      content: {
+      extraInputs: {
         "test-json-1": jsonContent({ foo: "bar", baz: 123 }),
         "test-json-2": jsonContent(["Hello", 123, null, { foo: "bar" }, ["nested", "array"]]),
         "test-json-3": jsonContent("Hello, world!"),

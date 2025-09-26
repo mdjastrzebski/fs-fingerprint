@@ -42,7 +42,7 @@ async function calculateFingerprint(
   options?: {
     files?: string[]; // Glob patterns to include files and directories (default: include all)
     ignores?: string[]; // Glob patterns to exclude files and directories (default: ignore none)
-    content?: Input[]; // Additional inputs: text, JSON, envs, etc.
+    extraInputs?: InputRecord; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
     concurrency?: number; // Number of concurrent file reads (default: 16)
   }
@@ -72,7 +72,7 @@ function calculateFingerprintSync(
   options?: {
     files?: string[]; // Glob patterns to include files and directories (default: include all)
     ignores?: string[]; // Glob patterns to exclude files and directories (default: ignore none)
-    content?: Input[]; // Additional inputs: text, JSON, envs, etc.
+    extraInputs?: InputRecord; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
   }
 ): Fingerprint;
@@ -124,6 +124,7 @@ const { hash } = await calculateFingerprint("/project/path", {
 
 ```typescript
 const { hash } = await calculateFingerprint("/project/path", {
+  // ...
   content: {
     "app-config": textContent("debug=true"), // text content
     "app-metadata": jsonContent({ version: "1.0", env: "prod" }), // JSON data: objects, arrays, primitives

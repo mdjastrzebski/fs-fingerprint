@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { EMPTY_HASH } from "../constants.js";
 import type { Config, FileHash } from "../types.js";
-import { hashContent, normalizeFilePath } from "../utils.js";
+import { hashData, normalizeFilePath } from "../utils.js";
 
 export async function calculateFileHash(path: string, config: Config): Promise<FileHash> {
   const normalizedPath = normalizeFilePath(path);
@@ -19,7 +19,7 @@ export async function calculateFileHash(path: string, config: Config): Promise<F
   const content = await readFile(pathWithBase, "utf8");
   return {
     path: normalizedPath,
-    hash: hashContent(content, config),
+    hash: hashData(content, config),
   };
 }
 
@@ -36,6 +36,6 @@ export function calculateFileHashSync(path: string, config: Config): FileHash {
   const content = readFileSync(pathWithBase, "utf8");
   return {
     path: normalizedPath,
-    hash: hashContent(content, config),
+    hash: hashData(content, config),
   };
 }

@@ -14,8 +14,8 @@ export interface FingerprintOptions {
   /** Glob patterns indicating files (and directories) to ignore */
   ignores?: readonly string[];
 
-  /** Extra inputs to include in the fingerprint: content, json, etc */
-  content?: Record<string, ContentValue>;
+  /** Extra inputs to include in the fingerprint: text, json, etc */
+  extraInputs?: InputRecord;
 
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
@@ -32,13 +32,10 @@ export interface Config {
   hashAlgorithm?: HashAlgorithm;
 }
 
+export type InputRecord = { [key: string]: Omit<ContentInput, "key"> };
+
 export interface ContentInput {
   key: string;
-  content: string;
-  secret?: boolean;
-}
-
-export interface ContentValue {
   content: string;
   secret?: boolean;
 }

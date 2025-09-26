@@ -8,7 +8,7 @@ import { getInputFiles, getInputFilesSync, mergeHashes } from "./utils.js";
 
 export async function calculateFingerprint(
   basePath: string,
-  { hashAlgorithm, files, ignores, content, concurrency }: FingerprintOptions = {},
+  { hashAlgorithm, files, ignores, extraInputs: content, concurrency }: FingerprintOptions = {},
 ): Promise<Fingerprint> {
   const config: Config = {
     basePath,
@@ -22,13 +22,12 @@ export async function calculateFingerprint(
   );
 
   const contentHashes = content ? calculateContentHashes(content, config) : [];
-
   return mergeHashes(fileHashes, contentHashes, config);
 }
 
 export function calculateFingerprintSync(
   basePath: string,
-  { hashAlgorithm, files, ignores, content }: FingerprintOptions = {},
+  { hashAlgorithm, files, ignores, extraInputs: content }: FingerprintOptions = {},
 ): Fingerprint {
   const config: Config = {
     basePath,
@@ -37,7 +36,7 @@ export function calculateFingerprintSync(
 
   const inputFiles = getInputFilesSync(basePath, { files, ignores });
   const fileHashes = inputFiles.map((path) => calculateFileHashSync(path, config));
-  const contentHashes = content ? calculateContentHashes(content, config) : [];
 
+  const contentHashes = content ? calculateContentHashes(content, config) : [];
   return mergeHashes(fileHashes, contentHashes, config);
 }

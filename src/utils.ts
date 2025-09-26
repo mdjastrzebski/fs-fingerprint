@@ -4,7 +4,7 @@ import { glob, globSync } from "tinyglobby";
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { Config, ContentHash, FileHash, Fingerprint } from "./types.js";
 
-export function hashContent(content: string | Uint8Array, config: Config) {
+export function hashData(content: string | Uint8Array, config: Config) {
   if (config.hashAlgorithm === "null") {
     return EMPTY_HASH;
   }

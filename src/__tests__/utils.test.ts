@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
 import type { ContentHash, FileHash } from "../types.js";
-import { getInputFiles, getInputFilesSync, hashContent, mergeHashes } from "../utils.js";
+import { getInputFiles, getInputFilesSync, hashData, mergeHashes } from "../utils.js";
 
 const baseConfig = {
   basePath: "not-used",
@@ -16,12 +16,12 @@ beforeEach(() => {
 
 describe("hashContent", () => {
   test("handles basic case", () => {
-    const hash = hashContent("Hello, world!", baseConfig);
+    const hash = hashData("Hello, world!", baseConfig);
     expect(hash).toMatchInlineSnapshot(`"943a702d06f34599aee1f8da8ef9f7296031d699"`);
   });
 
   test("handles null algorithm", () => {
-    const hash = hashContent("Hello, world!", { ...baseConfig, hashAlgorithm: "null" });
+    const hash = hashData("Hello, world!", { ...baseConfig, hashAlgorithm: "null" });
     expect(hash).toEqual("(null)");
   });
 });

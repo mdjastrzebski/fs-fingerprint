@@ -1,10 +1,7 @@
-import type { Config, ContentHash, ContentInput, ContentValue } from "../types.js";
-import { hashContent } from "../utils.js";
+import type { Config, ContentHash, ContentInput, InputRecord } from "../types.js";
+import { hashData } from "../utils.js";
 
-export function calculateContentHashes(
-  inputs: Record<string, ContentValue>,
-  config: Config,
-): ContentHash[] {
+export function calculateContentHashes(inputs: InputRecord, config: Config): ContentHash[] {
   return Object.entries(inputs)
     .map(([key, value]) => calculateContentHash({ key, ...value }, config))
     .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
@@ -13,19 +10,25 @@ export function calculateContentHashes(
 export function calculateContentHash(input: ContentInput, config: Config): ContentHash {
   return {
     key: input.key,
-    hash: hashContent(input.content, config),
+    hash: hashData(input.content, config),
     content: input.secret ? undefined : input.content,
   };
 }
 
-export function textContent(text: string, options?: { secret?: boolean }): ContentValue {
+export function textContent(
+  text: string,
+  options?: { secret?: boolean },
+): Omit<ContentInput, "key"> {
   return {
     content: text,
     secret: options?.secret,
   };
 }
 
-export function jsonContent(json: unknown, options?: { secret?: boolean }): ContentValue {
+export function jsonContent(
+  json: unknown,
+  options?: { secret?: boolean },
+): Omit<ContentInput, "key"> {
   const content = safeJsonStringify(normalizeJson(json));
   return {
     content,
@@ -33,7 +36,10 @@ export function jsonContent(json: unknown, options?: { secret?: boolean }): Cont
   };
 }
 
-export function envContent(envs: string[], options?: { secret?: boolean }): ContentValue {
+export function envContent(
+  envs: string[],
+  options?: { secret?: boolean },
+): Omit<ContentInput, "key"> {
   const envJson: Record<string, string | undefined> = {};
   for (const key of envs) {
     envJson[key] = process.env[key] ?? "";
