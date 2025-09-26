@@ -125,7 +125,7 @@ describe("getGitIgnoredPaths", () => {
   });
 });
 
-describe("remapPaths", () => {
+describe("rebasePaths", () => {
   test("handles basic cases", () => {
     expect(rebasePath("file.txt", "/a/b/", "/a/b/c/")).toEqual("../file.txt");
     expect(rebasePath("file.txt", "/a/", "/a/b/c/")).toEqual("../../file.txt");

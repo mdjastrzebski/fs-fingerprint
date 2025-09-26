@@ -62,7 +62,7 @@ interface Fingerprint {
 
 ```ts
 function calculateFingerprintSync(
-  basePath: string; // Path to directory that the config applies to, if not provided, only `contentInputs` are considered
+  basePath: string; // Base path to relsolve "files" and "ignores" patterns against
   options?: {
     files?: string[]; // Glob patterns to include files and directories (default: all)
     ignores?: string[]; // Glob patterns to exclude files and directories (default: none)
@@ -125,7 +125,7 @@ const { hash } = await calculateFingerprint("path/to/project", {
   contentInputs: [
     { key: "some-config", content: "debug=true" }, // text input
     { key: "so-metadata", json: { version: "1.0", env: "prod" } }, // JSON data: objects, arrays, primitives
-    { key: "much-envs", envs: ["BUILD_ENVIROMENT", "FEATURE_FLAG"] }, // env variables
+    { key: "much-envs", envs: ["BUILD_ENVIRONMENT", "FEATURE_FLAG"] }, // env variables
     { key: "api-key", envs: ["API_KEY"], secret: true }, // secret env input, do not include value in fingerprint details
   ],
 });
