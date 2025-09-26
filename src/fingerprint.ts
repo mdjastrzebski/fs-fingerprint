@@ -15,13 +15,8 @@ export async function calculateFingerprint(
     hashAlgorithm,
   };
 
-  const inputFiles = await getInputFiles({
-    basePath,
-    files,
-    ignores,
-  });
-
   const limit = pLimit(concurrency ?? DEFAULT_CONCURRENCY);
+  const inputFiles = await getInputFiles(basePath, { files, ignores });
   const fileHashes = await Promise.all(
     inputFiles.map((path) => limit(() => calculateFileHash(path, config))),
   );
@@ -40,12 +35,7 @@ export function calculateFingerprintSync(
     hashAlgorithm,
   };
 
-  const inputFiles = getInputFilesSync({
-    basePath,
-    files,
-    ignores,
-  });
-
+  const inputFiles = getInputFilesSync(basePath, { files, ignores });
   const fileHashes = inputFiles.map((path) => calculateFileHashSync(path, config));
   const contentHashes = content ? calculateContentHashes(content, config) : [];
 

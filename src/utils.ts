@@ -58,16 +58,14 @@ export function mergeHashes(
 }
 
 export type GetInputFilesOptions = {
-  basePath: string;
   files?: readonly string[];
   ignores?: readonly string[];
 };
 
-export async function getInputFiles({
-  basePath,
-  files = ["**"],
-  ignores,
-}: GetInputFilesOptions): Promise<string[]> {
+export async function getInputFiles(
+  basePath: string,
+  { files = ["**"], ignores }: GetInputFilesOptions,
+): Promise<string[]> {
   const paths = await glob(files, {
     cwd: basePath,
     ignore: ignores,
@@ -78,11 +76,10 @@ export async function getInputFiles({
   return paths;
 }
 
-export function getInputFilesSync({
-  basePath,
-  files = ["**"],
-  ignores,
-}: GetInputFilesOptions): string[] {
+export function getInputFilesSync(
+  basePath: string,
+  { files = ["**"], ignores }: GetInputFilesOptions,
+): string[] {
   const paths = globSync(files, {
     cwd: basePath,
     ignore: ignores,
