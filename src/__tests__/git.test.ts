@@ -3,9 +3,9 @@ import * as path from "node:path";
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
-import { getGitIgnoredPaths, remapPaths } from "../git.js";
+import { getGitIgnoredPaths, rebasePath } from "../git.js";
 
-const { rootDir, prepareRootDir, writePaths, writeFile } = createRootDir("git-test");
+const { basePath, prepareRootDir, writePaths, writeFile } = createRootDir("git-test");
 
 beforeEach(() => {
   prepareRootDir();
@@ -23,10 +23,10 @@ describe("getGitIgnoredPaths", () => {
     writeFile("dir/.gitignore", "file2.txt");
 
     execSync("git init", {
-      cwd: rootDir,
+      cwd: basePath,
     });
 
-    const ignoredFiles = getGitIgnoredPaths(rootDir);
+    const ignoredFiles = getGitIgnoredPaths(basePath);
     expect(ignoredFiles).toMatchInlineSnapshot(`
       [
         "dir/file2.md",
@@ -42,7 +42,7 @@ describe("getGitIgnoredPaths", () => {
     expect(ignoredFiles).toContain("dir/subdir/");
     expect(ignoredFiles).not.toContain("file1.txt");
 
-    const ignoredFilesWithOutside = getGitIgnoredPaths(rootDir, { entireRepo: true });
+    const ignoredFilesWithOutside = getGitIgnoredPaths(basePath, { entireRepo: true });
     expect(ignoredFilesWithOutside).toEqual(ignoredFiles);
   });
 
@@ -51,7 +51,7 @@ describe("getGitIgnoredPaths", () => {
     writePaths(PATHS_MD);
     writeFile(".gitignore", "*.md\ndir/subdir/");
 
-    expect(() => getGitIgnoredPaths(rootDir)).toThrowErrorMatchingInlineSnapshot(`
+    expect(() => getGitIgnoredPaths(basePath)).toThrowErrorMatchingInlineSnapshot(`
       "Failed to get git ignored files.
 
       Command failed: git ls-files -z --others --ignored --exclude-standard --directory
@@ -59,7 +59,7 @@ describe("getGitIgnoredPaths", () => {
       "
     `);
 
-    expect(() => getGitIgnoredPaths(rootDir, { entireRepo: true }))
+    expect(() => getGitIgnoredPaths(basePath, { entireRepo: true }))
       .toThrowErrorMatchingInlineSnapshot(`
       "Failed to get git root path.
 
@@ -76,10 +76,10 @@ describe("getGitIgnoredPaths", () => {
 
     writeFile(`.gitignore`, "*.md");
     execSync("git init", {
-      cwd: rootDir,
+      cwd: basePath,
     });
 
-    const packageDir = path.join(rootDir, pkgPath);
+    const packageDir = path.join(basePath, pkgPath);
     const ignoredFiles = getGitIgnoredPaths(packageDir);
     expect(ignoredFiles).toMatchInlineSnapshot(`
       [
@@ -105,9 +105,9 @@ describe("getGitIgnoredPaths", () => {
     writePaths(["pkg/js/package.json"]);
 
     writeFile(`.gitignore`, "*.md");
-    execSync("git init", { cwd: rootDir });
+    execSync("git init", { cwd: basePath });
 
-    const jsPkgPath = path.join(rootDir, "pkg/js");
+    const jsPkgPath = path.join(basePath, "pkg/js");
     const ignoredFiles = getGitIgnoredPaths(jsPkgPath, { entireRepo: true });
     expect(ignoredFiles).toMatchInlineSnapshot(`
       [
@@ -125,9 +125,9 @@ describe("getGitIgnoredPaths", () => {
   });
 });
 
-describe("remapPaths", () => {
+describe("rebasePaths", () => {
   test("handles basic cases", () => {
-    expect(remapPaths("file.txt", "/a/b/", "/a/b/c/")).toEqual("../file.txt");
-    expect(remapPaths("file.txt", "/a/", "/a/b/c/")).toEqual("../../file.txt");
+    expect(rebasePath("file.txt", "/a/b/", "/a/b/c/")).toEqual("../file.txt");
+    expect(rebasePath("file.txt", "/a/", "/a/b/c/")).toEqual("../../file.txt");
   });
 });

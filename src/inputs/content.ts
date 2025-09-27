@@ -1,39 +1,54 @@
-import type { Config, ContentHash, Input } from "../types.js";
-import { hashContent } from "../utils.js";
+import type { Config, ContentHash, ContentInput } from "../types.js";
+import { hashData } from "../utils.js";
 
-export function calculateContentHash(input: Input, config: Config): ContentHash {
-  if ("content" in input) {
-    return {
-      key: input.key,
-      hash: hashContent(input.content, config),
-      content: input.secret ? undefined : input.content,
-    };
+export function calculateContentHash(input: ContentInput, config: Config): ContentHash {
+  return {
+    key: input.key,
+    hash: hashData(input.content, config),
+    content: input.secret ? undefined : input.content,
+  };
+}
+
+export function textContent(
+  key: string,
+  text: string,
+  options?: { secret?: boolean },
+): ContentInput {
+  return {
+    key,
+    content: text,
+    secret: options?.secret,
+  };
+}
+
+export function jsonContent(
+  key: string,
+  json: unknown,
+  options?: { secret?: boolean },
+): ContentInput {
+  const content = safeJsonStringify(normalizeJson(json));
+  return {
+    key,
+    content,
+    secret: options?.secret,
+  };
+}
+
+export function envContent(
+  key: string,
+  envs: string[],
+  options?: { secret?: boolean },
+): ContentInput {
+  const envJson: Record<string, string | undefined> = {};
+  for (const key of envs) {
+    envJson[key] = process.env[key] ?? "";
   }
 
-  if ("json" in input) {
-    const content = safeJsonStringify(normalizeJson(input.json));
-    return {
-      key: input.key,
-      hash: hashContent(content, config),
-      content: input.secret ? undefined : content,
-    };
-  }
-
-  if ("envs" in input) {
-    const envJson: Record<string, string | undefined> = {};
-    for (const key of input.envs) {
-      envJson[key] = process.env[key] ?? "";
-    }
-
-    const content = safeJsonStringify(normalizeJson(envJson));
-    return {
-      key: input.key,
-      hash: hashContent(content, config),
-      content: input.secret ? undefined : content,
-    };
-  }
-
-  throw new Error(`Unsupported input type: ${JSON.stringify(input, null, 2)}`);
+  return {
+    key,
+    content: safeJsonStringify(normalizeJson(envJson)),
+    secret: options?.secret,
+  };
 }
 
 function normalizeJson<T>(value: T): T {

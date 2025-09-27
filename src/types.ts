@@ -8,14 +8,14 @@ type StringWithAutoSuggest<T> = (string & {}) | T;
 export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512">;
 
 export interface FingerprintOptions {
-  /** File and directory paths to include (does NOT support globs) */
-  include?: readonly string[];
+  /** Glob patterns indicating files (and directories) to include */
+  files?: readonly string[];
 
-  /** Paths to exclude (support globs, "picomatch" syntax) */
-  exclude?: ReadonlyArray<string>;
+  /** Glob patterns indicating files (and directories) to ignore */
+  ignores?: readonly string[];
 
-  /** Extra inputs to include in the fingerprint: content, json, etc */
-  extraInputs?: Input[];
+  /** Extra inputs to include in the fingerprint: text, json, etc */
+  contentInputs?: readonly ContentInput[];
 
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
@@ -28,27 +28,13 @@ export interface FingerprintOptions {
  * Internal fingerprint config. Can change without semver.
  */
 export interface Config {
-  rootDir: string;
+  basePath: string;
   hashAlgorithm?: HashAlgorithm;
 }
-
-export type Input = ContentInput | JsonInput | EnvInput;
 
 export interface ContentInput {
   key: string;
   content: string;
-  secret?: boolean;
-}
-
-export interface JsonInput {
-  key: string;
-  json: unknown;
-  secret?: boolean;
-}
-
-export interface EnvInput {
-  key: string;
-  envs: string[];
   secret?: boolean;
 }
 

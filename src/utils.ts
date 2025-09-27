@@ -4,7 +4,7 @@ import { glob, globSync } from "tinyglobby";
 import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { Config, ContentHash, FileHash, Fingerprint } from "./types.js";
 
-export function hashContent(content: string | Uint8Array, config: Config) {
+export function hashData(content: string | Uint8Array, config: Config) {
   if (config.hashAlgorithm === "null") {
     return EMPTY_HASH;
   }
@@ -19,8 +19,8 @@ export function mergeHashes(
   contentHashes: readonly ContentHash[],
   config: Config,
 ): Fingerprint {
-  const sortedFileHashes = [...fileHashes].sort();
-  const sortedContentHashes = [...contentHashes].sort();
+  const sortedFileHashes = sortBy([...fileHashes], (h) => h.path);
+  const sortedContentHashes = sortBy([...contentHashes], (h) => h.key);
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,
@@ -54,19 +54,17 @@ export function mergeHashes(
 }
 
 export type GetInputFilesOptions = {
-  rootDir: string;
-  include?: readonly string[];
-  exclude?: readonly string[];
+  files?: readonly string[];
+  ignores?: readonly string[];
 };
 
-export async function getInputFiles({
-  rootDir,
-  include = ["**"],
-  exclude,
-}: GetInputFilesOptions): Promise<string[]> {
-  const paths = await glob(include, {
-    cwd: rootDir,
-    ignore: exclude,
+export async function getInputFiles(
+  basePath: string,
+  { files = ["**"], ignores }: GetInputFilesOptions,
+): Promise<string[]> {
+  const paths = await glob(files, {
+    cwd: basePath,
+    ignore: ignores,
     expandDirectories: true,
   });
 
@@ -74,14 +72,13 @@ export async function getInputFiles({
   return paths;
 }
 
-export function getInputFilesSync({
-  rootDir,
-  include = ["**"],
-  exclude,
-}: GetInputFilesOptions): string[] {
-  const paths = globSync(include, {
-    cwd: rootDir,
-    ignore: exclude,
+export function getInputFilesSync(
+  basePath: string,
+  { files = ["**"], ignores }: GetInputFilesOptions,
+): string[] {
+  const paths = globSync(files, {
+    cwd: basePath,
+    ignore: ignores,
     expandDirectories: true,
   });
 
@@ -91,4 +88,12 @@ export function getInputFilesSync({
 
 export function normalizeFilePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path;
+}
+
+export function sortBy<T>(list: T[], selector: (item: T) => string): T[] {
+  return list.sort((a, b) => {
+    const aKey = selector(a);
+    const bKey = selector(b);
+    return aKey < bKey ? -1 : aKey > bKey ? 1 : 0;
+  });
 }

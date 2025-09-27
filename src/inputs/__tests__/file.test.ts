@@ -5,10 +5,10 @@ import { EMPTY_HASH } from "../../constants.js";
 import type { Config } from "../../types.js";
 import { calculateFileHash, calculateFileHashSync } from "../file.js";
 
-const { rootDir, prepareRootDir, writeFile } = createRootDir("file-test");
+const { basePath, prepareRootDir, writeFile } = createRootDir("file-test");
 
 const baseConfig: Config = {
-  rootDir,
+  basePath,
   hashAlgorithm: "sha1",
 };
 
@@ -48,6 +48,36 @@ describe("calculateFileHash", () => {
     });
 
     const hashSync = calculateFileHashSync("file-1.txt", testConfig);
+    expect(hashSync).toEqual(hash);
+  });
+
+  test("handles multiline content", async () => {
+    writeFile("file-1.txt", "Hello, world!\nThis is a test.\nMany lines.\n");
+
+    const hash = await calculateFileHash("file-1.txt", baseConfig);
+    expect(hash).toMatchInlineSnapshot(`
+      {
+        "hash": "ceb17e61ef244ea43608706b5a8d8f3988be3088",
+        "path": "file-1.txt",
+      }
+    `);
+
+    const hashSync = calculateFileHashSync("file-1.txt", baseConfig);
+    expect(hashSync).toEqual(hash);
+  });
+
+  test("handles unicode chars, emojis, etc content", async () => {
+    writeFile("file-1.txt", "Hello, world!\nąęśćź🍓🫆🌀\n");
+
+    const hash = await calculateFileHash("file-1.txt", baseConfig);
+    expect(hash).toMatchInlineSnapshot(`
+      {
+        "hash": "98319057a3032de4f5f835bfd87d493f9bed8ba9",
+        "path": "file-1.txt",
+      }
+    `);
+
+    const hashSync = calculateFileHashSync("file-1.txt", baseConfig);
     expect(hashSync).toEqual(hash);
   });
 });

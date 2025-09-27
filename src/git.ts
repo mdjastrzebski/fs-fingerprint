@@ -6,8 +6,11 @@ export interface GetGitIgnoredPathsOptions {
   entireRepo?: boolean;
 }
 
-export function getGitIgnoredPaths(path: string, options?: GetGitIgnoredPathsOptions): string[] {
-  const cwd = options?.entireRepo ? getGitRootPath(path) : path;
+export function getGitIgnoredPaths(
+  basePath: string,
+  { entireRepo }: GetGitIgnoredPathsOptions = {},
+): string[] {
+  const cwd = entireRepo ? getGitRootPath(basePath) : nodePath.resolve(basePath);
 
   try {
     const output = execSync("git ls-files -z --others --ignored --exclude-standard --directory", {
@@ -16,14 +19,11 @@ export function getGitIgnoredPaths(path: string, options?: GetGitIgnoredPathsOpt
       stdio: ["ignore", "pipe", "pipe"],
     });
 
-    let result = output
-      .split("\0")
-      .filter(Boolean)
-      .map((filePath) => escapePath(filePath));
-
-    if (options?.entireRepo) {
-      result = result.map((filePath) => remapPaths(filePath, cwd, path));
+    let result = output.split("\0").filter(Boolean);
+    if (entireRepo) {
+      result = result.map((filePath) => rebasePath(filePath, cwd, basePath));
     }
+    result = result.map((filePath) => escapePath(filePath));
 
     return result.sort();
   } catch (error) {
@@ -51,9 +51,9 @@ function getGitRootPath(path: string): string {
   }
 }
 
-export function remapPaths(path: string, fromRoot: string, toRoot: string): string {
+export function rebasePath(path: string, fromBase: string, toBase: string): string {
   const rebasedPath = nodePath
-    .relative(toRoot, nodePath.join(fromRoot, path))
+    .relative(toBase, nodePath.join(fromBase, path))
     .split(nodePath.sep)
     .join("/");
   if (path.endsWith("/") && !rebasedPath.endsWith("/")) {
