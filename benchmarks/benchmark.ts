@@ -254,5 +254,5 @@ function writeMarkdownOutput(path: string, markdownTable: string) {
     md.heading("Performance comparison (vs baseline)", { level: 3 }),
     markdownTable,
   ]);
-  writeFileSync(path, markdownOutput);
+  writeFileSync(path, markdownTable);
 }
