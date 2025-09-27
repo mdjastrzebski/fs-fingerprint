@@ -37,7 +37,7 @@
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
     "clean": "rimraf ./dist",
-    "bench": "tsx benchmarks/fingerprint.bench.ts",
+    "bench": "tsx benchmarks/benchmark.ts",
     "release": "release-it",
     "size": "bun run build && pkg-size"
   },
