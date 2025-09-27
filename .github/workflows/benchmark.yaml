@@ -37,12 +37,12 @@ jobs:
           bun run bench
 
           cat .benchmark/output.md >> $GITHUB_STEP_SUMMARY
-          echo report=$(cat .benchmark/output.md) >> $GITHUB_OUTPUT;
 
-      - name: "Debug var"
-        run: |
-          echo "Report content:
-          echo: ${{ steps.compare.outputs.report }}"
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo report=$(cat .benchmark/output.md) >> $GITHUB_OUTPUT;
+          echo "text<<$EOF" >> $GITHUB_OUTPUT
+          echo "$(cat .benchmark/output.md)" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: "Post comment"
         uses: edumserrano/find-create-or-update-comment@v3
