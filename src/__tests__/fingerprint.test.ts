@@ -72,6 +72,9 @@ describe("calculateFingerprint", () => {
   });
 
   test("returns same hash for equal contentInputs", async () => {
+    process.env.TEST_ENV_1 = "value1";
+    process.env.TEST_ENV_2 = "value2";
+
     const contents1 = [
       textContent("content-1", "Hello, world!"),
       jsonContent("json-1", { foo: "bar", baz: 123 }),
@@ -86,11 +89,11 @@ describe("calculateFingerprint", () => {
 
     const fingerprint1 = await calculateFingerprint(basePath, { contentInputs: contents1 });
     expect(formatFingerprint(fingerprint1)).toMatchInlineSnapshot(`
-      "Hash: c507de80346efa79c3eaffa1801af5a59583d3dd
+      "Hash: 1fd8ed3ee973eab60b588ae14eb33cee949cd52b
       Files:
       Content:
       - content-1 - 943a702d06f34599aee1f8da8ef9f7296031d699
-      - env-1 - 94ea284f1c2e92defededc9a4ba430af0612be2b
+      - env-1 - 1c93d4a1173659eeb47f774df05fce7a90c47a56
       - json-1 - 7391dce2d9080f78b92f62bb43b308a2f073b0e5
       "
     `);
@@ -102,6 +105,9 @@ describe("calculateFingerprint", () => {
     expect(fingerprintSync1).toEqual(fingerprint1);
     const fingerprintSync2 = calculateFingerprintSync(basePath, { contentInputs: contents2 });
     expect(fingerprintSync2).toEqual(fingerprint1);
+
+    delete process.env.TEST_ENV_1;
+    delete process.env.TEST_ENV_2;
   });
 
   test("supports json inputs", async () => {

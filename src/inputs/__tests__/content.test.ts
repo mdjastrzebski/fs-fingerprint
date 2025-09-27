@@ -146,6 +146,9 @@ describe("calculateContentHash", () => {
         "key": "env-1",
       }
     `);
+
+    delete process.env["TEST_ENV_1"];
+    delete process.env["TEST_ENV_2"];
   });
 
   test('content handles "secret" option', () => {
