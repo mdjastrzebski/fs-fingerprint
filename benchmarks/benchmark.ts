@@ -230,23 +230,23 @@ function buildComparisonTable(
   return currentResults.benchmarks.map((current) => {
     const baseline = baselineResults.benchmarks.find((b) => b.name === current.name);
 
-    const baselineLatency = baseline?.latency.p50;
-    const currentLatency = current.latency.p50;
-    if (currentLatency == null || baselineLatency == null) {
+    const baselineLatency = baseline?.latency;
+    const currentLatency = current.latency;
+    if (currentLatency?.p50 == null || baselineLatency?.p50 == null) {
       return [
         current.name,
-        baselineLatency?.toFixed(1) || "-",
-        currentLatency?.toFixed(1) || "-",
+        baselineLatency?.p50?.toFixed(1) || "-",
+        currentLatency?.p50?.toFixed(1) || "-",
         "-",
       ];
     }
 
-    const delta = currentLatency - baselineLatency;
-    const deltaPercent = (delta / baselineLatency) * 100;
+    const delta = currentLatency.p50 - baselineLatency.p50;
+    const deltaPercent = (delta / baselineLatency.p50) * 100;
     return [
       current.name,
-      baselineLatency.toFixed(1),
-      currentLatency.toFixed(1),
+      `${baselineLatency.p50.toFixed(2)} \u00B1 ${baselineLatency.mad?.toFixed(2)}`,
+      `${currentLatency.p50.toFixed(2)} \u00B1 ${currentLatency.mad?.toFixed(2)}`,
       `${delta > 0 ? "+" : ""}${delta.toFixed(1)} (${deltaPercent > 0 ? "+" : ""}${deltaPercent.toFixed(0)}%)`,
     ];
   });
