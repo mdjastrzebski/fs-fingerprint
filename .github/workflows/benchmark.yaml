@@ -1,10 +1,6 @@
 name: Benchmark
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+on: [pull_request]
 
 concurrency:
   group: benchmark-${{ github.event.pull_request.number || github.ref }}
@@ -15,15 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
 
       - name: Setup bun
         uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
-      - name: Benchmark Base
-        run: bun run bench
 
       - name: "Benchmark base"
         run: |
