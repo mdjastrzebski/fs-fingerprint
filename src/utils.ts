@@ -19,12 +19,8 @@ export function mergeHashes(
   contentHashes: readonly ContentHash[],
   config: Config,
 ): Fingerprint {
-  const sortedFileHashes = [...fileHashes].sort((a, b) =>
-    a.path < b.path ? -1 : a.path > b.path ? 1 : 0,
-  );
-  const sortedContentHashes = [...contentHashes].sort((a, b) =>
-    a.key < b.key ? -1 : a.key > b.key ? 1 : 0,
-  );
+  const sortedFileHashes = sortBy([...fileHashes], (h) => h.path);
+  const sortedContentHashes = sortBy([...contentHashes], (h) => h.key);
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,
@@ -92,4 +88,12 @@ export function getInputFilesSync(
 
 export function normalizeFilePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path;
+}
+
+export function sortBy<T>(list: T[], selector: (item: T) => string): T[] {
+  return list.sort((a, b) => {
+    const aKey = selector(a);
+    const bKey = selector(b);
+    return aKey < bKey ? -1 : aKey > bKey ? 1 : 0;
+  });
 }

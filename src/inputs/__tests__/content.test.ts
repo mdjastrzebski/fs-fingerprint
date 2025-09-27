@@ -1,57 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
-import { formatContentHashes } from "../../../test-utils/format.js";
 import { EMPTY_HASH } from "../../constants.js";
 import type { Config, ContentInput } from "../../types.js";
-import {
-  calculateContentHash,
-  calculateContentHashes,
-  envContent,
-  jsonContent,
-  textContent,
-} from "../content.js";
+import { calculateContentHash, envContent, jsonContent } from "../content.js";
 
 const baseConfig: Config = {
   basePath: "not-used",
 };
-
-describe("calculateContentHashes", () => {
-  test("handles empty input", () => {
-    const hashes = calculateContentHashes({}, baseConfig);
-    expect(hashes).toEqual([]);
-  });
-
-  test("returns same hash for equal content", () => {
-    const contents1 = {
-      "content-1": textContent("Hello, world!"),
-      "json-1": jsonContent({ foo: "bar", baz: 123 }),
-      "env-1": envContent(["TEST_ENV_1", "TEST_ENV_2"]),
-    };
-
-    const contents2 = {
-      "env-1": envContent(["TEST_ENV_1", "TEST_ENV_2"]),
-      "json-1": jsonContent({ foo: "bar", baz: 123 }),
-      "content-1": textContent("Hello, world!"),
-    };
-
-    const hashes1 = calculateContentHashes(contents1, baseConfig);
-    expect(formatContentHashes(hashes1)).toMatchInlineSnapshot(`
-      "- content-1 - 943a702d06f34599aee1f8da8ef9f7296031d699 - Hello, world!
-      - env-1 - 94ea284f1c2e92defededc9a4ba430af0612be2b - {
-        "TEST_ENV_1": "",
-        "TEST_ENV_2": ""
-      }
-      - json-1 - 7391dce2d9080f78b92f62bb43b308a2f073b0e5 - {
-        "baz": 123,
-        "foo": "bar"
-      }
-      "
-    `);
-
-    const hashes2 = calculateContentHashes(contents2, baseConfig);
-    expect(hashes1).toEqual(hashes2);
-  });
-});
 
 describe("calculateContentHash", () => {
   test("handles regular content", () => {

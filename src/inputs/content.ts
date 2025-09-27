@@ -1,11 +1,5 @@
-import type { Config, ContentHash, ContentInput, InputRecord } from "../types.js";
+import type { Config, ContentHash, ContentInput } from "../types.js";
 import { hashData } from "../utils.js";
-
-export function calculateContentHashes(inputs: InputRecord, config: Config): ContentHash[] {
-  return Object.entries(inputs)
-    .map(([key, value]) => calculateContentHash({ key, ...value }, config))
-    .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
-}
 
 export function calculateContentHash(input: ContentInput, config: Config): ContentHash {
   return {
