@@ -91,6 +91,7 @@ async function runBenchmarks(): Promise<void> {
 
   const compareOutputPath = join(BENCHMARK_DIR, "output.md");
   writeMarkdownOutput(compareOutputPath, markdownTable);
+  console.log(`\n🔗 Saved output report: ${compareOutputPath}`);
 }
 
 // Run benchmarks if this file is executed directly
