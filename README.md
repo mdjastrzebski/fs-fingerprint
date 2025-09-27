@@ -13,10 +13,11 @@ Perfect for building intelligent caching solutions that automatically invalidate
 
 ## Features
 
-- Fast change detection (with benchmarks)
+- Fast change detection (benchmarked)
 - Highly customizable: include/exclude glob patterns, additional inputs, hashing algorithms
 - Simple TypeScript API, both sync and async
 - Supports `.gitignore` files
+- Tiny size (~30 KB unpacked) with minimal dependencies (`tinyglobby`)
 
 ## Quick Start
 
