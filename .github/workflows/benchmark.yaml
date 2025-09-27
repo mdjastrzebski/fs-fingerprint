@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
+  perf:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,5 +22,33 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Benchmark
+      - name: Benchmark Base
         run: bun run bench
+
+      - name: "Benchmark base"
+        run: |
+          git checkout -f ${{ github.event.pull_request.base.sha }}
+          bun install --frozen-lockfile
+          bun run bench --baseline
+
+      - name: "Benchmark current"
+        id: benchmark-current
+        run: |
+          git checkout -f ${{ github.event.pull_request.head.sha }}
+          bun install --frozen-lockfile
+          bun run bench >> output.md
+
+          echo "table<<EOF" >> $GITHUB_OUTPUT
+          cat markdown >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: "Post comment"
+        uses: edumserrano/find-create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-includes: "<!-- workflow-benchmarks-perf -->"
+          comment-author: "github-actions[bot]"
+          body: |
+            <!-- workflow-benchmarks-perf -->
+            ${{ steps.benchmark-current.outputs.table }}
+          edit-mode: replace
