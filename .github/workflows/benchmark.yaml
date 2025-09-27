@@ -33,8 +33,10 @@ jobs:
           bun install --frozen-lockfile
           bun run bench >> output.md
 
+          cat output.md
+
           echo "table<<EOF" >> $GITHUB_OUTPUT
-          cat markdown >> $GITHUB_OUTPUT
+          cat output.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: "Post comment"
