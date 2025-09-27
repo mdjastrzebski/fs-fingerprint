@@ -38,9 +38,10 @@ jobs:
 
           cat .benchmark/output.md >> $GITHUB_STEP_SUMMARY
 
-          echo "report<<EOF" >> $GITHUB_OUTPUT
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "text<<$EOF" >> $GITHUB_OUTPUT
           cat .benchmark/output.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: "Post comment"
         uses: edumserrano/find-create-or-update-comment@v3
