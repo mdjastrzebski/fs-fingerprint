@@ -39,6 +39,11 @@ jobs:
           cat .benchmark/output.md >> $GITHUB_STEP_SUMMARY
           echo report=$(cat .benchmark/output.md) >> $GITHUB_OUTPUT;
 
+      - name: "Debug var"
+        run: |
+          echo "Report content:
+          echo: ${{ steps.compare.outputs.report }}"
+
       - name: "Post comment"
         uses: edumserrano/find-create-or-update-comment@v3
         with:
