@@ -37,6 +37,9 @@ jobs:
           bun run bench
 
           cat .benchmark/output.md >> $GITHUB_STEP_SUMMARY
+          report=`cat .benchmark/output.md`
+          echo "Benchmark results:"
+          echo "$report"
 
           # EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           # echo report=$(cat .benchmark/output.md) >> $GITHUB_OUTPUT;
@@ -45,7 +48,7 @@ jobs:
           # echo "$EOF" >> $GITHUB_OUTPUT
 
           echo "report<<EOF" >> $GITHUB_OUTPUT
-          cat .benchmark/output.md >> $GITHUB_OUTPUT
+          echo "$report" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: "Post comment"
