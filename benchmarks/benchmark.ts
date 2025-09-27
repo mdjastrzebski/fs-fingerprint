@@ -235,9 +235,9 @@ function buildComparisonTable(
     if (currentLatency == null || baselineLatency == null) {
       return [
         current.name,
-        baselineLatency?.toFixed(1) || "N/A",
-        currentLatency?.toFixed(1) || "N/A",
-        "N/A",
+        baselineLatency?.toFixed(1) || "-",
+        currentLatency?.toFixed(1) || "-",
+        "-",
       ];
     }
 
