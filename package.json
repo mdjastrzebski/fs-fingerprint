@@ -42,7 +42,6 @@
     "size": "bun run build && pkg-size"
   },
   "dependencies": {
-    "p-limit": "^7.1.0",
     "tinyglobby": "^0.2.15"
   },
   "devDependencies": {
