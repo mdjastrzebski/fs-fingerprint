@@ -48,10 +48,10 @@ describe("calculateFingerprint", () => {
 
   test("supports content inputs", async () => {
     const options: FingerprintOptions = {
-      extraInputs: {
-        "test-content-1": textContent("Hello, world!"),
-        "test-content-2": textContent("Lorem ipsum"),
-      },
+      contentInputs: [
+        textContent("test-content-1", "Hello, world!"),
+        textContent("test-content-2", "Lorem ipsum"),
+      ],
     };
 
     const fingerprint = await calculateFingerprint(basePath, options);
@@ -71,20 +71,20 @@ describe("calculateFingerprint", () => {
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
-  test("returns same hash for equal extraInputs", async () => {
-    const contents1 = {
-      "content-1": textContent("Hello, world!"),
-      "json-1": jsonContent({ foo: "bar", baz: 123 }),
-      "env-1": envContent(["TEST_ENV_1", "TEST_ENV_2"]),
-    };
+  test("returns same hash for equal contentInputs", async () => {
+    const contents1 = [
+      textContent("content-1", "Hello, world!"),
+      jsonContent("json-1", { foo: "bar", baz: 123 }),
+      envContent("env-1", ["TEST_ENV_1", "TEST_ENV_2"]),
+    ];
 
-    const contents2 = {
-      "env-1": envContent(["TEST_ENV_1", "TEST_ENV_2"]),
-      "json-1": jsonContent({ foo: "bar", baz: 123 }),
-      "content-1": textContent("Hello, world!"),
-    };
+    const contents2 = [
+      envContent("env-1", ["TEST_ENV_1", "TEST_ENV_2"]),
+      jsonContent("json-1", { foo: "bar", baz: 123 }),
+      textContent("content-1", "Hello, world!"),
+    ];
 
-    const fingerprint1 = await calculateFingerprint(basePath, { extraInputs: contents1 });
+    const fingerprint1 = await calculateFingerprint(basePath, { contentInputs: contents1 });
     expect(formatFingerprint(fingerprint1)).toMatchInlineSnapshot(`
       "Hash: c507de80346efa79c3eaffa1801af5a59583d3dd
       Files:
@@ -95,27 +95,27 @@ describe("calculateFingerprint", () => {
       "
     `);
 
-    const fingerprint2 = await calculateFingerprint(basePath, { extraInputs: contents2 });
+    const fingerprint2 = await calculateFingerprint(basePath, { contentInputs: contents2 });
     expect(fingerprint1).toEqual(fingerprint2);
 
-    const fingerprintSync1 = calculateFingerprintSync(basePath, { extraInputs: contents1 });
+    const fingerprintSync1 = calculateFingerprintSync(basePath, { contentInputs: contents1 });
     expect(fingerprintSync1).toEqual(fingerprint1);
-    const fingerprintSync2 = calculateFingerprintSync(basePath, { extraInputs: contents2 });
+    const fingerprintSync2 = calculateFingerprintSync(basePath, { contentInputs: contents2 });
     expect(fingerprintSync2).toEqual(fingerprint1);
   });
 
   test("supports json inputs", async () => {
     const options: FingerprintOptions = {
-      extraInputs: {
-        "test-json-1": jsonContent({ foo: "bar", baz: 123 }),
-        "test-json-2": jsonContent(["Hello", 123, null, { foo: "bar" }, ["nested", "array"]]),
-        "test-json-3": jsonContent("Hello, world!"),
-        "test-json-4": jsonContent(123),
-        "test-json-5": jsonContent(true),
-        "test-json-6": jsonContent(false),
-        "test-json-7": jsonContent(null),
-        "test-json-8": jsonContent(undefined),
-      },
+      contentInputs: [
+        jsonContent("test-json-1", { foo: "bar", baz: 123 }),
+        jsonContent("test-json-2", ["Hello", 123, null, { foo: "bar" }, ["nested", "array"]]),
+        jsonContent("test-json-3", "Hello, world!"),
+        jsonContent("test-json-4", 123),
+        jsonContent("test-json-5", true),
+        jsonContent("test-json-6", false),
+        jsonContent("test-json-7", null),
+        jsonContent("test-json-8", undefined),
+      ],
     };
 
     const fingerprint = await calculateFingerprint(basePath, options);

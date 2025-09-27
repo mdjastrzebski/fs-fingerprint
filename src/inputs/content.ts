@@ -10,36 +10,42 @@ export function calculateContentHash(input: ContentInput, config: Config): Conte
 }
 
 export function textContent(
+  key: string,
   text: string,
   options?: { secret?: boolean },
-): Omit<ContentInput, "key"> {
+): ContentInput {
   return {
+    key,
     content: text,
     secret: options?.secret,
   };
 }
 
 export function jsonContent(
+  key: string,
   json: unknown,
   options?: { secret?: boolean },
-): Omit<ContentInput, "key"> {
+): ContentInput {
   const content = safeJsonStringify(normalizeJson(json));
   return {
+    key,
     content,
     secret: options?.secret,
   };
 }
 
 export function envContent(
+  key: string,
   envs: string[],
   options?: { secret?: boolean },
-): Omit<ContentInput, "key"> {
+): ContentInput {
   const envJson: Record<string, string | undefined> = {};
   for (const key of envs) {
     envJson[key] = process.env[key] ?? "";
   }
 
   return {
+    key,
     content: safeJsonStringify(normalizeJson(envJson)),
     secret: options?.secret,
   };

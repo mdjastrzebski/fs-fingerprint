@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
 import { EMPTY_HASH } from "../../constants.js";
-import type { Config, ContentInput } from "../../types.js";
-import { calculateContentHash, envContent, jsonContent } from "../content.js";
+import type { Config } from "../../types.js";
+import { calculateContentHash, envContent, jsonContent, textContent } from "../content.js";
 
 const baseConfig: Config = {
   basePath: "not-used",
@@ -10,7 +10,7 @@ const baseConfig: Config = {
 
 describe("calculateContentHash", () => {
   test("handles regular content", () => {
-    const content: ContentInput = { key: "content-1", content: "Hello, world!" };
+    const content = textContent("content-1", "Hello, world!");
 
     const hash = calculateContentHash(content, baseConfig);
     expect(hash).toEqual({
@@ -21,7 +21,7 @@ describe("calculateContentHash", () => {
   });
 
   test("handles null hash algorithm", () => {
-    const content: ContentInput = { key: "content-1", content: "Hello, world!" };
+    const content = textContent("content-1", "Hello, world!");
 
     const testConfig = { ...baseConfig, hashAlgorithm: "null" };
     const hash = calculateContentHash(content, testConfig);
@@ -33,7 +33,7 @@ describe("calculateContentHash", () => {
   });
 
   test("handles json object", () => {
-    const content: ContentInput = { key: "json-1", ...jsonContent({ foo: "bar", baz: 123 }) };
+    const content = jsonContent("json-1", { foo: "bar", baz: 123 });
 
     const hash = calculateContentHash(content, baseConfig);
     expect(hash).toMatchInlineSnapshot(`
@@ -51,10 +51,12 @@ describe("calculateContentHash", () => {
   });
 
   test("handles json array", () => {
-    const content: ContentInput = {
-      key: "json-1",
-      ...jsonContent([1, { foo: "bar", baz: 123 }, "baz", ["nested", "array"]]),
-    };
+    const content = jsonContent("json-1", [
+      1,
+      { foo: "bar", baz: 123 },
+      "baz",
+      ["nested", "array"],
+    ]);
 
     const hash = calculateContentHash(content, baseConfig);
     expect(hash).toMatchInlineSnapshot(`
@@ -80,32 +82,26 @@ describe("calculateContentHash", () => {
   });
 
   test("generates the same hash for equal object with different key order", () => {
-    const content1 = {
-      key: "json-1",
-      ...jsonContent({
-        num: 123,
-        str: "bar",
-        bool: true,
-        nul: null,
-        undef: undefined,
-        array: [1, 2, 3],
-        obj: { foo: "bar", baz: 123 },
-        nested: { obj: { foo: "zup", baz: 345 } },
-      }),
-    };
-    const content2 = {
-      key: "json-1",
-      ...jsonContent({
-        nested: { obj: { foo: "zup", baz: 345 } },
-        nul: null,
-        obj: { baz: 123, foo: "bar" },
-        array: [1, 2, 3],
-        str: "bar",
-        undef: undefined,
-        num: 123,
-        bool: true,
-      }),
-    };
+    const content1 = jsonContent("json-1", {
+      num: 123,
+      str: "bar",
+      bool: true,
+      nul: null,
+      undef: undefined,
+      array: [1, 2, 3],
+      obj: { foo: "bar", baz: 123 },
+      nested: { obj: { foo: "zup", baz: 345 } },
+    });
+    const content2 = jsonContent("json-1", {
+      nested: { obj: { foo: "zup", baz: 345 } },
+      nul: null,
+      obj: { baz: 123, foo: "bar" },
+      array: [1, 2, 3],
+      str: "bar",
+      undef: undefined,
+      num: 123,
+      bool: true,
+    });
 
     const hash = calculateContentHash(content1, baseConfig);
     const hash2 = calculateContentHash(content2, baseConfig);
@@ -113,7 +109,7 @@ describe("calculateContentHash", () => {
   });
 
   test("handles null hash algorithm", () => {
-    const content: ContentInput = { key: "json-1", ...jsonContent({ foo: "bar" }) };
+    const content = jsonContent("json-1", { foo: "bar" });
 
     const testConfig = { ...baseConfig, hashAlgorithm: "null" };
     const hash = calculateContentHash(content, testConfig);
@@ -134,10 +130,7 @@ describe("calculateContentHash", () => {
     process.env["TEST_ENV_1"] = "value1";
     process.env["TEST_ENV_2"] = "value2";
 
-    const content = {
-      key: "env-1",
-      ...envContent(["TEST_ENV_1", "TEST_ENV_2", "TEST_ENV_3"]),
-    };
+    const content = envContent("env-1", ["TEST_ENV_1", "TEST_ENV_2", "TEST_ENV_3"]);
 
     const hash = calculateContentHash(content, baseConfig);
     expect(hash).toMatchInlineSnapshot(`
@@ -156,7 +149,7 @@ describe("calculateContentHash", () => {
   });
 
   test('content handles "secret" option', () => {
-    const content = { key: "content-1", content: "MY-SECRET-CONTENT" };
+    const content = textContent("content-1", "MY-SECRET-CONTENT");
 
     const hash = calculateContentHash({ ...content, secret: true }, baseConfig);
     expect(hash).toMatchInlineSnapshot(`

@@ -15,7 +15,7 @@ export interface FingerprintOptions {
   ignores?: readonly string[];
 
   /** Extra inputs to include in the fingerprint: text, json, etc */
-  extraInputs?: InputRecord;
+  contentInputs?: ContentInput[];
 
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
@@ -31,8 +31,6 @@ export interface Config {
   basePath: string;
   hashAlgorithm?: HashAlgorithm;
 }
-
-export type InputRecord = { [key: string]: Omit<ContentInput, "key"> };
 
 export interface ContentInput {
   key: string;

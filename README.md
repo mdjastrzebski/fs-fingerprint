@@ -44,7 +44,7 @@ async function calculateFingerprint(
   options?: {
     files?: string[]; // Glob patterns to include (default: all)
     ignores?: string[]; // Glob patterns to exclude (default: none)
-    extraInputs?: InputRecord; // Additional inputs: text, JSON, envs, etc.
+    contentInputs?: ContentInput[]; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
     concurrency?: number; // Concurrent file reads (default: 16)
   },
@@ -71,7 +71,7 @@ function calculateFingerprintSync(
   options?: {
     files?: string[]; // Glob patterns to include (default: all)
     ignores?: string[]; // Glob patterns to exclude (default: none)
-    extraInputs?: InputRecord; // Additional inputs: text, JSON, envs, etc.
+    contentInputs?: ContentInput[]; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
   },
 ): Fingerprint;
@@ -124,13 +124,12 @@ const { hash } = await calculateFingerprint("/project/path", {
 
 ```typescript
 const { hash } = await calculateFingerprint("/project/path", {
-  // ...
-  content: {
-    "app-config": textContent("debug=true"), // Text content
-    "app-metadata": jsonContent({ version: "1.0", env: "prod" }), // JSON data
-    "app-envs": envContent(["BUILD_ENVIRONMENT", "FEATURE_FLAG"]), // Env variables
-    "signing-key": envContent(["API_KEY"], { secret: true }), // Secret env input (value not included in details)
-  },
+  contentInputs: [
+    textContent("app-config", "debug=true"), // Text content
+    jsonContent("app-metadata", { version: "1.0", env: "prod" }), // JSON data
+    envContent("app-envs", ["BUILD_ENVIRONMENT", "FEATURE_FLAG"]), // Env variables
+    envContent("signing-key", ["API_KEY"], { secret: true }), // Secret env input (value not included in details)
+  ],
 });
 ```
 
