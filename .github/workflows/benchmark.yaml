@@ -44,7 +44,7 @@ jobs:
           # echo "$(cat .benchmark/output.md)" >> $GITHUB_OUTPUT
           # echo "$EOF" >> $GITHUB_OUTPUT
 
-          echo "table<<EOF" >> $GITHUB_OUTPUT
+          echo "report<<EOF" >> $GITHUB_OUTPUT
           cat .benchmark/output.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
@@ -56,5 +56,6 @@ jobs:
           comment-author: "github-actions[bot]"
           body: |
             <!-- workflow-benchmarks-perf -->
-            ${{ steps.compare.outputs.table }}
+            ### Performance comparison (vs baseline)
+            ${{ steps.compare.outputs.report }}
           edit-mode: replace

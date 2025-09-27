@@ -250,9 +250,5 @@ function buildComparisonTable(
 }
 
 function writeMarkdownOutput(path: string, markdownTable: string) {
-  const markdownOutput = md.joinBlocks([
-    md.heading("Performance comparison (vs baseline)", { level: 3 }),
-    markdownTable,
-  ]);
   writeFileSync(path, markdownTable);
 }
