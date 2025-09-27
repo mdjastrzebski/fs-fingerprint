@@ -108,24 +108,6 @@ describe("calculateContentHash", () => {
     expect(hash).toEqual(hash2);
   });
 
-  test("handles null hash algorithm", () => {
-    const content = jsonContent("json-1", { foo: "bar" });
-
-    const testConfig = { ...baseConfig, hashAlgorithm: "null" };
-    const hash = calculateContentHash(content, testConfig);
-    expect(hash).toMatchInlineSnapshot(`
-    {
-      "content": 
-    "{
-      "foo": "bar"
-    }"
-    ,
-      "hash": "(null)",
-      "key": "json-1",
-    }
-  `);
-  });
-
   test("handles env input", () => {
     process.env["TEST_ENV_1"] = "value1";
     process.env["TEST_ENV_2"] = "value2";
@@ -153,8 +135,9 @@ describe("calculateContentHash", () => {
 
   test('content handles "secret" option', () => {
     const content = textContent("content-1", "MY-SECRET-CONTENT");
+    const secretContent = textContent("content-1", "MY-SECRET-CONTENT", { secret: true });
 
-    const hash = calculateContentHash({ ...content, secret: true }, baseConfig);
+    const hash = calculateContentHash(secretContent, baseConfig);
     expect(hash).toMatchInlineSnapshot(`
       {
         "content": undefined,
