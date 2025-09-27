@@ -2,26 +2,28 @@
 
 Generate unique fingerprint hashes from filesystem state and other inputs (text, JSON, envs).
 
-## What's This?
+## What is FS Fingerprint?
 
 A fast Node.js library to generate unique fingerprints based on:
 
-- files & directories in your project
-- other inputs: text content, JSON data, environment variables
+- Files & directories in your project
+- Other inputs: text content, JSON data, environment variables
 
 Perfect for building intelligent caching solutions that automatically invalidate when your code or data changes. ⚡
 
 ## Features
 
-- Fast change detection (we have benchmarks!)
+- Fast change detection (with benchmarks)
 - Highly customizable: include/exclude glob patterns, additional inputs, hashing algorithms
-- Simple TypeScript API, both sync and async versions
+- Simple TypeScript API, both sync and async
 - Supports `.gitignore` files
 
 ## Quick Start
 
-1. Install: `npm install fs-fingerprint` (or `yarn/pnpm/bun add fs-fingerprint`)
-2. Code:
+1. **Install:**  
+   `npm install fs-fingerprint`  
+   (or `yarn/pnpm/bun add fs-fingerprint`)
+2. **Usage:**
 
 ```ts
 import { calculateFingerprint } from "fs-fingerprint";
@@ -38,27 +40,24 @@ const { hash } = await calculateFingerprint("/project/path", {
 
 ```ts
 async function calculateFingerprint(
-  basePath: string; // Base path to relsolve "files" and "ignores" patterns against
+  basePath: string, // Base path to resolve "files" and "ignores" patterns
   options?: {
-    files?: string[]; // Glob patterns to include files and directories (default: include all)
-    ignores?: string[]; // Glob patterns to exclude files and directories (default: ignore none)
+    files?: string[]; // Glob patterns to include (default: all)
+    ignores?: string[]; // Glob patterns to exclude (default: none)
     extraInputs?: InputRecord; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
-    concurrency?: number; // Number of concurrent file reads (default: 16)
-  }
+    concurrency?: number; // Concurrent file reads (default: 16)
+  },
 ): Promise<Fingerprint>;
 ```
 
-Generates a fingerprint hash for filesystem state.
+Generates a fingerprint hash for the filesystem state.
 
-#### Return value
+#### Return Value
 
 ```typescript
 interface Fingerprint {
-  // Overall project fingerprint hash:
-  hash: string;
-
-  // Fingerprint manifest, what's included in the fingerprint:
+  hash: string; // Overall project fingerprint hash
   files: FileHash[]; // File hashes included in the fingerprint
   content: ContentHash[]; // Content hashes included in the fingerprint
 }
@@ -68,39 +67,40 @@ interface Fingerprint {
 
 ```ts
 function calculateFingerprintSync(
-  basePath: string; // Base path to relsolve "files" and "ignores" patterns against
+  basePath: string, // Base path to resolve "files" and "ignores" patterns
   options?: {
-    files?: string[]; // Glob patterns to include files and directories (default: include all)
-    ignores?: string[]; // Glob patterns to exclude files and directories (default: ignore none)
+    files?: string[]; // Glob patterns to include (default: all)
+    ignores?: string[]; // Glob patterns to exclude (default: none)
     extraInputs?: InputRecord; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
-  }
+  },
 ): Fingerprint;
 ```
 
 Sync version of `calculateFingerprint`:
 
-- generates the same hash value without awaiting
-- but will be slower due to blocking filesystem reads
+- Generates the same hash value without `await`
+- May be slower due to blocking filesystem reads
 
 ### `getGitIgnoredPaths`
 
 ```ts
 function getGitIgnoredPaths(
-  basePath: string; // Base path to look for git ignored paths
-  options: {
-    entireRepo?: boolean; // If passed basePath is not the git root, search for ignored paths in the whole git repository (default: false)
-  }
+  basePath: string, // Base path to look for git ignored paths
+  options?: {
+    entireRepo?: boolean; // Search for ignored paths in the whole repo (default: false)
+  },
 ): string[];
 ```
 
-Helper function to get list of paths ignored by Git from `.gitignore` and other Git settings. This function invokes `git ls-files` command, so it requires Git to be installed and available in PATH.
+Helper to get paths ignored by Git from `.gitignore` and other Git settings.  
+This function invokes `git ls-files`, so Git must be installed and available in PATH.
 
-**Note**: this function might throw in case of errors (e.g. not a git repository). Use try/catch to handle errors.
+**Note:** This function may throw errors (e.g., not a git repository). Use `try/catch` to handle errors.
 
 #### Options
 
-- `entireRepo`: If passed basePath is not the git root, use this option to search for ignored paths in the whole git repository (default: false). Always returns paths relative to the provided `basePath`.
+- `entireRepo`: If `basePath` is not the git root, set this to search the entire repository. Always returns paths relative to `basePath`.
 
 ## Examples
 
@@ -126,10 +126,10 @@ const { hash } = await calculateFingerprint("/project/path", {
 const { hash } = await calculateFingerprint("/project/path", {
   // ...
   content: {
-    "app-config": textContent("debug=true"), // text content
-    "app-metadata": jsonContent({ version: "1.0", env: "prod" }), // JSON data: objects, arrays, primitives
-    "app-envs": envContent(["BUILD_ENVIRONMENT", "FEATURE_FLAG"]), // env variables
-    "signing-key": envContent(["API_KEY"], { secret: true }), // secret env input, do not include value in fingerprint details
+    "app-config": textContent("debug=true"), // Text content
+    "app-metadata": jsonContent({ version: "1.0", env: "prod" }), // JSON data
+    "app-envs": envContent(["BUILD_ENVIRONMENT", "FEATURE_FLAG"]), // Env variables
+    "signing-key": envContent(["API_KEY"], { secret: true }), // Secret env input (value not included in details)
   },
 });
 ```
@@ -162,10 +162,10 @@ const { hash } = calculateFingerprintSync("/project/path", { ...options });
 ## Design Considerations
 
 1. **Flat manifest:**  
-   Final hash is computed from list of all files and their hashes, sorted by their relative paths. This means that renaming or moving a file will change the final fingerprint, even if the file content remains unchanged.
+   The final hash is computed from a list of all files and their hashes, sorted by relative path. Renaming or moving a file changes the fingerprint, even if content is unchanged.
 
 2. **File Hashing:**  
-   Individual file’s hash is based only on its content, but not from the file’s own name or path. The final hash takes both file paths and their content hashes into account.
+   Each file’s hash is based only on its content (not name or path). The final hash includes both file paths and their content hashes.
 
 ## Contributing
 
