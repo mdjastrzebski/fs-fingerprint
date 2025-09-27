@@ -1,0 +1,55 @@
+name: Benchmark
+
+on: [pull_request]
+
+permissions:
+  pull-requests: write
+
+concurrency:
+  group: benchmark-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: "Benchmark base"
+        run: |
+          git checkout -f ${{ github.event.pull_request.base.sha }}
+          bun install --frozen-lockfile
+          bun run bench --baseline
+
+      - name: "Benchmark current"
+        id: compare
+        run: |
+          git checkout -f ${{ github.event.pull_request.head.sha }}
+          bun install --frozen-lockfile
+          bun run bench
+
+          cat .benchmark/output.md >> $GITHUB_STEP_SUMMARY
+
+          report=`cat .benchmark/output.md`
+          echo "report<<EOF" >> $GITHUB_OUTPUT
+          echo "$report" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: "Post comment"
+        uses: edumserrano/find-create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-includes: "<!-- workflow-benchmarks-perf -->"
+          comment-author: "github-actions[bot]"
+          body: |
+            <!-- workflow-benchmarks-perf -->
+            ${{ steps.compare.outputs.report }}
+          edit-mode: replace

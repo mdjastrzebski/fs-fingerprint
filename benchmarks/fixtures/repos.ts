@@ -10,11 +10,6 @@ export interface RepoConfig {
 
 export const REPOS: RepoConfig[] = [
   {
-    name: "lodash",
-    url: "https://github.com/lodash/lodash.git",
-    description: "Popular utility library (~200 JS files)",
-  },
-  {
     name: "express",
     url: "https://github.com/expressjs/express.git",
     description: "Fast, unopinionated web framework (~500 files)",
@@ -23,11 +18,6 @@ export const REPOS: RepoConfig[] = [
     name: "react-native",
     url: "https://github.com/facebook/react-native.git",
     description: "React Native framework (~5000+ files)",
-  },
-  {
-    name: "react",
-    url: "https://github.com/facebook/react.git",
-    description: "React JavaScript library monorepo (~2000+ files)",
   },
   {
     name: "expensify",
@@ -45,13 +35,12 @@ export class RepoManager {
   }
 
   /**
-   * Clone or update a repository for benchmarking
+   * Clone a repository for benchmarking
    */
   async setupRepo(config: RepoConfig): Promise<string> {
     const repoPath = join(this.reposDir, config.name);
 
     if (!existsSync(repoPath)) {
-      console.log(`⚠️  Failed to update ${config.name}, re-cloning...`);
       return this.cloneRepo(config);
     }
 
@@ -61,7 +50,7 @@ export class RepoManager {
   private cloneRepo(config: RepoConfig): string {
     const repoPath = join(this.reposDir, config.name);
 
-    console.log(`📥 Cloning ${config.name} (${config.description})...`);
+    console.log(`⬇️ Cloning ${config.name}...`);
 
     try {
       const cloneCmd = `git clone --depth=1 "${config.url}" "${repoPath}"`;
@@ -109,7 +98,7 @@ export class RepoManager {
       }
     }
 
-    console.log("🚀 Benchmark repositories setup successfully");
+    console.log("✅ Benchmark repositories setup successfully");
 
     return repoPaths;
   }
