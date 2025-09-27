@@ -209,15 +209,18 @@ function savePerformanceResults(path: string, results: PerformanceResults) {
 }
 
 function buildResultsTable(bench: Bench): string[][] {
-  return bench.table(
-    (task) =>
-      [
+  return bench.tasks
+    .filter((task) => task.result != null)
+    .map((task) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const { latency, throughput } = task.result!;
+      return [
         task.name,
-        `${task.result?.latency.p50?.toFixed(2)} \xB1 ${task.result?.latency.mad?.toFixed(2)}`,
-        `${task.result?.throughput?.p50?.toFixed(2)} \xB1 ${task.result?.throughput?.mad?.toFixed(2)}`,
-        `${task.result?.latency?.samples.length ?? 0}`,
-      ] as Record<number, string>,
-  ) as unknown as string[][];
+        `${latency.p50?.toFixed(2)} \u00B1 ${latency.mad?.toFixed(2)}`,
+        `${throughput.p50?.toFixed(2)} \u00B1 ${throughput.mad?.toFixed(2)}`,
+        `${latency.samples.length}`,
+      ];
+    });
 }
 
 function buildComparisonTable(
@@ -229,11 +232,11 @@ function buildComparisonTable(
 
     const baselineLatency = baseline?.latency.p50;
     const currentLatency = current.latency.p50;
-    if (!currentLatency || !baselineLatency) {
+    if (currentLatency == null || baselineLatency == null) {
       return [
         current.name,
-        baselineLatency?.toFixed(2) || "N/A",
-        currentLatency?.toFixed(2) || "N/A",
+        baselineLatency?.toFixed(1) || "N/A",
+        currentLatency?.toFixed(1) || "N/A",
         "N/A",
       ];
     }
@@ -250,5 +253,9 @@ function buildComparisonTable(
 }
 
 function writeMarkdownOutput(path: string, markdownTable: string) {
-  writeFileSync(path, markdownTable);
+  const markdownOutput = md.joinBlocks([
+    md.heading("Performance comparison (vs baseline)", { level: 3 }),
+    markdownTable,
+  ]);
+  writeFileSync(path, markdownOutput);
 }
