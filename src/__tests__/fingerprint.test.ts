@@ -373,7 +373,7 @@ describe("calculateFingerprint", () => {
 
     const options: FingerprintOptions = {
       files: ["**/*.txt", "../../pkg/b", "../../root-file.*"],
-      ignores: [...ignoredPaths],
+      ignores: ignoredPaths,
     };
 
     const fingerprint = await calculateFingerprint(packageRootPath, options);
