@@ -47,7 +47,6 @@ async function calculateFingerprint(
     ignores?: string[]; // Glob patterns to exclude (default: none)
     contentInputs?: ContentInput[]; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
-    concurrency?: number; // Concurrent file reads (default: 16)
   },
 ): Promise<Fingerprint>;
 ```
