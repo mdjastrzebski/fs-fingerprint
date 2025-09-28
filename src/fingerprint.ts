@@ -1,6 +1,6 @@
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
-import type { Config, FileHash, Fingerprint, FingerprintOptions } from "./types.js";
+import type { Config, Fingerprint, FingerprintOptions } from "./types.js";
 import { getInputFiles, getInputFilesSync, mergeHashes } from "./utils.js";
 
 export async function calculateFingerprint(
@@ -30,6 +30,7 @@ export function calculateFingerprintSync(
 
   const inputFiles = getInputFilesSync(basePath, { files, ignores });
   const fileHashes = inputFiles.map((path) => calculateFileHashSync(path, config));
+
   const contentHashes = contentInputs?.map((input) => calculateContentHash(input, config)) ?? [];
   return mergeHashes(fileHashes, contentHashes, config);
 }
