@@ -1,6 +1,6 @@
 # FS Fingerprint 🫆
 
-Generate unique fingerprint hashes from filesystem state and other inputs (text, JSON, envs).
+Generate unique fingerprint hashes from filesystem state and other inputs: text, JSON, envs.
 
 ## What is FS Fingerprint?
 
@@ -9,14 +9,13 @@ A fast Node.js library to generate unique fingerprints based on:
 - Files & directories in your project
 - Other inputs: text content, JSON data, environment variables
 
-Perfect for building intelligent caching solutions that automatically invalidate when your code or data changes. ⚡
+Perfect for building intelligent caching solutions that detect when source files have changed. ⚡
 
 ## Features
 
-- Fast change detection (benchmarked)
-- Highly customizable: include/exclude glob patterns, additional inputs, hashing algorithms
-- Simple TypeScript API, both sync and async
-- Supports `.gitignore` files
+- Reliable and fast change detection (100% code coverage, benchmarked)
+- Highly customizable: files/ignores glob patterns, additional inputs, hashing algorithms, `.gitignore` support
+- Elegant and simple TypeScript API, both sync and async
 - Tiny size (~30 KB unpacked) with minimal dependencies (`tinyglobby`)
 
 ## Quick Start
@@ -80,7 +79,10 @@ function calculateFingerprintSync(
 Sync version of `calculateFingerprint`:
 
 - Generates the same hash value without `await`
-- May be slower due to blocking filesystem reads
+- Peformance considerations:
+  - on M3 MacBook Pro the async version is 2x faster
+  - on Intel Mac both async and sync versions are comparable
+  - on GitHub CI runner (`ubuntu-latest`) the sync version is 2x faster(!)
 
 ### `getGitIgnoredPaths`
 
@@ -152,7 +154,7 @@ const { hash } = await calculateFingerprint("/project/path", {
 });
 ```
 
-**Synchronous call (slower):**
+**Synchronous call:**
 
 ```typescript
 const { hash } = calculateFingerprintSync("/project/path", { ...options });
@@ -165,6 +167,12 @@ const { hash } = calculateFingerprintSync("/project/path", { ...options });
 
 2. **File Hashing:**  
    Each file’s hash is based only on its content (not name or path). The final hash includes both file paths and their content hashes.
+
+3. **Minimal Dependencies:**
+   Avoid adding 3rd party deps unless highly beneficial.
+
+4. **Benchmark Everything:**
+   Do not make assumptions about what is fast and what is not, always benchmark any introduced code changes.
 
 ## Contributing
 
