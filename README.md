@@ -13,10 +13,11 @@ Perfect for building intelligent caching solutions that automatically invalidate
 
 ## Features
 
-- Fast change detection (with benchmarks)
+- Fast change detection (benchmarked)
 - Highly customizable: include/exclude glob patterns, additional inputs, hashing algorithms
 - Simple TypeScript API, both sync and async
 - Supports `.gitignore` files
+- Tiny size (~30 KB unpacked) with minimal dependencies (`tinyglobby`)
 
 ## Quick Start
 
@@ -46,7 +47,6 @@ async function calculateFingerprint(
     ignores?: string[]; // Glob patterns to exclude (default: none)
     contentInputs?: ContentInput[]; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
-    concurrency?: number; // Concurrent file reads (default: 16)
   },
 ): Promise<Fingerprint>;
 ```

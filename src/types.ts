@@ -19,9 +19,6 @@ export interface FingerprintOptions {
 
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
-
-  /** Maximum number of concurrently opened files */
-  concurrency?: number;
 }
 
 /**
