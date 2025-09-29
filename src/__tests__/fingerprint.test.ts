@@ -1,7 +1,7 @@
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { beforeEach, describe, expect, test } from "bun:test";
+import { beforeEach, describe, expect, spyOn, test } from "bun:test";
 
 import { findData, findFile } from "../../test-utils/assert.js";
 import { formatFingerprint } from "../../test-utils/format.js";
@@ -414,7 +414,7 @@ describe("calculateFingerprint", () => {
     execSync("git init", { cwd: basePath });
 
     const options: FingerprintOptions = {
-      files: ["**/*.txt", "../../pkg/b", "../../root-file.*"],
+      files: ["**/**", "../../pkg/b", "../../root-file.*"],
       gitIgnore: true,
     };
 
@@ -464,5 +464,39 @@ describe("calculateFingerprint", () => {
         "file1.md",
       ]
     `);
+  });
+
+  test("does not throw on git error", async () => {
+    writePaths(PATHS_MD);
+    writeFile(".gitignore", "*.md");
+
+    const options: FingerprintOptions = {
+      gitIgnore: true,
+    };
+
+    const consoleWarnMock = spyOn(console, "warn").mockReset();
+    const fingerprint = await calculateFingerprint(basePath, options);
+    expect(console.warn).toHaveBeenCalledWith("Failed to get git ignored files.");
+
+    expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
+      "Hash: 56823b8e45505714e2b19db32f88c66af87b139b
+      Files:
+      - dir/file2.md - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - dir/subdir/file3.md - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - file1.md - 943a702d06f34599aee1f8da8ef9f7296031d699
+      Content:
+      "
+    `);
+
+    expect(findFile(fingerprint, "file1.md")).toBeTruthy();
+    expect(findFile(fingerprint, "dir/file2.md")).toBeTruthy();
+    expect(findFile(fingerprint, "dir/subdir/file3.md")).toBeTruthy();
+
+    consoleWarnMock.mockReset();
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
+    expect(console.warn).toHaveBeenCalledWith("Failed to get git ignored files.");
+    expect(fingerprintSync).toEqual(fingerprint);
+
+    expect(() => getGitIgnoredPaths(basePath)).toThrowError(/Failed to get git ignored files./);
   });
 });
