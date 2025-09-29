@@ -19,6 +19,9 @@ export interface FingerprintOptions {
 
   /** Hashing algorithm to use */
   hashAlgorithm?: HashAlgorithm;
+
+  /** Whether to ignore files ignored by Git */
+  gitIgnore?: boolean;
 }
 
 /**
