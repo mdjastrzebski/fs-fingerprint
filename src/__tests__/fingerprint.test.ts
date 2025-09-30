@@ -1,7 +1,7 @@
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { beforeEach, describe, expect, test } from "bun:test";
+import { beforeEach, describe, expect, spyOn, test } from "bun:test";
 
 import { findData, findFile } from "../../test-utils/assert.js";
 import { formatFingerprint } from "../../test-utils/format.js";
@@ -263,6 +263,58 @@ describe("calculateFingerprint", () => {
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
+  test("supports both files, ignores patterns, and .gitignore", async () => {
+    writePaths([
+      "file-1.txt",
+      "file-2.md",
+      "dir-1/file-3.txt",
+      "dir-1/file-4.md",
+      "dir-2/file-5.txt",
+      "dir-2/nested/file-6.txt",
+      "dir-2/nested/file-7.md",
+      "dir-3/file-8.txt",
+    ]);
+
+    writeFile(".gitignore", "dir-2/nested");
+    execSync("git init", { cwd: basePath });
+
+    const options: FingerprintOptions = {
+      files: ["file-1.txt", "dir-1/", "dir-2"],
+      ignores: ["**/*.md"],
+      gitIgnore: true,
+    };
+
+    const fingerprint = await calculateFingerprint(basePath, options);
+    expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
+      "Hash: 1cb4f6d53cae1ab8068780c4e64cd4db9eabed45
+      Files:
+      - dir-1/file-3.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - dir-2/file-5.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - file-1.txt - 943a702d06f34599aee1f8da8ef9f7296031d699
+      Content:
+      "
+    `);
+
+    expect(findFile(fingerprint, "file-1.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "dir-1/file-3.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "dir-2/file-5.txt")).toBeTruthy();
+
+    expect(findFile(fingerprint, "file-2.md")).toBeNull();
+    expect(findFile(fingerprint, "dir-1/file-4.md")).toBeNull();
+    expect(findFile(fingerprint, "dir-2/nested/file-6.md")).toBeNull();
+    expect(findFile(fingerprint, "dir-3/file-8.txt")).toBeNull();
+
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
+
+    const gitIgnores = getGitIgnoredPaths(basePath);
+    expect(gitIgnores).toMatchInlineSnapshot(`
+      [
+        "dir-2/nested/",
+      ]
+    `);
+  });
+
   test("follows symlinks", async () => {
     writePaths(["file1.txt", "dir-1/"]);
     fs.symlinkSync(
@@ -357,31 +409,16 @@ describe("calculateFingerprint", () => {
     writePaths(PATHS_TXT.map((p) => path.join("pkg/b", p)));
     writePaths(PATHS_MD.map((p) => path.join("pkg/b", p)));
     writePaths(["root-file.txt", "root-file.md"]);
+
     writeFile(".gitignore", "*.md");
-
-    execSync("git init", {
-      cwd: basePath,
-    });
-
-    const packageRootPath = path.join(basePath, "pkg/a");
-    const ignoredPaths = getGitIgnoredPaths(packageRootPath, { entireRepo: true });
-    expect(ignoredPaths).toMatchInlineSnapshot(`
-      [
-        "../../root-file.md",
-        "../b/dir/file2.md",
-        "../b/dir/subdir/file3.md",
-        "../b/file1.md",
-        "dir/file2.md",
-        "dir/subdir/file3.md",
-        "file1.md",
-      ]
-    `);
+    execSync("git init", { cwd: basePath });
 
     const options: FingerprintOptions = {
-      files: ["**/*.txt", "../../pkg/b", "../../root-file.*"],
-      ignores: ignoredPaths,
+      files: ["**/**", "../../pkg/b", "../../root-file.*"],
+      gitIgnore: true,
     };
 
+    const packageRootPath = path.join(basePath, "pkg/a");
     const fingerprint = await calculateFingerprint(packageRootPath, options);
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: 517f0f053c6726df50bdf41e4d2f2f1f8c58feca
@@ -414,5 +451,52 @@ describe("calculateFingerprint", () => {
 
     const fingerprintSync = calculateFingerprintSync(packageRootPath, options);
     expect(fingerprintSync).toEqual(fingerprint);
+
+    const gitIgnores = getGitIgnoredPaths(packageRootPath, { entireRepo: true });
+    expect(gitIgnores).toMatchInlineSnapshot(`
+      [
+        "../../root-file.md",
+        "../b/dir/file2.md",
+        "../b/dir/subdir/file3.md",
+        "../b/file1.md",
+        "dir/file2.md",
+        "dir/subdir/file3.md",
+        "file1.md",
+      ]
+    `);
+  });
+
+  test("does not throw on git error", async () => {
+    writePaths(PATHS_MD);
+    writeFile(".gitignore", "*.md");
+
+    const options: FingerprintOptions = {
+      gitIgnore: true,
+    };
+
+    const consoleWarnMock = spyOn(console, "warn").mockReset();
+    const fingerprint = await calculateFingerprint(basePath, options);
+    expect(console.warn).toHaveBeenCalledWith("Failed to get git ignored files.");
+
+    expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
+      "Hash: 56823b8e45505714e2b19db32f88c66af87b139b
+      Files:
+      - dir/file2.md - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - dir/subdir/file3.md - 943a702d06f34599aee1f8da8ef9f7296031d699
+      - file1.md - 943a702d06f34599aee1f8da8ef9f7296031d699
+      Content:
+      "
+    `);
+
+    expect(findFile(fingerprint, "file1.md")).toBeTruthy();
+    expect(findFile(fingerprint, "dir/file2.md")).toBeTruthy();
+    expect(findFile(fingerprint, "dir/subdir/file3.md")).toBeTruthy();
+
+    consoleWarnMock.mockReset();
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
+    expect(console.warn).toHaveBeenCalledWith("Failed to get git ignored files.");
+    expect(fingerprintSync).toEqual(fingerprint);
+
+    expect(() => getGitIgnoredPaths(basePath)).toThrowError(/Failed to get git ignored files./);
   });
 });
