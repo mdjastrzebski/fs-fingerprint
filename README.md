@@ -34,7 +34,7 @@ const { hash } = await calculateFingerprint("/project/path", {
 });
 ```
 
-## API Reference
+## Core API
 
 ### `calculateFingerprint`
 
@@ -65,28 +65,7 @@ interface Fingerprint {
 
 Note: when using `gitIgnore` option, it silently ignores any git invocation errors (e.g. missing `git` binary, or not a git repository).
 
-### `calculateFingerprintSync`
-
-```ts
-function calculateFingerprintSync(
-  basePath: string, // Base path to resolve "files" and "ignores" patterns
-  options?: {
-    files?: string[]; // Glob patterns to include (default: all)
-    ignores?: string[]; // Glob patterns to exclude (default: none)
-    contentInputs?: ContentInput[]; // Additional inputs: text, JSON, envs, etc.
-    hashAlgorithm?: string; // Hash algorithm (default: "sha1")
-    gitIgnore?: boolean;
-  },
-): Fingerprint;
-```
-
-Sync version of `calculateFingerprint`:
-
-- Generates the same hash value without `await`
-- Performance considerations:
-  - on M3 MacBook Pro the async version is 2x faster
-  - on Intel Mac both async and sync versions are comparable
-  - on GitHub CI runner (`ubuntu-latest`) the sync version is 2x faster(!)
+Browser [API Reference](./docs/API.md) for other API.
 
 ## Examples
 
