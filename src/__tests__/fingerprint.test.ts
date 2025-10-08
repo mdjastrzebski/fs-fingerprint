@@ -474,9 +474,7 @@ describe("calculateFingerprint", () => {
       gitIgnore: true,
     };
 
-    const consoleWarnMock = spyOn(console, "warn").mockReset();
     const fingerprint = await calculateFingerprint(basePath, options);
-    expect(console.warn).toHaveBeenCalledWith("Failed to get git ignored files.");
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
       "Hash: 56823b8e45505714e2b19db32f88c66af87b139b
@@ -492,9 +490,7 @@ describe("calculateFingerprint", () => {
     expect(findFile(fingerprint, "dir/file2.md")).toBeTruthy();
     expect(findFile(fingerprint, "dir/subdir/file3.md")).toBeTruthy();
 
-    consoleWarnMock.mockReset();
     const fingerprintSync = calculateFingerprintSync(basePath, options);
-    expect(console.warn).toHaveBeenCalledWith("Failed to get git ignored files.");
     expect(fingerprintSync).toEqual(fingerprint);
 
     expect(() => getGitIgnoredPaths(basePath)).toThrowError(/Failed to get git ignored files./);

@@ -53,8 +53,8 @@ function resolveIgnores(
   try {
     gitIgnores = getGitIgnoredPaths(basePath, { entireRepo: hasOutsidePaths });
   } catch {
-    console.warn("Failed to get git ignored files.");
     // Intentionally ignore git errors
   }
+
   return options?.ignores ? [...gitIgnores, ...options.ignores] : gitIgnores;
 }
