@@ -57,7 +57,7 @@ interface Fingerprint {
 **Performance considerations**
 In general async version should be faster due ability to read many files at the same time. However, in practices it has been observed as true on high-end machines, e.g. MacBook Pro.
 
-On standard GitHub CI runner (`ubuntu-latest`) the sync version is 2x faster(!)
+On standard GitHub CI runners (`ubuntu-latest`), the sync version is 2x faster(!) than the async version.
 
 ## Low-level APIs
 
