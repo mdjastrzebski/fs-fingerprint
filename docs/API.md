@@ -59,7 +59,7 @@ In general async version should be faster due ability to read many files at the 
 
 On standard GitHub CI runner (`ubuntu-latest`) the sync version is 2x faster(!)
 
-## Low-level API
+## Low-level APIs
 
 ### `getGitIgnoredPaths`
 

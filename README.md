@@ -134,28 +134,6 @@ const { hash } = calculateFingerprintSync("/project/path", { ...options });
 4. **Benchmark Everything:**
    Do not make assumptions about what is fast and what is not, always benchmark any introduced code changes.
 
-## Low-level APIs
-
-### `getGitIgnoredPaths`
-
-```ts
-function getGitIgnoredPaths(
-  basePath: string, // Base path to look for git ignored paths
-  options?: {
-    entireRepo?: boolean; // Search for ignored paths in the whole repo (default: false)
-  },
-): string[];
-```
-
-Helper to get paths ignored by Git from `.gitignore` and other Git settings.  
-This function invokes `git ls-files`, so Git must be installed and available in PATH.
-
-**Note:** This function may throw errors (e.g., not a git repository). Use `try/catch` to handle errors.
-
-#### Options
-
-- `entireRepo`: If `basePath` is not the git root, set this to search the entire repository. Always returns paths relative to `basePath`.
-
 ## Contributing
 
 PRs welcome! Keep it awesome.
