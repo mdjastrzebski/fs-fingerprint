@@ -34,7 +34,7 @@ const { hash } = await calculateFingerprint("/project/path", {
 });
 ```
 
-## API Reference
+## Core API
 
 ### `calculateFingerprint`
 
@@ -65,28 +65,7 @@ interface Fingerprint {
 
 Note: when using `gitIgnore` option, it silently ignores any git invocation errors (e.g. missing `git` binary, or not a git repository).
 
-### `calculateFingerprintSync`
-
-```ts
-function calculateFingerprintSync(
-  basePath: string, // Base path to resolve "files" and "ignores" patterns
-  options?: {
-    files?: string[]; // Glob patterns to include (default: all)
-    ignores?: string[]; // Glob patterns to exclude (default: none)
-    contentInputs?: ContentInput[]; // Additional inputs: text, JSON, envs, etc.
-    hashAlgorithm?: string; // Hash algorithm (default: "sha1")
-    gitIgnore?: boolean;
-  },
-): Fingerprint;
-```
-
-Sync version of `calculateFingerprint`:
-
-- Generates the same hash value without `await`
-- Performance considerations:
-  - on M3 MacBook Pro the async version is 2x faster
-  - on Intel Mac both async and sync versions are comparable
-  - on GitHub CI runner (`ubuntu-latest`) the sync version is 2x faster(!)
+Browse the [API Reference](./docs/API.md) for other API.
 
 ## Examples
 
@@ -154,28 +133,6 @@ const { hash } = calculateFingerprintSync("/project/path", { ...options });
 
 4. **Benchmark Everything:**
    Do not make assumptions about what is fast and what is not, always benchmark any introduced code changes.
-
-## Low-level APIs
-
-### `getGitIgnoredPaths`
-
-```ts
-function getGitIgnoredPaths(
-  basePath: string, // Base path to look for git ignored paths
-  options?: {
-    entireRepo?: boolean; // Search for ignored paths in the whole repo (default: false)
-  },
-): string[];
-```
-
-Helper to get paths ignored by Git from `.gitignore` and other Git settings.  
-This function invokes `git ls-files`, so Git must be installed and available in PATH.
-
-**Note:** This function may throw errors (e.g., not a git repository). Use `try/catch` to handle errors.
-
-#### Options
-
-- `entireRepo`: If `basePath` is not the git root, set this to search the entire repository. Always returns paths relative to `basePath`.
 
 ## Contributing
 
