@@ -65,7 +65,7 @@ interface Fingerprint {
 
 Note: when using `gitIgnore` option, it silently ignores any git invocation errors (e.g. missing `git` binary, or not a git repository).
 
-Browser [API Reference](./docs/API.md) for other API.
+Browse the [API Reference](./docs/API.md) for other API.
 
 ## Examples
 
