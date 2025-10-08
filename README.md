@@ -63,6 +63,8 @@ interface Fingerprint {
 }
 ```
 
+Note: when using `gitIgnore` option, it silently ignores any git invocation errors (e.g. missing `git` binary, or not a git repository).
+
 ### `calculateFingerprintSync`
 
 ```ts
