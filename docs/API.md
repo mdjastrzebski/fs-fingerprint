@@ -70,6 +70,12 @@ function jsonContent(key: string, json: unknown, options?: { secret?: boolean })
 
 Creates an input from a JSON-serializable value. Object keys are sorted before hashing, so property order doesn't affect the fingerprint.
 
+```ts
+const fp = await calculateFingerprint("./my-project", {
+  contentInputs: [jsonContent("deps", { react: "^19.0.0", typescript: "~5.7.0" })],
+});
+```
+
 ### `envContent`
 
 ```ts
@@ -160,14 +166,3 @@ type HashAlgorithm = "sha1" | "sha256" | "sha512" | (string & {});
 ```
 
 Any algorithm supported by Node.js `crypto.createHash` works. TypeScript will auto-suggest the three common ones.
-
-## Constants
-
-```ts
-import { EMPTY_HASH, DEFAULT_HASH_ALGORITHM } from "fs-fingerprint";
-
-EMPTY_HASH; // "(null)"
-DEFAULT_HASH_ALGORITHM; // "sha1"
-```
-
-`EMPTY_HASH` is the hash value used when a file or content input produces no data. `DEFAULT_HASH_ALGORITHM` is the algorithm used when `hashAlgorithm` is not specified.
