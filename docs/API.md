@@ -1,10 +1,6 @@
-# API Reference
+# API reference
 
-FS Fingerprint API consists of two levels: high-level and low-level APIs.
-
-## High-level APIs
-
-### `calculateFingerprint`
+## `calculateFingerprint`
 
 ```ts
 async function calculateFingerprint(
@@ -18,19 +14,19 @@ async function calculateFingerprint(
 ): Promise<Fingerprint>;
 ```
 
-Generates a fingerprint hash for the filesystem state.
+Generates a fingerprint hash from the filesystem state under `basePath`.
 
-**Return Value**
+```ts
+const fp = await calculateFingerprint("./my-project", {
+  files: ["src/**/*.ts"],
+  ignores: ["**/*.test.ts"],
+  hashAlgorithm: "sha256",
+});
 
-```typescript
-interface Fingerprint {
-  hash: string; // Overall project fingerprint hash
-  files: FileHash[]; // File hashes included in the fingerprint
-  content: ContentHash[]; // Content hashes included in the fingerprint
-}
+console.log(fp.hash); // "a1b2c3..."
 ```
 
-### `calculateFingerprintSync`
+## `calculateFingerprintSync`
 
 ```ts
 function calculateFingerprintSync(
@@ -44,40 +40,151 @@ function calculateFingerprintSync(
 ): Fingerprint;
 ```
 
-**Return Value**
+Synchronous version of `calculateFingerprint`. Same parameters, same return type.
 
-```typescript
-interface Fingerprint {
-  hash: string; // Overall project fingerprint hash
-  files: FileHash[]; // File hashes included in the fingerprint
-  content: ContentHash[]; // Content hashes included in the fingerprint
-}
+The async version is generally faster because it reads files in parallel. In practice, this difference shows mainly on higher-end machines. On standard GitHub CI runners (`ubuntu-latest`), the sync version is about 2x faster.
+
+## Content input helpers
+
+These functions create `ContentInput` objects for use with the `contentInputs` option. They let you include non-file data in the fingerprint.
+
+### `textContent`
+
+```ts
+function textContent(
+  key: string,
+  text: string,
+  options?: { secret?: boolean },
+): ContentInput;
 ```
 
-#### Performance considerations
+Creates an input from a plain text string.
 
-In general, the async version should be faster due to its ability to read many files at the same time. However, in practice this has been mostly observed on high-end machines, e.g. MacBook Pro.
+```ts
+const fp = await calculateFingerprint("./my-project", {
+  contentInputs: [textContent("version", "1.0.0")],
+});
+```
 
-On standard GitHub CI runners (`ubuntu-latest`), the sync version is 2x faster(!) than the async version.
+### `jsonContent`
 
-## Low-level APIs
+```ts
+function jsonContent(
+  key: string,
+  json: unknown,
+  options?: { secret?: boolean },
+): ContentInput;
+```
 
-### `getGitIgnoredPaths`
+Creates an input from a JSON-serializable value. Object keys are sorted before hashing, so property order doesn't affect the fingerprint.
+
+### `envContent`
+
+```ts
+function envContent(
+  key: string,
+  envs: string[],
+  options?: { secret?: boolean },
+): ContentInput;
+```
+
+Creates an input from environment variable values. Pass an array of variable names.
+
+```ts
+const fp = await calculateFingerprint("./my-project", {
+  contentInputs: [
+    envContent("build-env", ["NODE_ENV", "CI"], { secret: true }),
+  ],
+});
+```
+
+The `secret` option (available on all three helpers) omits the clear-text content from the fingerprint output while still including it in the hash.
+
+## `getGitIgnoredPaths`
 
 ```ts
 function getGitIgnoredPaths(
-  basePath: string, // Base path to look for git ignored paths
-  options?: {
-    entireRepo?: boolean; // Search for ignored paths in the whole repo (default: false)
-  },
+  basePath: string,
+  options?: { entireRepo?: boolean },
 ): string[];
 ```
 
-Helper to get paths ignored by Git from `.gitignore` and other Git settings.  
-This function invokes `git ls-files`, so Git must be installed and available in PATH.
+Returns paths ignored by Git (from `.gitignore` and other Git ignore rules) by running `git ls-files`. Git must be installed and available in PATH.
 
-**Note:** This function may throw errors (e.g., not a git repository). Use `try/catch` to handle errors.
+This function throws if the directory is not inside a git repository.
 
-#### Options
+**Options**
 
-- `entireRepo`: If `basePath` is not the git root, set this to search the entire repository. Always returns paths relative to `basePath`.
+- `entireRepo` -- set to `true` when `basePath` is not the git root to search the entire repository for ignored paths. Returned paths are always relative to `basePath`.
+
+## Types
+
+### `FingerprintOptions`
+
+```ts
+interface FingerprintOptions {
+  files?: readonly string[];        // Glob patterns to include (default: "**")
+  ignores?: readonly string[];      // Glob patterns to exclude (default: none)
+  contentInputs?: readonly ContentInput[];
+  hashAlgorithm?: HashAlgorithm;    // Default: "sha1"
+  gitIgnore?: boolean;              // Exclude git-ignored files (default: false)
+}
+```
+
+### `Fingerprint`
+
+```ts
+interface Fingerprint {
+  hash: string;           // Combined fingerprint hash
+  files: FileHash[];      // Individual file hashes
+  content: ContentHash[]; // Individual content input hashes
+}
+```
+
+### `FileHash`
+
+```ts
+interface FileHash {
+  path: string;
+  hash: string;
+}
+```
+
+### `ContentHash`
+
+```ts
+interface ContentHash {
+  key: string;
+  hash: string;
+  content?: string; // Omitted when secret is true
+}
+```
+
+### `ContentInput`
+
+```ts
+interface ContentInput {
+  key: string;
+  content: string;
+  secret?: boolean;
+}
+```
+
+### `HashAlgorithm`
+
+```ts
+type HashAlgorithm = "sha1" | "sha256" | "sha512" | (string & {});
+```
+
+Any algorithm supported by Node.js `crypto.createHash` works. TypeScript will auto-suggest the three common ones.
+
+## Constants
+
+```ts
+import { EMPTY_HASH, DEFAULT_HASH_ALGORITHM } from "fs-fingerprint";
+
+EMPTY_HASH;              // "(null)"
+DEFAULT_HASH_ALGORITHM;  // "sha1"
+```
+
+`EMPTY_HASH` is the hash value used when a file or content input produces no data. `DEFAULT_HASH_ALGORITHM` is the algorithm used when `hashAlgorithm` is not specified.
