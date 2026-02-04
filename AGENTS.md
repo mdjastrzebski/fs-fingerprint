@@ -58,6 +58,7 @@ Tests use Bun's built-in test runner. Test files live in `__tests__/` directorie
 ## Linting
 
 ESLint uses flat config format. Notable rules:
+
 - `simple-import-sort` for import ordering
 - TypeScript inline type imports enforced
 - `.only` and `.skip` are forbidden in test files

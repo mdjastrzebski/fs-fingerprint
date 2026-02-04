@@ -51,11 +51,7 @@ These functions create `ContentInput` objects for use with the `contentInputs` o
 ### `textContent`
 
 ```ts
-function textContent(
-  key: string,
-  text: string,
-  options?: { secret?: boolean },
-): ContentInput;
+function textContent(key: string, text: string, options?: { secret?: boolean }): ContentInput;
 ```
 
 Creates an input from a plain text string.
@@ -69,11 +65,7 @@ const fp = await calculateFingerprint("./my-project", {
 ### `jsonContent`
 
 ```ts
-function jsonContent(
-  key: string,
-  json: unknown,
-  options?: { secret?: boolean },
-): ContentInput;
+function jsonContent(key: string, json: unknown, options?: { secret?: boolean }): ContentInput;
 ```
 
 Creates an input from a JSON-serializable value. Object keys are sorted before hashing, so property order doesn't affect the fingerprint.
@@ -81,20 +73,14 @@ Creates an input from a JSON-serializable value. Object keys are sorted before h
 ### `envContent`
 
 ```ts
-function envContent(
-  key: string,
-  envs: string[],
-  options?: { secret?: boolean },
-): ContentInput;
+function envContent(key: string, envs: string[], options?: { secret?: boolean }): ContentInput;
 ```
 
 Creates an input from environment variable values. Pass an array of variable names.
 
 ```ts
 const fp = await calculateFingerprint("./my-project", {
-  contentInputs: [
-    envContent("build-env", ["NODE_ENV", "CI"], { secret: true }),
-  ],
+  contentInputs: [envContent("build-env", ["NODE_ENV", "CI"], { secret: true })],
 });
 ```
 
@@ -103,10 +89,7 @@ The `secret` option (available on all three helpers) omits the clear-text conten
 ## `getGitIgnoredPaths`
 
 ```ts
-function getGitIgnoredPaths(
-  basePath: string,
-  options?: { entireRepo?: boolean },
-): string[];
+function getGitIgnoredPaths(basePath: string, options?: { entireRepo?: boolean }): string[];
 ```
 
 Returns paths ignored by Git (from `.gitignore` and other Git ignore rules) by running `git ls-files`. Git must be installed and available in PATH.
@@ -123,11 +106,11 @@ This function throws if the directory is not inside a git repository.
 
 ```ts
 interface FingerprintOptions {
-  files?: readonly string[];        // Glob patterns to include (default: "**")
-  ignores?: readonly string[];      // Glob patterns to exclude (default: none)
+  files?: readonly string[]; // Glob patterns to include (default: "**")
+  ignores?: readonly string[]; // Glob patterns to exclude (default: none)
   contentInputs?: readonly ContentInput[];
-  hashAlgorithm?: HashAlgorithm;    // Default: "sha1"
-  gitIgnore?: boolean;              // Exclude git-ignored files (default: false)
+  hashAlgorithm?: HashAlgorithm; // Default: "sha1"
+  gitIgnore?: boolean; // Exclude git-ignored files (default: false)
 }
 ```
 
@@ -135,8 +118,8 @@ interface FingerprintOptions {
 
 ```ts
 interface Fingerprint {
-  hash: string;           // Combined fingerprint hash
-  files: FileHash[];      // Individual file hashes
+  hash: string; // Combined fingerprint hash
+  files: FileHash[]; // Individual file hashes
   content: ContentHash[]; // Individual content input hashes
 }
 ```
@@ -183,8 +166,8 @@ Any algorithm supported by Node.js `crypto.createHash` works. TypeScript will au
 ```ts
 import { EMPTY_HASH, DEFAULT_HASH_ALGORITHM } from "fs-fingerprint";
 
-EMPTY_HASH;              // "(null)"
-DEFAULT_HASH_ALGORITHM;  // "sha1"
+EMPTY_HASH; // "(null)"
+DEFAULT_HASH_ALGORITHM; // "sha1"
 ```
 
 `EMPTY_HASH` is the hash value used when a file or content input produces no data. `DEFAULT_HASH_ALGORITHM` is the algorithm used when `hashAlgorithm` is not specified.

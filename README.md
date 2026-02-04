@@ -47,11 +47,11 @@ const { hash } = calculateFingerprintSync("/project/path", {
 async function calculateFingerprint(
   basePath: string,
   options?: {
-    files?: string[];       // Glob patterns to include (default: all files)
-    ignores?: string[];     // Glob patterns to exclude
-    contentInputs?: ContentInput[];  // Additional non-file inputs
+    files?: string[]; // Glob patterns to include (default: all files)
+    ignores?: string[]; // Glob patterns to exclude
+    contentInputs?: ContentInput[]; // Additional non-file inputs
     hashAlgorithm?: string; // "sha1" (default), "sha256", "sha512", etc.
-    gitIgnore?: boolean;    // Exclude git-ignored paths (default: false)
+    gitIgnore?: boolean; // Exclude git-ignored paths (default: false)
   },
 ): Promise<Fingerprint>;
 ```
@@ -60,8 +60,8 @@ Returns a `Fingerprint` object:
 
 ```ts
 interface Fingerprint {
-  hash: string;           // Combined fingerprint hash
-  files: FileHash[];      // Individual file hashes
+  hash: string; // Combined fingerprint hash
+  files: FileHash[]; // Individual file hashes
   content: ContentHash[]; // Individual content input hashes
 }
 ```
@@ -86,12 +86,7 @@ const { hash } = await calculateFingerprint("/project/path", {
 Content inputs let you include non-file data in the fingerprint. Import the helpers alongside the main function:
 
 ```ts
-import {
-  calculateFingerprint,
-  textContent,
-  jsonContent,
-  envContent,
-} from "fs-fingerprint";
+import { calculateFingerprint, textContent, jsonContent, envContent } from "fs-fingerprint";
 
 const { hash } = await calculateFingerprint("/project/path", {
   contentInputs: [
