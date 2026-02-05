@@ -88,7 +88,7 @@ function resolveIgnores(
   try {
     gitIgnores = getGitIgnoredPaths(basePath, { entireRepo: hasOutsidePaths });
   } catch {
-    // Intentionally ignore git errors
+    // Silently fall back to no git ignores (e.g. not a git repo, git not installed)
   }
 
   return options?.ignores ? [...gitIgnores, ...options.ignores] : gitIgnores;

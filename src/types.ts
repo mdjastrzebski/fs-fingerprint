@@ -20,7 +20,12 @@ export interface FingerprintOptions {
   /** Hashing algorithm to use (default: "sha1") */
   hashAlgorithm?: HashAlgorithm;
 
-  /** Whether to ignore files ignored by Git (default: false) */
+  /**
+   * Whether to ignore files ignored by Git (default: false).
+   *
+   * When enabled, git errors (e.g. not a git repo, git not installed)
+   * are silently caught and the fingerprint proceeds without git ignores.
+   */
   gitIgnore?: boolean;
 }
 
