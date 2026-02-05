@@ -23,6 +23,32 @@ beforeEach(() => {
   prepareRootDir();
 });
 
+describe("basePath validation", () => {
+  test("throws on empty string", async () => {
+    expect(() => calculateFingerprintSync("")).toThrowError("basePath must be a non-empty string.");
+    await expect(calculateFingerprint("")).rejects.toThrowError("basePath must be a non-empty string.");
+  });
+
+  test("throws on non-existent path", async () => {
+    const missing = path.join(basePath, "does-not-exist");
+    expect(() => calculateFingerprintSync(missing)).toThrowError(`basePath does not exist: ${missing}`);
+    await expect(calculateFingerprint(missing)).rejects.toThrowError(
+      `basePath does not exist: ${missing}`,
+    );
+  });
+
+  test("throws when path is a file", async () => {
+    writePaths(["file.txt"]);
+    const filePath = path.join(basePath, "file.txt");
+    expect(() => calculateFingerprintSync(filePath)).toThrowError(
+      `basePath is not a directory: ${filePath}`,
+    );
+    await expect(calculateFingerprint(filePath)).rejects.toThrowError(
+      `basePath is not a directory: ${filePath}`,
+    );
+  });
+});
+
 describe("calculateFingerprint", () => {
   test("supports files and directories", async () => {
     writePaths(["file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);

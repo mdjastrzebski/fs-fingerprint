@@ -1,3 +1,5 @@
+import * as fs from "node:fs";
+
 import { getGitIgnoredPaths } from "./git.js";
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
@@ -15,6 +17,7 @@ export async function calculateFingerprint(
   basePath: string,
   options?: FingerprintOptions,
 ): Promise<Fingerprint> {
+  validateBasePath(basePath);
   const { hashAlgorithm, files, contentInputs } = options ?? {};
   const config: Config = {
     basePath,
@@ -40,6 +43,7 @@ export function calculateFingerprintSync(
   basePath: string,
   options?: FingerprintOptions,
 ): Fingerprint {
+  validateBasePath(basePath);
   const { hashAlgorithm, files, contentInputs } = options ?? {};
   const config: Config = {
     basePath,
@@ -52,6 +56,23 @@ export function calculateFingerprintSync(
 
   const contentHashes = contentInputs?.map((input) => calculateContentHash(input, config)) ?? [];
   return mergeHashes(fileHashes, contentHashes, config);
+}
+
+function validateBasePath(basePath: string): void {
+  if (!basePath) {
+    throw new Error("basePath must be a non-empty string.");
+  }
+
+  let stat: fs.Stats;
+  try {
+    stat = fs.statSync(basePath);
+  } catch {
+    throw new Error(`basePath does not exist: ${basePath}`);
+  }
+
+  if (!stat.isDirectory()) {
+    throw new Error(`basePath is not a directory: ${basePath}`);
+  }
 }
 
 function resolveIgnores(
