@@ -133,6 +133,13 @@ describe("calculateContentHash", () => {
     delete process.env["TEST_ENV_2"];
   });
 
+  test("throws on circular JSON reference", () => {
+    const circular: Record<string, unknown> = { a: 1 };
+    circular.self = circular;
+
+    expect(() => jsonContent("circular", circular)).toThrow();
+  });
+
   test('content handles "secret" option', () => {
     const content = textContent("content-1", "MY-SECRET-CONTENT");
     const secretContent = textContent("content-1", "MY-SECRET-CONTENT", { secret: true });

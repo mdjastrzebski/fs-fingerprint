@@ -66,6 +66,18 @@ describe("calculateFileHash", () => {
     expect(hashSync).toEqual(hash);
   });
 
+  test("throws on missing file (async)", async () => {
+    await expect(calculateFileHash("nonexistent.txt", baseConfig)).rejects.toThrow(
+      "Failed to read file: nonexistent.txt",
+    );
+  });
+
+  test("throws on missing file (sync)", () => {
+    expect(() => calculateFileHashSync("nonexistent.txt", baseConfig)).toThrow(
+      "Failed to read file: nonexistent.txt",
+    );
+  });
+
   test("handles unicode chars, emojis, etc content", async () => {
     writeFile("file-1.txt", "Hello, world!\nąęśćź🍓🫆🌀\n");
 
