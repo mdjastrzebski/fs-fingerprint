@@ -4,6 +4,13 @@ import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
 import type { Config, Fingerprint, FingerprintOptions } from "./types.js";
 import { getInputFiles, getInputFilesSync, mergeHashes } from "./utils.js";
 
+/**
+ * Calculates a deterministic fingerprint hash from filesystem state and content inputs.
+ *
+ * @param basePath - Root directory to resolve file paths against
+ * @param options - Glob patterns, content inputs, and hashing options
+ * @returns A fingerprint containing the combined hash and per-file/content details
+ */
 export async function calculateFingerprint(
   basePath: string,
   options?: FingerprintOptions,
@@ -22,6 +29,13 @@ export async function calculateFingerprint(
   return mergeHashes(fileHashes, contentHashes, config);
 }
 
+/**
+ * Synchronous version of {@link calculateFingerprint}.
+ *
+ * @param basePath - Root directory to resolve file paths against
+ * @param options - Glob patterns, content inputs, and hashing options
+ * @returns A fingerprint containing the combined hash and per-file/content details
+ */
 export function calculateFingerprintSync(
   basePath: string,
   options?: FingerprintOptions,

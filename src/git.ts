@@ -6,6 +6,13 @@ export interface GetGitIgnoredPathsOptions {
   entireRepo?: boolean;
 }
 
+/**
+ * Returns sorted glob patterns for files ignored by git.
+ * Uses `git ls-files` to discover ignored paths.
+ *
+ * @param basePath - Directory to resolve paths against
+ * @param options - Set `entireRepo: true` to scan from the git root and rebase paths
+ */
 export function getGitIgnoredPaths(
   basePath: string,
   { entireRepo }: GetGitIgnoredPathsOptions = {},
@@ -51,6 +58,9 @@ function getGitRootPath(path: string): string {
   }
 }
 
+/**
+ * Rebases a file path from one base directory to another, preserving trailing slashes.
+ */
 export function rebasePath(path: string, fromBase: string, toBase: string): string {
   const rebasedPath = nodePath
     .relative(toBase, nodePath.join(fromBase, path))

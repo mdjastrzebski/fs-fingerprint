@@ -1,6 +1,10 @@
 import type { Config, ContentHash, ContentInput } from "../types.js";
 import { hashData } from "../utils.js";
 
+/**
+ * Hashes a content input and returns a {@link ContentHash}.
+ * When the input is marked as `secret`, the clear-text content is omitted from the result.
+ */
 export function calculateContentHash(input: ContentInput, config: Config): ContentHash {
   return {
     key: input.key,
@@ -9,6 +13,13 @@ export function calculateContentHash(input: ContentInput, config: Config): Conte
   };
 }
 
+/**
+ * Creates a {@link ContentInput} from a plain text string.
+ *
+ * @param key - Identifier for this content entry
+ * @param text - The text to include in the fingerprint
+ * @param options - Set `secret: true` to omit clear-text from the fingerprint manifest
+ */
 export function textContent(
   key: string,
   text: string,
@@ -21,6 +32,14 @@ export function textContent(
   };
 }
 
+/**
+ * Creates a {@link ContentInput} from a JSON-serializable value.
+ * Object keys are sorted recursively for deterministic hashing.
+ *
+ * @param key - Identifier for this content entry
+ * @param json - The value to serialize and include in the fingerprint
+ * @param options - Set `secret: true` to omit clear-text from the fingerprint manifest
+ */
 export function jsonContent(
   key: string,
   json: unknown,
@@ -34,6 +53,14 @@ export function jsonContent(
   };
 }
 
+/**
+ * Creates a {@link ContentInput} from environment variable values.
+ * Missing variables default to an empty string.
+ *
+ * @param key - Identifier for this content entry
+ * @param envs - Environment variable names to read from `process.env`
+ * @param options - Set `secret: true` to omit clear-text from the fingerprint manifest
+ */
 export function envContent(
   key: string,
   envs: string[],
