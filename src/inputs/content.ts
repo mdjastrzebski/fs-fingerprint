@@ -55,7 +55,8 @@ export function jsonContent(
 
 /**
  * Creates a {@link ContentInput} from environment variable values.
- * Missing variables default to an empty string.
+ * Missing or undefined variables default to an empty string, meaning an unset
+ * variable and one explicitly set to `""` produce the same fingerprint.
  *
  * @param key - Identifier for this content entry
  * @param envs - Environment variable names to read from `process.env`
@@ -66,7 +67,7 @@ export function envContent(
   envs: string[],
   options?: { secret?: boolean },
 ): ContentInput {
-  const envJson: Record<string, string | undefined> = {};
+  const envJson: Record<string, string> = {};
   for (const key of envs) {
     envJson[key] = process.env[key] ?? "";
   }
