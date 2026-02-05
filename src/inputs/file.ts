@@ -23,7 +23,12 @@ export async function calculateFileHash(path: string, config: Config): Promise<F
   }
 
   const pathWithBase = join(config.basePath, path);
-  const content = await readFile(pathWithBase);
+  let content: Buffer;
+  try {
+    content = await readFile(pathWithBase);
+  } catch (error) {
+    throw new Error(`Failed to read file: ${normalizedPath}`, { cause: error });
+  }
   return {
     path: normalizedPath,
     hash: hashData(content, config),
@@ -42,7 +47,12 @@ export function calculateFileHashSync(path: string, config: Config): FileHash {
   }
 
   const pathWithBase = join(config.basePath, path);
-  const content = readFileSync(pathWithBase);
+  let content: Buffer;
+  try {
+    content = readFileSync(pathWithBase);
+  } catch (error) {
+    throw new Error(`Failed to read file: ${normalizedPath}`, { cause: error });
+  }
   return {
     path: normalizedPath,
     hash: hashData(content, config),
