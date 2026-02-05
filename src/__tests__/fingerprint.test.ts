@@ -26,12 +26,16 @@ beforeEach(() => {
 describe("basePath validation", () => {
   test("throws on empty string", async () => {
     expect(() => calculateFingerprintSync("")).toThrowError("basePath must be a non-empty string.");
-    await expect(calculateFingerprint("")).rejects.toThrowError("basePath must be a non-empty string.");
+    await expect(calculateFingerprint("")).rejects.toThrowError(
+      "basePath must be a non-empty string.",
+    );
   });
 
   test("throws on non-existent path", async () => {
     const missing = path.join(basePath, "does-not-exist");
-    expect(() => calculateFingerprintSync(missing)).toThrowError(`basePath does not exist: ${missing}`);
+    expect(() => calculateFingerprintSync(missing)).toThrowError(
+      `basePath does not exist: ${missing}`,
+    );
     await expect(calculateFingerprint(missing)).rejects.toThrowError(
       `basePath does not exist: ${missing}`,
     );
