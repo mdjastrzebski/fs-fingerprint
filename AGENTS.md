@@ -40,7 +40,7 @@ bun run bench                # Run benchmarks
 - `src/utils.ts` — `hashData`, `mergeHashes`, glob helpers, sorting
 - `src/git.ts` — `getGitIgnoredPaths` via `git ls-files`, git root detection
 - `src/types.ts` — all public types (`FingerprintOptions`, `Fingerprint`, `FileHash`, `ContentHash`, etc.)
-- `src/constants.ts` — `EMPTY_HASH = "(null)"`, `DEFAULT_HASH_ALGORITHM = "sha1"`
+- `src/constants.ts` — `NULL_HASH = "(null)"`, `DEFAULT_HASH_ALGORITHM = "sha1"`
 - `test-utils/` — shared test helpers for assertions, formatting, and temp filesystem setup
 
 ### Key Design Decisions

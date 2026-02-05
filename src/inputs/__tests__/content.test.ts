@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { EMPTY_HASH } from "../../constants.js";
+import { NULL_HASH } from "../../constants.js";
 import type { Config } from "../../types.js";
 import { calculateContentHash, envContent, jsonContent, textContent } from "../content.js";
 
@@ -26,7 +26,7 @@ describe("calculateContentHash", () => {
     const testConfig = { ...baseConfig, hashAlgorithm: "null" };
     const hash = calculateContentHash(content, testConfig);
     expect(hash).toEqual({
-      hash: EMPTY_HASH,
+      hash: NULL_HASH,
       key: "content-1",
       content: "Hello, world!",
     });

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { EMPTY_HASH } from "../constants.js";
+import { NULL_HASH } from "../constants.js";
 import type { Config, FileHash } from "../types.js";
 import { hashData, normalizeFilePath } from "../utils.js";
 
@@ -18,7 +18,7 @@ export async function calculateFileHash(path: string, config: Config): Promise<F
   if (config.hashAlgorithm === "null") {
     return {
       path: normalizedPath,
-      hash: EMPTY_HASH,
+      hash: NULL_HASH,
     };
   }
 
@@ -42,7 +42,7 @@ export function calculateFileHashSync(path: string, config: Config): FileHash {
   if (config.hashAlgorithm === "null") {
     return {
       path: normalizedPath,
-      hash: EMPTY_HASH,
+      hash: NULL_HASH,
     };
   }
 

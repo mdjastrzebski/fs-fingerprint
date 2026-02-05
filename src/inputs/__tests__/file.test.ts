@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../../test-utils/fs.js";
-import { EMPTY_HASH } from "../../constants.js";
+import { NULL_HASH } from "../../constants.js";
 import type { Config } from "../../types.js";
 import { calculateFileHash, calculateFileHashSync } from "../file.js";
 
@@ -43,7 +43,7 @@ describe("calculateFileHash", () => {
     const testConfig = { ...baseConfig, hashAlgorithm: "null" };
     const hash = await calculateFileHash("file-1.txt", testConfig);
     expect(hash).toEqual({
-      hash: EMPTY_HASH,
+      hash: NULL_HASH,
       path: "file-1.txt",
     });
 
