@@ -8,6 +8,7 @@ import { hashData, normalizeFilePath } from "../utils.js";
 
 export async function calculateFileHash(path: string, config: Config): Promise<FileHash> {
   const normalizedPath = normalizeFilePath(path);
+  /** @internal "null" algorithm skips hashing — used for testing only */
   if (config.hashAlgorithm === "null") {
     return {
       path: normalizedPath,
@@ -25,6 +26,7 @@ export async function calculateFileHash(path: string, config: Config): Promise<F
 
 export function calculateFileHashSync(path: string, config: Config): FileHash {
   const normalizedPath = normalizeFilePath(path);
+  /** @internal "null" algorithm skips hashing — used for testing only */
   if (config.hashAlgorithm === "null") {
     return {
       path: normalizedPath,

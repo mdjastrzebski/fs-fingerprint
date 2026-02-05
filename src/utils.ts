@@ -5,6 +5,7 @@ import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
 import type { Config, ContentHash, FileHash, Fingerprint } from "./types.js";
 
 export function hashData(content: string | Uint8Array, config: Config) {
+  /** @internal "null" algorithm skips hashing — used for testing only */
   if (config.hashAlgorithm === "null") {
     return EMPTY_HASH;
   }
@@ -21,6 +22,7 @@ export function mergeHashes(
 ): Fingerprint {
   const sortedFileHashes = sortBy([...fileHashes], (h) => h.path);
   const sortedContentHashes = sortBy([...contentHashes], (h) => h.key);
+  /** @internal "null" algorithm skips hashing — used for testing only */
   if (config.hashAlgorithm === "null") {
     return {
       hash: EMPTY_HASH,
