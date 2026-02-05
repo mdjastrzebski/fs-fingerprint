@@ -23,6 +23,36 @@ beforeEach(() => {
   prepareRootDir();
 });
 
+describe("basePath validation", () => {
+  test("throws on empty string", async () => {
+    expect(() => calculateFingerprintSync("")).toThrowError("basePath must be a non-empty string.");
+    await expect(calculateFingerprint("")).rejects.toThrowError(
+      "basePath must be a non-empty string.",
+    );
+  });
+
+  test("throws on non-existent path", async () => {
+    const missing = path.join(basePath, "does-not-exist");
+    expect(() => calculateFingerprintSync(missing)).toThrowError(
+      `basePath does not exist: ${missing}`,
+    );
+    await expect(calculateFingerprint(missing)).rejects.toThrowError(
+      `basePath does not exist: ${missing}`,
+    );
+  });
+
+  test("throws when path is a file", async () => {
+    writePaths(["file.txt"]);
+    const filePath = path.join(basePath, "file.txt");
+    expect(() => calculateFingerprintSync(filePath)).toThrowError(
+      `basePath is not a directory: ${filePath}`,
+    );
+    await expect(calculateFingerprint(filePath)).rejects.toThrowError(
+      `basePath is not a directory: ${filePath}`,
+    );
+  });
+});
+
 describe("calculateFingerprint", () => {
   test("supports files and directories", async () => {
     writePaths(["file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);
@@ -464,6 +494,85 @@ describe("calculateFingerprint", () => {
         "file1.md",
       ]
     `);
+  });
+
+  test("handles binary file content", async () => {
+    // PNG-like header bytes — not valid UTF-8
+    const binaryContent = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0xff, 0xfe, 0xfd,
+    ]);
+    fs.writeFileSync(path.join(basePath, "image.png"), binaryContent);
+
+    const fingerprint = await calculateFingerprint(basePath);
+    expect(fingerprint.files).toHaveLength(1);
+    expect(findFile(fingerprint, "image.png")).toBeTruthy();
+    expect(fingerprint.hash).toBeTruthy();
+
+    const fingerprintSync = calculateFingerprintSync(basePath);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("includes both entries for duplicate content keys", async () => {
+    const options: FingerprintOptions = {
+      contentInputs: [
+        textContent("same-key", "value-1"),
+        textContent("same-key", "value-2"),
+      ],
+    };
+
+    const fingerprint = await calculateFingerprint(basePath, options);
+
+    // Both entries are included (no deduplication)
+    expect(fingerprint.content).toHaveLength(2);
+    expect(fingerprint.content[0]!.key).toBe("same-key");
+    expect(fingerprint.content[1]!.key).toBe("same-key");
+
+    // Different content produces different hashes
+    expect(fingerprint.content[0]!.hash).not.toBe(fingerprint.content[1]!.hash);
+
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("handles filenames with spaces", async () => {
+    writeFile("file with spaces.txt");
+    writeFile("dir with spaces/nested file.txt");
+
+    const fingerprint = await calculateFingerprint(basePath);
+    expect(findFile(fingerprint, "file with spaces.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "dir with spaces/nested file.txt")).toBeTruthy();
+
+    const fingerprintSync = calculateFingerprintSync(basePath);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("handles filenames with unicode characters", async () => {
+    writeFile("файл.txt");
+    writeFile("文件.txt");
+    writeFile("archivo-ñ.txt");
+
+    const fingerprint = await calculateFingerprint(basePath);
+    expect(findFile(fingerprint, "файл.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "文件.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "archivo-ñ.txt")).toBeTruthy();
+
+    const fingerprintSync = calculateFingerprintSync(basePath);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("skips broken symlinks during file discovery", async () => {
+    writeFile("real-file.txt");
+    fs.symlinkSync(
+      path.join(basePath, "nonexistent-target.txt"),
+      path.join(basePath, "broken-link.txt"),
+    );
+
+    const fingerprint = await calculateFingerprint(basePath);
+    expect(findFile(fingerprint, "real-file.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "broken-link.txt")).toBeNull();
+
+    const fingerprintSync = calculateFingerprintSync(basePath);
+    expect(fingerprintSync).toEqual(fingerprint);
   });
 
   test("does not throw on git error", async () => {
