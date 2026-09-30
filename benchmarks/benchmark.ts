@@ -9,6 +9,7 @@ import {
   type FingerprintOptions,
 } from "../src/index.js";
 import { RepoManager } from "./fixtures/repos.js";
+import { EXPENSIFY_ROCK_CONFIG, getRockFingerprintOptions } from "./fixtures/rock.js";
 
 const BENCHMARK_DIR = ".benchmark";
 const type = process.argv.includes("--baseline") ? "baseline" : "current";
@@ -105,18 +106,19 @@ function setupBenchmarks(bench: Bench, repoPaths: Map<string, string>): void {
   // Express benchmarks
   const expressPath = repoPaths.get("express");
   if (expressPath) {
+    const options: FingerprintOptions = { gitIgnore: true };
     bench.add("express-sync", () => {
-      calculateFingerprintSync(expressPath);
+      calculateFingerprintSync(expressPath, options);
     });
     bench.add("express", async () => {
-      await calculateFingerprint(expressPath);
+      await calculateFingerprint(expressPath, options);
     });
   }
 
   // React Native benchmarks
   const reactNativePath = repoPaths.get("react-native");
   if (reactNativePath) {
-    const options: FingerprintOptions = { files: ["packages/", "package.json"] };
+    const options: FingerprintOptions = { files: ["packages/", "package.json"], gitIgnore: true };
     bench.add("react-native-sync", () => {
       calculateFingerprintSync(reactNativePath, options);
     });
@@ -136,13 +138,31 @@ function setupBenchmarks(bench: Bench, repoPaths: Map<string, string>): void {
         hashAlgorithm: "null",
       });
     });
+
+    // Skips git entirely, isolating the cost of `gitIgnore`
+    bench.add("react-native-sync (no .git)", () => {
+      calculateFingerprintSync(reactNativePath, {
+        ...options,
+        gitIgnore: false,
+      });
+    });
+    bench.add("react-native (no .git)", async () => {
+      await calculateFingerprint(reactNativePath, {
+        ...options,
+        gitIgnore: false,
+      });
+    });
   }
 
   // Expensify benchmarks
   const expensifyPath = repoPaths.get("expensify");
   if (expensifyPath) {
-    const iosOptions: FingerprintOptions = { files: ["ios/", "package.json"] };
-    const androidOptions: FingerprintOptions = { files: ["android/", "package.json"] };
+    const iosOptions = getRockFingerprintOptions(expensifyPath, "ios", EXPENSIFY_ROCK_CONFIG.ios);
+    const androidOptions = getRockFingerprintOptions(
+      expensifyPath,
+      "android",
+      EXPENSIFY_ROCK_CONFIG.android,
+    );
 
     bench.add("expensify-ios-sync", () => {
       calculateFingerprintSync(expensifyPath, iosOptions);
@@ -233,23 +253,26 @@ function buildComparisonTable(
     const baselineLatency = baseline?.latency;
     const currentLatency = current.latency;
     if (currentLatency?.p50 == null || baselineLatency?.p50 == null) {
-      return [
-        current.name,
-        baselineLatency?.p50?.toFixed(1) || "-",
-        currentLatency?.p50?.toFixed(1) || "-",
-        "-",
-      ];
+      return [current.name, formatLatency(baselineLatency), formatLatency(currentLatency), "-"];
     }
 
     const delta = currentLatency.p50 - baselineLatency.p50;
     const deltaPercent = (delta / baselineLatency.p50) * 100;
     return [
       current.name,
-      `${baselineLatency.p50.toFixed(2)} \u00B1 ${baselineLatency.mad?.toFixed(2)}`,
-      `${currentLatency.p50.toFixed(2)} \u00B1 ${currentLatency.mad?.toFixed(2)}`,
+      formatLatency(baselineLatency),
+      formatLatency(currentLatency),
       `${delta > 0 ? "+" : ""}${delta.toFixed(1)} (${deltaPercent > 0 ? "+" : ""}${deltaPercent.toFixed(0)}%)`,
     ];
   });
+}
+
+function formatLatency(latency: BenchmarkResult["latency"] | undefined): string {
+  if (latency?.p50 == null) {
+    return "-";
+  }
+
+  return `${latency.p50.toFixed(2)} \u00B1 ${latency.mad?.toFixed(2)}`;
 }
 
 function writeMarkdownOutput(path: string, markdownTable: string) {

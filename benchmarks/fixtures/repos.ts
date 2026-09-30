@@ -22,7 +22,7 @@ export const REPOS: RepoConfig[] = [
   {
     name: "expensify",
     url: "https://github.com/Expensify/App.git",
-    description: "Expensify App",
+    description: "Expensify App (rock-like)",
   },
 ];
 
@@ -44,6 +44,13 @@ export class RepoManager {
       return this.cloneRepo(config);
     }
 
+    // Older setups removed `.git`, which disables the `gitIgnore` code path
+    if (!existsSync(join(repoPath, ".git"))) {
+      console.log(`♻️ ${config.name} has no .git, re-cloning...`);
+      rmSync(repoPath, { recursive: true, force: true });
+      return this.cloneRepo(config);
+    }
+
     return repoPath;
   }
 
@@ -56,9 +63,7 @@ export class RepoManager {
       const cloneCmd = `git clone --depth=1 "${config.url}" "${repoPath}"`;
       execSync(cloneCmd, { stdio: "pipe" });
 
-      // Remove git history to save space
-      rmSync(join(repoPath, ".git"), { recursive: true, force: true });
-
+      // Keep `.git` so the clone is its own git root, like a real project (shallow, like CI checkouts)
       console.log(`✅ ${config.name} cloned successfully`);
       return repoPath;
     } catch (error) {
