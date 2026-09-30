@@ -80,8 +80,9 @@ describe("basePath validation", () => {
     }
   });
 
-  // Root bypasses permission checks, so EACCES cannot be triggered
-  test.skipIf(process.getuid?.() === 0)("throws on inaccessible basePath", async () => {
+  // EACCES cannot be triggered via chmod on Windows (only toggles read-only) or as root (bypasses checks)
+  const canRevokeAccess = process.platform !== "win32" && process.getuid?.() !== 0;
+  test.if(canRevokeAccess)("throws on inaccessible basePath", async () => {
     writePaths(["locked/inner/file.txt"]);
     const lockedPath = path.join(basePath, "locked");
     const innerPath = path.join(lockedPath, "inner");
