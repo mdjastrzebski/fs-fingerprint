@@ -106,18 +106,19 @@ function setupBenchmarks(bench: Bench, repoPaths: Map<string, string>): void {
   // Express benchmarks
   const expressPath = repoPaths.get("express");
   if (expressPath) {
+    const options: FingerprintOptions = { gitIgnore: true };
     bench.add("express-sync", () => {
-      calculateFingerprintSync(expressPath);
+      calculateFingerprintSync(expressPath, options);
     });
     bench.add("express", async () => {
-      await calculateFingerprint(expressPath);
+      await calculateFingerprint(expressPath, options);
     });
   }
 
   // React Native benchmarks
   const reactNativePath = repoPaths.get("react-native");
   if (reactNativePath) {
-    const options: FingerprintOptions = { files: ["packages/", "package.json"] };
+    const options: FingerprintOptions = { files: ["packages/", "package.json"], gitIgnore: true };
     bench.add("react-native-sync", () => {
       calculateFingerprintSync(reactNativePath, options);
     });
@@ -135,6 +136,20 @@ function setupBenchmarks(bench: Bench, repoPaths: Map<string, string>): void {
       await calculateFingerprint(reactNativePath, {
         ...options,
         hashAlgorithm: "null",
+      });
+    });
+
+    // Skips git entirely, isolating the cost of `gitIgnore`
+    bench.add("react-native-sync (no .git)", () => {
+      calculateFingerprintSync(reactNativePath, {
+        ...options,
+        gitIgnore: false,
+      });
+    });
+    bench.add("react-native (no .git)", async () => {
+      await calculateFingerprint(reactNativePath, {
+        ...options,
+        gitIgnore: false,
       });
     });
   }
