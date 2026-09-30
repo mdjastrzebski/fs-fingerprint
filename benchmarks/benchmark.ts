@@ -9,6 +9,7 @@ import {
   type FingerprintOptions,
 } from "../src/index.js";
 import { RepoManager } from "./fixtures/repos.js";
+import { EXPENSIFY_ROCK_CONFIG, getRockFingerprintOptions } from "./fixtures/rock.js";
 
 const BENCHMARK_DIR = ".benchmark";
 const type = process.argv.includes("--baseline") ? "baseline" : "current";
@@ -141,8 +142,12 @@ function setupBenchmarks(bench: Bench, repoPaths: Map<string, string>): void {
   // Expensify benchmarks
   const expensifyPath = repoPaths.get("expensify");
   if (expensifyPath) {
-    const iosOptions: FingerprintOptions = { files: ["ios/", "package.json"] };
-    const androidOptions: FingerprintOptions = { files: ["android/", "package.json"] };
+    const iosOptions = getRockFingerprintOptions(expensifyPath, "ios", EXPENSIFY_ROCK_CONFIG.ios);
+    const androidOptions = getRockFingerprintOptions(
+      expensifyPath,
+      "android",
+      EXPENSIFY_ROCK_CONFIG.android,
+    );
 
     bench.add("expensify-ios-sync", () => {
       calculateFingerprintSync(expensifyPath, iosOptions);
