@@ -23,6 +23,83 @@ beforeEach(() => {
   prepareRootDir();
 });
 
+async function getBasePathErrors(basePath: string): Promise<Error[]> {
+  const errors: Error[] = [];
+  try {
+    calculateFingerprintSync(basePath);
+  } catch (error) {
+    errors.push(error as Error);
+  }
+  try {
+    await calculateFingerprint(basePath);
+  } catch (error) {
+    errors.push(error as Error);
+  }
+  return errors;
+}
+
+describe("basePath validation", () => {
+  test("throws on empty or non-string basePath", async () => {
+    for (const invalid of ["", undefined, 123] as unknown as string[]) {
+      const errors = await getBasePathErrors(invalid);
+      expect(errors).toHaveLength(2);
+      for (const error of errors) {
+        expect(error).toBeInstanceOf(TypeError);
+        expect(error.message).toBe("basePath must be a non-empty string");
+      }
+    }
+  });
+
+  test("throws on non-existent basePath", async () => {
+    const missing = path.join(basePath, "does-not-exist");
+    const errors = await getBasePathErrors(missing);
+    expect(errors).toHaveLength(2);
+    for (const error of errors) {
+      expect(error.message).toBe(`basePath does not exist: ${missing}`);
+      expect((error.cause as NodeJS.ErrnoException).code).toBe("ENOENT");
+    }
+  });
+
+  test("throws on basePath nested under a file", async () => {
+    writePaths(["file.txt"]);
+    const nested = path.join(basePath, "file.txt", "nested");
+    const errors = await getBasePathErrors(nested);
+    expect(errors).toHaveLength(2);
+    for (const error of errors) {
+      expect(error.message).toBe(`basePath does not exist: ${nested}`);
+    }
+  });
+
+  test("throws when basePath is a file", async () => {
+    writePaths(["file.txt"]);
+    const filePath = path.join(basePath, "file.txt");
+    const errors = await getBasePathErrors(filePath);
+    expect(errors).toHaveLength(2);
+    for (const error of errors) {
+      expect(error.message).toBe(`basePath is not a directory: ${filePath}`);
+    }
+  });
+
+  // EACCES cannot be triggered via chmod on Windows (only toggles read-only) or as root (bypasses checks)
+  const canRevokeAccess = process.platform !== "win32" && process.getuid?.() !== 0;
+  test.if(canRevokeAccess)("throws on inaccessible basePath", async () => {
+    writePaths(["locked/inner/file.txt"]);
+    const lockedPath = path.join(basePath, "locked");
+    const innerPath = path.join(lockedPath, "inner");
+    fs.chmodSync(lockedPath, 0o000);
+    try {
+      const errors = await getBasePathErrors(innerPath);
+      expect(errors).toHaveLength(2);
+      for (const error of errors) {
+        expect(error.message).toBe(`Failed to access basePath: ${innerPath}`);
+        expect((error.cause as NodeJS.ErrnoException).code).toBe("EACCES");
+      }
+    } finally {
+      fs.chmodSync(lockedPath, 0o755);
+    }
+  });
+});
+
 describe("calculateFingerprint", () => {
   test("supports files and directories", async () => {
     writePaths(["file-1.txt", "dir-1/file-2.txt", "dir-2/nested/file-3.txt"]);
@@ -464,6 +541,83 @@ describe("calculateFingerprint", () => {
         "file1.md",
       ]
     `);
+  });
+
+  test("handles binary file content", async () => {
+    // PNG-like header bytes — not valid UTF-8
+    const binaryContent = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0xff, 0xfe, 0xfd,
+    ]);
+    fs.writeFileSync(path.join(basePath, "image.png"), binaryContent);
+
+    const fingerprint = await calculateFingerprint(basePath);
+    expect(fingerprint.files).toHaveLength(1);
+    expect(findFile(fingerprint, "image.png")).toBeTruthy();
+    expect(fingerprint.hash).toBeTruthy();
+
+    const fingerprintSync = calculateFingerprintSync(basePath);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("includes both entries for duplicate content keys", async () => {
+    const options: FingerprintOptions = {
+      contentInputs: [textContent("same-key", "value-1"), textContent("same-key", "value-2")],
+    };
+
+    const fingerprint = await calculateFingerprint(basePath, options);
+
+    // Both entries are included (no deduplication)
+    expect(fingerprint.content).toHaveLength(2);
+    const [first, second] = fingerprint.content;
+    expect(first?.key).toBe("same-key");
+    expect(second?.key).toBe("same-key");
+
+    // Different content produces different hashes
+    expect(first?.hash).not.toBe(second?.hash);
+
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("handles filenames with spaces", async () => {
+    writeFile("file with spaces.txt");
+    writeFile("dir with spaces/nested file.txt");
+
+    const fingerprint = await calculateFingerprint(basePath);
+    expect(findFile(fingerprint, "file with spaces.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "dir with spaces/nested file.txt")).toBeTruthy();
+
+    const fingerprintSync = calculateFingerprintSync(basePath);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("handles filenames with unicode characters", async () => {
+    writeFile("файл.txt");
+    writeFile("文件.txt");
+    writeFile("archivo-ñ.txt");
+
+    const fingerprint = await calculateFingerprint(basePath);
+    expect(findFile(fingerprint, "файл.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "文件.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "archivo-ñ.txt")).toBeTruthy();
+
+    const fingerprintSync = calculateFingerprintSync(basePath);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("skips broken symlinks during file discovery", async () => {
+    writeFile("real-file.txt");
+    fs.symlinkSync(
+      path.join(basePath, "nonexistent-target.txt"),
+      path.join(basePath, "broken-link.txt"),
+    );
+
+    const fingerprint = await calculateFingerprint(basePath);
+    expect(findFile(fingerprint, "real-file.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "broken-link.txt")).toBeNull();
+
+    const fingerprintSync = calculateFingerprintSync(basePath);
+    expect(fingerprintSync).toEqual(fingerprint);
   });
 
   test("does not throw on git error", async () => {

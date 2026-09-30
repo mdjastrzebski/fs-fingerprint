@@ -10,11 +10,14 @@ async function calculateFingerprint(
     ignores?: string[]; // Glob patterns to exclude (default: none)
     contentInputs?: ContentInput[]; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
+    gitIgnore?: boolean; // Exclude git-ignored files (default: false)
   },
 ): Promise<Fingerprint>;
 ```
 
 Generates a fingerprint hash from the filesystem state under `basePath`.
+
+Throws if `basePath` is not a non-empty string (`TypeError`), does not exist, is not a directory, or cannot be accessed. The underlying filesystem error, when present, is attached as `cause`.
 
 ```ts
 const fp = await calculateFingerprint("./my-project", {
@@ -36,6 +39,7 @@ function calculateFingerprintSync(
     ignores?: string[]; // Glob patterns to exclude (default: none)
     contentInputs?: ContentInput[]; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
+    gitIgnore?: boolean; // Exclude git-ignored files (default: false)
   },
 ): Fingerprint;
 ```

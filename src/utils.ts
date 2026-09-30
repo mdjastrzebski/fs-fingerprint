@@ -1,12 +1,14 @@
 import { createHash } from "node:crypto";
 import { glob, globSync } from "tinyglobby";
 
-import { DEFAULT_HASH_ALGORITHM, EMPTY_HASH } from "./constants.js";
+import { DEFAULT_HASH_ALGORITHM, NULL_HASH } from "./constants.js";
 import type { Config, ContentHash, FileHash, Fingerprint } from "./types.js";
 
+/** Hashes string or binary data using the configured algorithm. */
 export function hashData(content: string | Uint8Array, config: Config) {
+  /** @internal "null" algorithm skips hashing — used for testing only */
   if (config.hashAlgorithm === "null") {
-    return EMPTY_HASH;
+    return NULL_HASH;
   }
 
   const hasher = createHash(config.hashAlgorithm ?? DEFAULT_HASH_ALGORITHM);
@@ -14,6 +16,7 @@ export function hashData(content: string | Uint8Array, config: Config) {
   return hasher.digest("hex");
 }
 
+/** Combines sorted file and content hashes into a single {@link Fingerprint}. */
 export function mergeHashes(
   fileHashes: readonly FileHash[],
   contentHashes: readonly ContentHash[],
@@ -21,9 +24,10 @@ export function mergeHashes(
 ): Fingerprint {
   const sortedFileHashes = sortBy([...fileHashes], (h) => h.path);
   const sortedContentHashes = sortBy([...contentHashes], (h) => h.key);
+  /** @internal "null" algorithm skips hashing — used for testing only */
   if (config.hashAlgorithm === "null") {
     return {
-      hash: EMPTY_HASH,
+      hash: NULL_HASH,
       files: sortedFileHashes,
       content: sortedContentHashes,
     };
@@ -58,6 +62,7 @@ export type GetInputFilesOptions = {
   ignores?: readonly string[];
 };
 
+/** Discovers files matching the given glob patterns, returned sorted. */
 export async function getInputFiles(
   basePath: string,
   { files = ["**"], ignores }: GetInputFilesOptions,
@@ -72,6 +77,7 @@ export async function getInputFiles(
   return paths;
 }
 
+/** Synchronous version of {@link getInputFiles}. */
 export function getInputFilesSync(
   basePath: string,
   { files = ["**"], ignores }: GetInputFilesOptions,
@@ -86,10 +92,12 @@ export function getInputFilesSync(
   return paths;
 }
 
+/** Strips a leading `./` prefix from a file path. */
 export function normalizeFilePath(path: string): string {
   return path.startsWith("./") ? path.slice(2) : path;
 }
 
+/** Sorts an array in place by a string key derived from each element. */
 export function sortBy<T>(list: T[], selector: (item: T) => string): T[] {
   return list.sort((a, b) => {
     const aKey = selector(a);

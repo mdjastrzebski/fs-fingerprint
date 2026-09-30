@@ -2,16 +2,23 @@ import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { EMPTY_HASH } from "../constants.js";
+import { NULL_HASH } from "../constants.js";
 import type { Config, FileHash } from "../types.js";
 import { hashData, normalizeFilePath } from "../utils.js";
 
+/**
+ * Reads a file and returns its content hash.
+ *
+ * @param path - File path relative to `config.basePath`
+ * @param config - Hashing configuration
+ */
 export async function calculateFileHash(path: string, config: Config): Promise<FileHash> {
   const normalizedPath = normalizeFilePath(path);
+  /** @internal "null" algorithm skips hashing — used for testing only */
   if (config.hashAlgorithm === "null") {
     return {
       path: normalizedPath,
-      hash: EMPTY_HASH,
+      hash: NULL_HASH,
     };
   }
 
@@ -23,12 +30,14 @@ export async function calculateFileHash(path: string, config: Config): Promise<F
   };
 }
 
+/** Synchronous version of {@link calculateFileHash}. */
 export function calculateFileHashSync(path: string, config: Config): FileHash {
   const normalizedPath = normalizeFilePath(path);
+  /** @internal "null" algorithm skips hashing — used for testing only */
   if (config.hashAlgorithm === "null") {
     return {
       path: normalizedPath,
-      hash: EMPTY_HASH,
+      hash: NULL_HASH,
     };
   }
 
