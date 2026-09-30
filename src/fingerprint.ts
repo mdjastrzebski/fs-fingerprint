@@ -100,7 +100,7 @@ function resolveIgnores(
   basePath: string,
   options?: FingerprintOptions,
 ): readonly string[] | undefined {
-  if (!options?.gitIgnore) {
+  if (options?.gitIgnore === false) {
     return options?.ignores;
   }
 

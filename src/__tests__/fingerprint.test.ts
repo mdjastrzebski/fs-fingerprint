@@ -392,6 +392,37 @@ describe("calculateFingerprint", () => {
     `);
   });
 
+  test("excludes git-ignored files by default", async () => {
+    writePaths(["file-1.txt", "node_modules/.cache/file-2.txt", ".turbo/file-3.txt"]);
+    writeFile(".gitignore", "node_modules\n.turbo");
+    execSync("git init", { cwd: basePath });
+
+    const fingerprint = await calculateFingerprint(basePath);
+    expect(findFile(fingerprint, "file-1.txt")).toBeTruthy();
+    expect(findFile(fingerprint, ".gitignore")).toBeTruthy();
+    expect(findFile(fingerprint, "node_modules/.cache/file-2.txt")).toBeNull();
+    expect(findFile(fingerprint, ".turbo/file-3.txt")).toBeNull();
+
+    const fingerprintSync = calculateFingerprintSync(basePath);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("includes git-ignored files when gitIgnore is false", async () => {
+    writePaths(["file-1.txt", "node_modules/.cache/file-2.txt", ".turbo/file-3.txt"]);
+    writeFile(".gitignore", "node_modules\n.turbo");
+    execSync("git init", { cwd: basePath });
+
+    const options: FingerprintOptions = { gitIgnore: false };
+
+    const fingerprint = await calculateFingerprint(basePath, options);
+    expect(findFile(fingerprint, "file-1.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "node_modules/.cache/file-2.txt")).toBeTruthy();
+    expect(findFile(fingerprint, ".turbo/file-3.txt")).toBeTruthy();
+
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
   test("follows symlinks", async () => {
     writePaths(["file1.txt", "dir-1/"]);
     fs.symlinkSync(

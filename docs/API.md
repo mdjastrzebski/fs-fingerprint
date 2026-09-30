@@ -10,7 +10,7 @@ async function calculateFingerprint(
     ignores?: string[]; // Glob patterns to exclude (default: none)
     contentInputs?: ContentInput[]; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
-    gitIgnore?: boolean; // Exclude git-ignored files (default: false)
+    gitIgnore?: boolean; // Exclude git-ignored files (default: true)
   },
 ): Promise<Fingerprint>;
 ```
@@ -41,7 +41,7 @@ function calculateFingerprintSync(
     ignores?: string[]; // Glob patterns to exclude (default: none)
     contentInputs?: ContentInput[]; // Additional inputs: text, JSON, envs, etc.
     hashAlgorithm?: string; // Hash algorithm (default: "sha1")
-    gitIgnore?: boolean; // Exclude git-ignored files (default: false)
+    gitIgnore?: boolean; // Exclude git-ignored files (default: true)
   },
 ): Fingerprint;
 ```
@@ -122,7 +122,7 @@ interface FingerprintOptions {
   ignores?: readonly string[]; // Glob patterns to exclude (default: none)
   contentInputs?: readonly ContentInput[];
   hashAlgorithm?: HashAlgorithm; // Default: "sha1"
-  gitIgnore?: boolean; // Exclude git-ignored files (default: false)
+  gitIgnore?: boolean; // Exclude git-ignored files (default: true)
 }
 ```
 

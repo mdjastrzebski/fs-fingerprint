@@ -26,10 +26,11 @@ export interface FingerprintOptions {
   hashAlgorithm?: HashAlgorithm;
 
   /**
-   * Whether to ignore files ignored by Git (default: false).
+   * Whether to ignore files ignored by Git (default: true).
    *
    * When enabled, git errors (e.g. not a git repo, git not installed)
    * are silently caught and the fingerprint proceeds without git ignores.
+   * Set to `false` to hash git-ignored files too.
    */
   gitIgnore?: boolean;
 }

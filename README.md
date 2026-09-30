@@ -51,7 +51,7 @@ async function calculateFingerprint(
     ignores?: string[]; // Glob patterns to exclude
     contentInputs?: ContentInput[]; // Additional non-file inputs
     hashAlgorithm?: string; // "sha1" (default), "sha256", "sha512", etc.
-    gitIgnore?: boolean; // Exclude git-ignored paths (default: false)
+    gitIgnore?: boolean; // Exclude git-ignored paths (default: true)
   },
 ): Promise<Fingerprint>;
 ```
@@ -66,7 +66,7 @@ interface Fingerprint {
 }
 ```
 
-When `gitIgnore` is enabled, git errors are silently ignored (missing `git` binary, not a git repo, etc.).
+By default, git-ignored paths are excluded. Git errors are silently ignored (missing `git` binary, not a git repo, etc.), so outside a git repo all matched files are hashed. Set `gitIgnore: false` to hash git-ignored paths too.
 
 See the [API reference](./docs/API.md) for the full API, including low-level helpers.
 
@@ -102,9 +102,11 @@ JSON inputs are key-sorted before hashing, so property order doesn't affect the 
 
 ### `.gitignore` support
 
+Git-ignored paths are excluded by default. To hash them too:
+
 ```ts
 const { hash } = await calculateFingerprint("/project/path", {
-  gitIgnore: true,
+  gitIgnore: false,
 });
 ```
 
