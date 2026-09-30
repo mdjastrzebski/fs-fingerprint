@@ -10,7 +10,11 @@ import {
   type FingerprintOptions,
 } from "../src/index.js";
 import { RepoManager } from "./fixtures/repos.js";
-import { EXPENSIFY_ROCK_CONFIG, getRockFingerprintOptions } from "./fixtures/rock.js";
+import {
+  EXPENSIFY_ROCK_CONFIG,
+  getRockFingerprintOptions,
+  RN_TESTER_ANDROID_ROCK_CONFIG,
+} from "./fixtures/rock.js";
 
 const BENCHMARK_DIR = ".benchmark";
 const type = process.argv.includes("--baseline") ? "baseline" : "current";
@@ -154,10 +158,11 @@ function setupBenchmarks(bench: Bench, repoPaths: Map<string, string>): void {
 
     // Monorepo app pulling sibling packages via `../`, so git scans from the repo root
     const monorepoPath = join(reactNativePath, "packages", "rn-tester");
-    const monorepoOptions: FingerprintOptions = {
-      files: ["./", "../virtualized-lists/", "../../package.json"],
-      gitIgnore: true,
-    };
+    const monorepoOptions = getRockFingerprintOptions(
+      monorepoPath,
+      "android",
+      RN_TESTER_ANDROID_ROCK_CONFIG,
+    );
     bench.add("react-native-sync (monorepo)", () => {
       calculateFingerprintSync(monorepoPath, monorepoOptions);
     });
