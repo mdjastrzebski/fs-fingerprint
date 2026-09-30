@@ -631,8 +631,9 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(basePath, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-      "Hash: 56823b8e45505714e2b19db32f88c66af87b139b
+      "Hash: 9bae107cf5cedf99e2ccbb30f5fd2992328f64fc
       Files:
+      - .gitignore - 0283c984899899b9ef6bb345b45cbb58ded8033c
       - dir/file2.md - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir/subdir/file3.md - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file1.md - 943a702d06f34599aee1f8da8ef9f7296031d699

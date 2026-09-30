@@ -67,11 +67,7 @@ export async function getInputFiles(
   basePath: string,
   { files = ["**"], ignores }: GetInputFilesOptions,
 ): Promise<string[]> {
-  const paths = await glob(files, {
-    cwd: basePath,
-    ignore: ignores,
-    expandDirectories: true,
-  });
+  const paths = await glob(files, getGlobOptions(basePath, files, ignores));
 
   paths.sort();
   return paths;
@@ -82,14 +78,35 @@ export function getInputFilesSync(
   basePath: string,
   { files = ["**"], ignores }: GetInputFilesOptions,
 ): string[] {
-  const paths = globSync(files, {
-    cwd: basePath,
-    ignore: ignores,
-    expandDirectories: true,
-  });
+  const paths = globSync(files, getGlobOptions(basePath, files, ignores));
 
   paths.sort();
   return paths;
+}
+
+function getGlobOptions(basePath: string, files: readonly string[], ignores?: readonly string[]) {
+  return {
+    cwd: basePath,
+    ignore: [...getGitMetadataIgnores(files), ...(ignores ?? [])],
+    dot: true,
+    expandDirectories: true,
+  };
+}
+
+/**
+ * Ignore patterns for `.git` entries (directory, or file in worktrees and submodules) at any depth.
+ * `**` does not match `../` segments, so each `../` prefix used in `files` gets its own pattern.
+ */
+function getGitMetadataIgnores(files: readonly string[]): string[] {
+  const prefixes = new Set([""]);
+  for (const pattern of files) {
+    const prefix = /^(?:\.\.\/)+/.exec(pattern)?.[0];
+    if (prefix) {
+      prefixes.add(prefix);
+    }
+  }
+
+  return [...prefixes].map((prefix) => `${prefix}**/.git`);
 }
 
 /** Strips a leading `./` prefix from a file path. */

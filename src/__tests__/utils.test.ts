@@ -117,6 +117,73 @@ describe("getFilesToHash", () => {
   });
 });
 
+describe("getFilesToHash dotfiles", () => {
+  const PATHS_DOT = [".env", ".github/workflows/ci.yml", "dir/.eslintrc", "dir/.hidden/file.ts"];
+
+  test("includes dotfiles and dot-directories at any depth", async () => {
+    writePaths([...PATHS_TXT, ...PATHS_DOT]);
+
+    const result = await getInputFiles(basePath, {});
+    expect(result).toEqual([...PATHS_TXT, ...PATHS_DOT].sort());
+
+    const resultSync = getInputFilesSync(basePath, {});
+    expect(resultSync).toEqual(result);
+  });
+
+  test("includes dotfiles when expanding a directory pattern", async () => {
+    writePaths([...PATHS_TXT, ...PATHS_DOT]);
+
+    const result = await getInputFiles(basePath, { files: ["dir"] });
+    expect(result).toEqual([
+      "dir/.eslintrc",
+      "dir/.hidden/file.ts",
+      "dir/file2.txt",
+      "dir/subdir/file3.txt",
+    ]);
+
+    const resultSync = getInputFilesSync(basePath, { files: ["dir"] });
+    expect(resultSync).toEqual(result);
+  });
+
+  test("excludes dotfiles matched by ignores", async () => {
+    writePaths([...PATHS_TXT, ...PATHS_DOT]);
+
+    const result = await getInputFiles(basePath, { ignores: ["**/.*"] });
+    expect(result).toEqual(PATHS_TXT);
+
+    const resultSync = getInputFilesSync(basePath, { ignores: ["**/.*"] });
+    expect(resultSync).toEqual(result);
+  });
+
+  test("excludes .git directories and files at any depth", async () => {
+    writePaths([
+      ...PATHS_TXT,
+      ".git/HEAD",
+      ".git/objects/ab/cdef",
+      "dir/submodule/.git",
+      "dir/nested-repo/.git/HEAD",
+      ".gitignore",
+    ]);
+
+    const result = await getInputFiles(basePath, {});
+    expect(result).toEqual([...PATHS_TXT, ".gitignore"].sort());
+
+    const resultSync = getInputFilesSync(basePath, {});
+    expect(resultSync).toEqual(result);
+  });
+
+  test("excludes .git directories when files are outside basePath", async () => {
+    writePaths(["project/file.txt", "other/file.txt", "other/.env", "other/.git/HEAD"]);
+    const projectPath = `${basePath}/project`;
+
+    const result = await getInputFiles(projectPath, { files: ["../other", "**"] });
+    expect(result).toEqual(["../other/.env", "../other/file.txt", "file.txt"]);
+
+    const resultSync = getInputFilesSync(projectPath, { files: ["../other", "**"] });
+    expect(resultSync).toEqual(result);
+  });
+});
+
 describe("mergeHashes", () => {
   test("supports basic case", () => {
     const files: FileHash[] = [

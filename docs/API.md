@@ -17,6 +17,8 @@ async function calculateFingerprint(
 
 Generates a fingerprint hash from the filesystem state under `basePath`.
 
+Dotfiles and dot-directories (e.g. `.env`, `.github/`) are matched like any other path. `.git` entries are always excluded. To leave out dotfiles, add `"**/.*"` to `ignores`.
+
 Throws if `basePath` is not a non-empty string (`TypeError`), does not exist, is not a directory, or cannot be accessed. The underlying filesystem error, when present, is attached as `cause`.
 
 ```ts

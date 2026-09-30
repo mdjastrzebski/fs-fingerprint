@@ -8,7 +8,12 @@ type StringWithAutoSuggest<T> = (string & {}) | T;
 export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512">;
 
 export interface FingerprintOptions {
-  /** Glob patterns indicating files (and directories) to include (default: '**' - all) */
+  /**
+   * Glob patterns indicating files (and directories) to include (default: '**' - all).
+   *
+   * Dotfiles and dot-directories (e.g. `.env`, `.github/`) are matched like any other path.
+   * `.git` entries are always excluded.
+   */
   files?: readonly string[];
 
   /** Glob patterns indicating files (and directories) to ignore (default: none) */
