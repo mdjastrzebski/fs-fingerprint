@@ -16,16 +16,13 @@ const BENCHMARK_DIR = ".benchmark";
 const type = process.argv.includes("--baseline") ? "baseline" : "current";
 const otherType = type === "baseline" ? "current" : "baseline";
 
-/**
- * Changes within this multiple of the larger MAD, or below this percentage, are marked as noise.
- * The percentage floor covers drift between runs, which the MAD of a single run does not capture.
- */
+/** The percentage floor covers drift between runs, which a single run's MAD misses */
 const NOISE_MAD_FACTOR = 2;
 const NOISE_MIN_PERCENT = 5;
 
 interface PerformanceResults {
   timestamp: string;
-  /** Optional, as results saved by older versions lack it */
+  /** Missing in results saved by older versions */
   environment?: BenchmarkEnvironment;
   benchmarks: BenchmarkResult[];
 }
@@ -155,7 +152,7 @@ function setupBenchmarks(bench: Bench, repoPaths: Map<string, string>): void {
       });
     });
 
-    // App inside a monorepo, pulling in sibling packages via `../` (git scan runs from the repo root)
+    // Monorepo app pulling sibling packages via `../`, so git scans from the repo root
     const monorepoPath = join(reactNativePath, "packages", "rn-tester");
     const monorepoOptions: FingerprintOptions = {
       files: ["./", "../virtualized-lists/", "../../package.json"],
