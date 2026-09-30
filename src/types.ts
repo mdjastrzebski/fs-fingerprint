@@ -8,7 +8,12 @@ type StringWithAutoSuggest<T> = (string & {}) | T;
 export type HashAlgorithm = StringWithAutoSuggest<"sha1" | "sha256" | "sha512">;
 
 export interface FingerprintOptions {
-  /** Glob patterns indicating files (and directories) to include (default: '**' - all) */
+  /**
+   * Glob patterns indicating files (and directories) to include (default: '**' - all).
+   *
+   * Dotfiles and dot-directories (e.g. `.env`, `.github/`) are matched like any other path.
+   * `.git` entries are always excluded.
+   */
   files?: readonly string[];
 
   /** Glob patterns indicating files (and directories) to ignore (default: none) */
@@ -21,10 +26,12 @@ export interface FingerprintOptions {
   hashAlgorithm?: HashAlgorithm;
 
   /**
-   * Whether to ignore files ignored by Git (default: false).
+   * Whether to ignore files ignored by Git (default: true).
    *
    * When enabled, git errors (e.g. not a git repo, git not installed)
    * are silently caught and the fingerprint proceeds without git ignores.
+   * Literal (non-glob) paths in `files`, e.g. `node_modules/some-pkg/`, are included
+   * even when git ignores them. Set to `false` to hash all git-ignored files too.
    */
   gitIgnore?: boolean;
 }

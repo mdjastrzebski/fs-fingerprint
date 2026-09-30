@@ -1,0 +1,16 @@
+[submodule "refs/expo-fingerprint"]
+	path = refs/expo-fingerprint
+	url = https://github.com/expo/expo
+	shallow = true
+[submodule "refs/nx"]
+	path = refs/nx
+	url = https://github.com/nrwl/nx
+	shallow = true
+[submodule "refs/turborepo"]
+	path = refs/turborepo
+	url = https://github.com/vercel/turborepo
+	shallow = true
+[submodule "refs/folder-hash"]
+	path = refs/folder-hash
+	url = https://github.com/marc136/node-folder-hash
+	shallow = true

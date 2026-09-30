@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { glob, globSync } from "tinyglobby";
+import * as nodePath from "node:path";
+import { glob, globSync, isDynamicPattern } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, NULL_HASH } from "./constants.js";
 import type { Config, ContentHash, FileHash, Fingerprint } from "./types.js";
@@ -67,11 +68,7 @@ export async function getInputFiles(
   basePath: string,
   { files = ["**"], ignores }: GetInputFilesOptions,
 ): Promise<string[]> {
-  const paths = await glob(files, {
-    cwd: basePath,
-    ignore: ignores,
-    expandDirectories: true,
-  });
+  const paths = await glob(files, getGlobOptions(basePath, files, ignores));
 
   paths.sort();
   return paths;
@@ -82,14 +79,90 @@ export function getInputFilesSync(
   basePath: string,
   { files = ["**"], ignores }: GetInputFilesOptions,
 ): string[] {
-  const paths = globSync(files, {
-    cwd: basePath,
-    ignore: ignores,
-    expandDirectories: true,
-  });
+  const paths = globSync(files, getGlobOptions(basePath, files, ignores));
 
   paths.sort();
   return paths;
+}
+
+/** Merges path lists from several globs into one sorted, de-duplicated list. */
+export function mergePaths(pathLists: string[][]): string[] {
+  if (pathLists.length === 1) {
+    return pathLists[0] ?? [];
+  }
+
+  return [...new Set(pathLists.flat())].sort();
+}
+
+export interface PartitionedGitIgnores {
+  /** Literal `files` entries that are git-ignored or inside a git-ignored directory. */
+  explicitFiles: string[];
+  /** Git ignores that do not contain any of `explicitFiles`. */
+  remainingGitIgnores: string[];
+}
+
+/**
+ * Finds literal (non-glob) `files` entries that git ignores, so they can be included anyway.
+ * Git ignores nested inside such entries still apply to them.
+ */
+export function partitionGitIgnores(
+  files: readonly string[] | undefined,
+  gitIgnores: readonly string[],
+): PartitionedGitIgnores {
+  const explicitFiles: string[] = [];
+  const bypassedIgnores = new Set<string>();
+  for (const pattern of files ?? []) {
+    if (isDynamicPattern(pattern)) {
+      continue;
+    }
+
+    const path = normalizeLiteralPath(pattern);
+    const containingIgnores = gitIgnores.filter((ignore) => isPathInside(path, ignore));
+    if (containingIgnores.length > 0) {
+      explicitFiles.push(pattern);
+      containingIgnores.forEach((ignore) => bypassedIgnores.add(ignore));
+    }
+  }
+
+  return {
+    explicitFiles,
+    remainingGitIgnores: gitIgnores.filter((ignore) => !bypassedIgnores.has(ignore)),
+  };
+}
+
+function normalizeLiteralPath(path: string): string {
+  const normalized = nodePath.posix.normalize(path);
+  return normalized.endsWith("/") ? normalized.slice(0, -1) : normalized;
+}
+
+/** Whether `path` equals the ignored file, or is the ignored directory (`dir/`) or inside it. */
+function isPathInside(path: string, ignore: string): boolean {
+  return ignore.endsWith("/") ? `${path}/`.startsWith(ignore) : path === ignore;
+}
+
+function getGlobOptions(basePath: string, files: readonly string[], ignores?: readonly string[]) {
+  return {
+    cwd: basePath,
+    ignore: [...getGitMetadataIgnores(files), ...(ignores ?? [])],
+    dot: true,
+    expandDirectories: true,
+  };
+}
+
+/**
+ * Ignore patterns for `.git` entries (directory, or file in worktrees and submodules) at any depth.
+ * `**` does not match `../` segments, so each `../` prefix used in `files` gets its own pattern.
+ */
+function getGitMetadataIgnores(files: readonly string[]): string[] {
+  const prefixes = new Set([""]);
+  for (const pattern of files) {
+    const prefix = /^(?:\.\.\/)+/.exec(pattern)?.[0];
+    if (prefix) {
+      prefixes.add(prefix);
+    }
+  }
+
+  return [...prefixes].map((prefix) => `${prefix}**/.git`);
 }
 
 /** Strips a leading `./` prefix from a file path. */

@@ -51,7 +51,7 @@ async function calculateFingerprint(
     ignores?: string[]; // Glob patterns to exclude
     contentInputs?: ContentInput[]; // Additional non-file inputs
     hashAlgorithm?: string; // "sha1" (default), "sha256", "sha512", etc.
-    gitIgnore?: boolean; // Exclude git-ignored paths (default: false)
+    gitIgnore?: boolean; // Exclude git-ignored paths (default: true)
   },
 ): Promise<Fingerprint>;
 ```
@@ -66,7 +66,7 @@ interface Fingerprint {
 }
 ```
 
-When `gitIgnore` is enabled, git errors are silently ignored (missing `git` binary, not a git repo, etc.).
+By default, git-ignored paths are excluded. Git errors are silently ignored (missing `git` binary, not a git repo, etc.), so outside a git repo all matched files are hashed. Literal paths in `files` (no glob characters) are included even when git ignores them. Set `gitIgnore: false` to hash all git-ignored paths.
 
 See the [API reference](./docs/API.md) for the full API, including low-level helpers.
 
@@ -102,9 +102,19 @@ JSON inputs are key-sorted before hashing, so property order doesn't affect the 
 
 ### `.gitignore` support
 
+Git-ignored paths are excluded by default. To include specific ones, list them as literal paths in `files`:
+
 ```ts
 const { hash } = await calculateFingerprint("/project/path", {
-  gitIgnore: true,
+  files: ["**", "node_modules/react-native/"],
+});
+```
+
+To hash all of them:
+
+```ts
+const { hash } = await calculateFingerprint("/project/path", {
+  gitIgnore: false,
 });
 ```
 

@@ -2,7 +2,14 @@ import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
 import type { ContentHash, FileHash } from "../types.js";
-import { getInputFiles, getInputFilesSync, hashData, mergeHashes } from "../utils.js";
+import {
+  getInputFiles,
+  getInputFilesSync,
+  hashData,
+  mergeHashes,
+  mergePaths,
+  partitionGitIgnores,
+} from "../utils.js";
 
 const baseConfig = {
   basePath: "not-used",
@@ -117,6 +124,73 @@ describe("getFilesToHash", () => {
   });
 });
 
+describe("getFilesToHash dotfiles", () => {
+  const PATHS_DOT = [".env", ".github/workflows/ci.yml", "dir/.eslintrc", "dir/.hidden/file.ts"];
+
+  test("includes dotfiles and dot-directories at any depth", async () => {
+    writePaths([...PATHS_TXT, ...PATHS_DOT]);
+
+    const result = await getInputFiles(basePath, {});
+    expect(result).toEqual([...PATHS_TXT, ...PATHS_DOT].sort());
+
+    const resultSync = getInputFilesSync(basePath, {});
+    expect(resultSync).toEqual(result);
+  });
+
+  test("includes dotfiles when expanding a directory pattern", async () => {
+    writePaths([...PATHS_TXT, ...PATHS_DOT]);
+
+    const result = await getInputFiles(basePath, { files: ["dir"] });
+    expect(result).toEqual([
+      "dir/.eslintrc",
+      "dir/.hidden/file.ts",
+      "dir/file2.txt",
+      "dir/subdir/file3.txt",
+    ]);
+
+    const resultSync = getInputFilesSync(basePath, { files: ["dir"] });
+    expect(resultSync).toEqual(result);
+  });
+
+  test("excludes dotfiles matched by ignores", async () => {
+    writePaths([...PATHS_TXT, ...PATHS_DOT]);
+
+    const result = await getInputFiles(basePath, { ignores: ["**/.*"] });
+    expect(result).toEqual(PATHS_TXT);
+
+    const resultSync = getInputFilesSync(basePath, { ignores: ["**/.*"] });
+    expect(resultSync).toEqual(result);
+  });
+
+  test("excludes .git directories and files at any depth", async () => {
+    writePaths([
+      ...PATHS_TXT,
+      ".git/HEAD",
+      ".git/objects/ab/cdef",
+      "dir/submodule/.git",
+      "dir/nested-repo/.git/HEAD",
+      ".gitignore",
+    ]);
+
+    const result = await getInputFiles(basePath, {});
+    expect(result).toEqual([...PATHS_TXT, ".gitignore"].sort());
+
+    const resultSync = getInputFilesSync(basePath, {});
+    expect(resultSync).toEqual(result);
+  });
+
+  test("excludes .git directories when files are outside basePath", async () => {
+    writePaths(["project/file.txt", "other/file.txt", "other/.env", "other/.git/HEAD"]);
+    const projectPath = `${basePath}/project`;
+
+    const result = await getInputFiles(projectPath, { files: ["../other", "**"] });
+    expect(result).toEqual(["../other/.env", "../other/file.txt", "file.txt"]);
+
+    const resultSync = getInputFilesSync(projectPath, { files: ["../other", "**"] });
+    expect(resultSync).toEqual(result);
+  });
+});
+
 describe("mergeHashes", () => {
   test("supports basic case", () => {
     const files: FileHash[] = [
@@ -134,6 +208,54 @@ describe("mergeHashes", () => {
       hash: "8a1f3072c02af07a9daeba4df2230fa541e8479e",
       files,
       content,
+    });
+  });
+});
+
+describe("mergePaths", () => {
+  test("merges, de-duplicates and sorts paths", () => {
+    expect(
+      mergePaths([
+        ["b", "d"],
+        ["a", "b", "c"],
+      ]),
+    ).toEqual(["a", "b", "c", "d"]);
+  });
+});
+
+describe("partitionGitIgnores", () => {
+  const gitIgnores = ["../../root/", ".env.local", "dist/", "ios/Pods/", "node_modules/"];
+
+  test("picks literal paths equal to or inside git-ignored entries", () => {
+    expect(
+      partitionGitIgnores(
+        ["node_modules/pkg-a/", "./ios/Pods", ".env.local", "../../root/file.txt"],
+        gitIgnores,
+      ),
+    ).toEqual({
+      explicitFiles: ["node_modules/pkg-a/", "./ios/Pods", ".env.local", "../../root/file.txt"],
+      remainingGitIgnores: ["dist/"],
+    });
+  });
+
+  test("skips glob patterns", () => {
+    expect(partitionGitIgnores(["**", "node_modules/*-a/", "dist/**"], gitIgnores)).toEqual({
+      explicitFiles: [],
+      remainingGitIgnores: gitIgnores,
+    });
+  });
+
+  test("skips literal paths that only contain git-ignored entries", () => {
+    expect(partitionGitIgnores(["ios/", "node_modules-extra/file.txt"], gitIgnores)).toEqual({
+      explicitFiles: [],
+      remainingGitIgnores: gitIgnores,
+    });
+  });
+
+  test("handles no files", () => {
+    expect(partitionGitIgnores(undefined, gitIgnores)).toEqual({
+      explicitFiles: [],
+      remainingGitIgnores: gitIgnores,
     });
   });
 });

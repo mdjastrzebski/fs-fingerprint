@@ -62,3 +62,14 @@ ESLint uses flat config format. Notable rules:
 - `simple-import-sort` for import ordering
 - TypeScript inline type imports enforced
 - `.only` and `.skip` are forbidden in test files
+
+## Reference Implementations
+
+`refs/` contains git submodules of other fingerprinting implementations. Consult them when designing new features, choosing reasonable defaults, or checking best practices (e.g. which inputs to hash, ignore handling, git integration, performance tricks):
+
+- `refs/expo-fingerprint/packages/@expo/fingerprint` — `@expo/fingerprint`, closest in scope (sources with reasons, config file)
+- `refs/nx/packages/nx/src/hasher`, `refs/nx/packages/nx/src/native` — Nx task hashing (TS + Rust native hashers per input type)
+- `refs/turborepo/crates/turborepo-{scm,hash,task-hash,...}` — Turborepo hashing via git object hashes
+- `refs/folder-hash` — `folder-hash`, simple recursive directory hashing library
+
+These are read-only references: never modify them or import from them. Nx and Turborepo are sparse checkouts, so only the hashing-related paths are present. `refs/` is excluded from typecheck, lint, and prettier.

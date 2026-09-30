@@ -392,6 +392,100 @@ describe("calculateFingerprint", () => {
     `);
   });
 
+  test("excludes git-ignored files by default", async () => {
+    writePaths(["file-1.txt", "node_modules/.cache/file-2.txt", ".turbo/file-3.txt"]);
+    writeFile(".gitignore", "node_modules\n.turbo");
+    execSync("git init", { cwd: basePath });
+
+    const fingerprint = await calculateFingerprint(basePath);
+    expect(findFile(fingerprint, "file-1.txt")).toBeTruthy();
+    expect(findFile(fingerprint, ".gitignore")).toBeTruthy();
+    expect(findFile(fingerprint, "node_modules/.cache/file-2.txt")).toBeNull();
+    expect(findFile(fingerprint, ".turbo/file-3.txt")).toBeNull();
+
+    const fingerprintSync = calculateFingerprintSync(basePath);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("includes git-ignored files when gitIgnore is false", async () => {
+    writePaths(["file-1.txt", "node_modules/.cache/file-2.txt", ".turbo/file-3.txt"]);
+    writeFile(".gitignore", "node_modules\n.turbo");
+    execSync("git init", { cwd: basePath });
+
+    const options: FingerprintOptions = { gitIgnore: false };
+
+    const fingerprint = await calculateFingerprint(basePath, options);
+    expect(findFile(fingerprint, "file-1.txt")).toBeTruthy();
+    expect(findFile(fingerprint, "node_modules/.cache/file-2.txt")).toBeTruthy();
+    expect(findFile(fingerprint, ".turbo/file-3.txt")).toBeTruthy();
+
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("includes git-ignored files listed explicitly in files", async () => {
+    writePaths([
+      "src/file-1.txt",
+      ".env.local",
+      "node_modules/pkg-a/index.js",
+      "node_modules/pkg-a/index.md",
+      "node_modules/pkg-b/index.js",
+      "android/app/file-2.txt",
+      "android/build/file-3.txt",
+    ]);
+    writeFile(".gitignore", "node_modules\n.env.local\nandroid/build");
+    execSync("git init", { cwd: basePath });
+
+    const options: FingerprintOptions = {
+      files: ["**", "node_modules/pkg-a/", ".env.local", "android/"],
+      ignores: ["**/*.md"],
+    };
+
+    const fingerprint = await calculateFingerprint(basePath, options);
+    expect(fingerprint.files.map((file) => file.path)).toEqual([
+      ".env.local",
+      ".gitignore",
+      "android/app/file-2.txt",
+      "node_modules/pkg-a/index.js",
+      "src/file-1.txt",
+    ]);
+
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test('includes git-ignored files listed explicitly outside of "basePath"', async () => {
+    writePaths(["pkg/a/file-1.txt", "node_modules/pkg-a/index.js", "node_modules/pkg-b/index.js"]);
+    writeFile(".gitignore", "node_modules");
+    execSync("git init", { cwd: basePath });
+
+    const options: FingerprintOptions = { files: ["**", "../../node_modules/pkg-a/"] };
+
+    const packagePath = path.join(basePath, "pkg/a");
+    const fingerprint = await calculateFingerprint(packagePath, options);
+    expect(fingerprint.files.map((file) => file.path)).toEqual([
+      "../../node_modules/pkg-a/index.js",
+      "file-1.txt",
+    ]);
+
+    const fingerprintSync = calculateFingerprintSync(packagePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("does not include git-ignored files matched only by glob patterns", async () => {
+    writePaths(["src/file-1.txt", "node_modules/pkg-a/index.js"]);
+    writeFile(".gitignore", "node_modules");
+    execSync("git init", { cwd: basePath });
+
+    const options: FingerprintOptions = { files: ["src/", "node_modules/pkg-*/"] };
+
+    const fingerprint = await calculateFingerprint(basePath, options);
+    expect(fingerprint.files.map((file) => file.path)).toEqual(["src/file-1.txt"]);
+
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
   test("follows symlinks", async () => {
     writePaths(["file1.txt", "dir-1/"]);
     fs.symlinkSync(
@@ -631,8 +725,9 @@ describe("calculateFingerprint", () => {
     const fingerprint = await calculateFingerprint(basePath, options);
 
     expect(formatFingerprint(fingerprint)).toMatchInlineSnapshot(`
-      "Hash: 56823b8e45505714e2b19db32f88c66af87b139b
+      "Hash: 9bae107cf5cedf99e2ccbb30f5fd2992328f64fc
       Files:
+      - .gitignore - 0283c984899899b9ef6bb345b45cbb58ded8033c
       - dir/file2.md - 943a702d06f34599aee1f8da8ef9f7296031d699
       - dir/subdir/file3.md - 943a702d06f34599aee1f8da8ef9f7296031d699
       - file1.md - 943a702d06f34599aee1f8da8ef9f7296031d699
