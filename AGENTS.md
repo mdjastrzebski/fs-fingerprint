@@ -39,7 +39,7 @@ bun run bench                # Run benchmarks
 - `src/inputs/content.ts` — hashes non-file inputs (text, JSON, env vars); `secret` flag omits cleartext from output while still hashing
 - `src/utils.ts` — `hashData`, `mergeHashes`, glob helpers, sorting
 - `src/git.ts` — `getGitIgnoredPaths` via `git ls-files`, git root detection
-- `src/types.ts` — all public types (`FingerprintOptions`, `Fingerprint`, `FileHash`, `ContentHash`, etc.)
+- `src/types.ts` — shared types; the public ones (`FingerprintOptions`, `Fingerprint`, `FileHash`, `ContentHash`, etc.) are re-exported by name from `src/index.ts`, while `Config` stays internal
 - `src/constants.ts` — `NULL_HASH = "(null)"`, `DEFAULT_HASH_ALGORITHM = "sha1"`
 - `test-utils/` — shared test helpers for assertions, formatting, and temp filesystem setup
 

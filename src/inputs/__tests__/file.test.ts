@@ -67,15 +67,11 @@ describe("calculateFileHash", () => {
   });
 
   test("throws on missing file (async)", async () => {
-    await expect(calculateFileHash("nonexistent.txt", baseConfig)).rejects.toThrow(
-      "Failed to read file: nonexistent.txt",
-    );
+    await expect(calculateFileHash("nonexistent.txt", baseConfig)).rejects.toThrow(/ENOENT/);
   });
 
   test("throws on missing file (sync)", () => {
-    expect(() => calculateFileHashSync("nonexistent.txt", baseConfig)).toThrow(
-      "Failed to read file: nonexistent.txt",
-    );
+    expect(() => calculateFileHashSync("nonexistent.txt", baseConfig)).toThrow(/ENOENT/);
   });
 
   test("handles unicode chars, emojis, etc content", async () => {

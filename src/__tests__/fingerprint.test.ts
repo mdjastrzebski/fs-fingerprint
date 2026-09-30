@@ -23,33 +23,79 @@ beforeEach(() => {
   prepareRootDir();
 });
 
+async function getBasePathErrors(basePath: string): Promise<Error[]> {
+  const errors: Error[] = [];
+  try {
+    calculateFingerprintSync(basePath);
+  } catch (error) {
+    errors.push(error as Error);
+  }
+  try {
+    await calculateFingerprint(basePath);
+  } catch (error) {
+    errors.push(error as Error);
+  }
+  return errors;
+}
+
 describe("basePath validation", () => {
-  test("throws on empty string", async () => {
-    expect(() => calculateFingerprintSync("")).toThrowError("basePath must be a non-empty string.");
-    await expect(calculateFingerprint("")).rejects.toThrowError(
-      "basePath must be a non-empty string.",
-    );
+  test("throws on empty or non-string basePath", async () => {
+    for (const invalid of ["", undefined, 123] as unknown as string[]) {
+      const errors = await getBasePathErrors(invalid);
+      expect(errors).toHaveLength(2);
+      for (const error of errors) {
+        expect(error).toBeInstanceOf(TypeError);
+        expect(error.message).toBe("basePath must be a non-empty string");
+      }
+    }
   });
 
-  test("throws on non-existent path", async () => {
+  test("throws on non-existent basePath", async () => {
     const missing = path.join(basePath, "does-not-exist");
-    expect(() => calculateFingerprintSync(missing)).toThrowError(
-      `basePath does not exist: ${missing}`,
-    );
-    await expect(calculateFingerprint(missing)).rejects.toThrowError(
-      `basePath does not exist: ${missing}`,
-    );
+    const errors = await getBasePathErrors(missing);
+    expect(errors).toHaveLength(2);
+    for (const error of errors) {
+      expect(error.message).toBe(`basePath does not exist: ${missing}`);
+      expect((error.cause as NodeJS.ErrnoException).code).toBe("ENOENT");
+    }
   });
 
-  test("throws when path is a file", async () => {
+  test("throws on basePath nested under a file", async () => {
+    writePaths(["file.txt"]);
+    const nested = path.join(basePath, "file.txt", "nested");
+    const errors = await getBasePathErrors(nested);
+    expect(errors).toHaveLength(2);
+    for (const error of errors) {
+      expect(error.message).toBe(`basePath does not exist: ${nested}`);
+    }
+  });
+
+  test("throws when basePath is a file", async () => {
     writePaths(["file.txt"]);
     const filePath = path.join(basePath, "file.txt");
-    expect(() => calculateFingerprintSync(filePath)).toThrowError(
-      `basePath is not a directory: ${filePath}`,
-    );
-    await expect(calculateFingerprint(filePath)).rejects.toThrowError(
-      `basePath is not a directory: ${filePath}`,
-    );
+    const errors = await getBasePathErrors(filePath);
+    expect(errors).toHaveLength(2);
+    for (const error of errors) {
+      expect(error.message).toBe(`basePath is not a directory: ${filePath}`);
+    }
+  });
+
+  // Root bypasses permission checks, so EACCES cannot be triggered
+  test.skipIf(process.getuid?.() === 0)("throws on inaccessible basePath", async () => {
+    writePaths(["locked/inner/file.txt"]);
+    const lockedPath = path.join(basePath, "locked");
+    const innerPath = path.join(lockedPath, "inner");
+    fs.chmodSync(lockedPath, 0o000);
+    try {
+      const errors = await getBasePathErrors(innerPath);
+      expect(errors).toHaveLength(2);
+      for (const error of errors) {
+        expect(error.message).toBe(`Failed to access basePath: ${innerPath}`);
+        expect((error.cause as NodeJS.ErrnoException).code).toBe("EACCES");
+      }
+    } finally {
+      fs.chmodSync(lockedPath, 0o755);
+    }
   });
 });
 

@@ -17,6 +17,8 @@ async function calculateFingerprint(
 
 Generates a fingerprint hash from the filesystem state under `basePath`.
 
+Throws if `basePath` is not a non-empty string (`TypeError`), does not exist, is not a directory, or cannot be accessed. The underlying filesystem error, when present, is attached as `cause`.
+
 ```ts
 const fp = await calculateFingerprint("./my-project", {
   files: ["src/**/*.ts"],
