@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import * as os from "node:os";
 import { join } from "node:path";
 import { Bench } from "tinybench";
 import * as md from "ts-markdown-builder";
@@ -9,15 +10,34 @@ import {
   type FingerprintOptions,
 } from "../src/index.js";
 import { RepoManager } from "./fixtures/repos.js";
-import { EXPENSIFY_ROCK_CONFIG, getRockFingerprintOptions } from "./fixtures/rock.js";
+import {
+  EXPENSIFY_ROCK_CONFIG,
+  getRockFingerprintOptions,
+  RN_TESTER_ANDROID_ROCK_CONFIG,
+} from "./fixtures/rock.js";
 
 const BENCHMARK_DIR = ".benchmark";
 const type = process.argv.includes("--baseline") ? "baseline" : "current";
 const otherType = type === "baseline" ? "current" : "baseline";
 
+/** The percentage floor covers drift between runs, which a single run's MAD misses */
+const NOISE_MAD_FACTOR = 2;
+const NOISE_MIN_PERCENT = 5;
+
 interface PerformanceResults {
   timestamp: string;
+  /** Missing in results saved by older versions */
+  environment?: BenchmarkEnvironment;
   benchmarks: BenchmarkResult[];
+}
+
+interface BenchmarkEnvironment {
+  os: string;
+  arch: string;
+  cpu: string;
+  cpuCount: number;
+  node: string;
+  uvThreadpoolSize: string;
 }
 
 interface BenchmarkResult {
@@ -56,7 +76,7 @@ async function runBenchmarks(): Promise<void> {
   console.log("⏱️  Running benchmarks...");
   await bench.run();
 
-  console.log("\n✅ Benchmark Results:");
+  console.log(`\n✅ Benchmark Results (${formatEnvironment(getEnvironment())}):`);
   console.log(
     md.table(
       ["Task name", "Latency med (ms)", "Throughput med (ops/s)", "Samples"],
@@ -84,14 +104,11 @@ async function runBenchmarks(): Promise<void> {
   const currentResults = type === "current" ? results : otherResults;
 
   console.log("\n✅ Performance comparison (vs baseline)");
-  const markdownTable = md.table(
-    ["Task name", "Baseline latency (ms)", "Current latency (ms)", "Change (ms)"],
-    buildComparisonTable(currentResults, baselineResults),
-  );
-  console.log(markdownTable);
+  const markdownOutput = buildComparisonMarkdown(currentResults, baselineResults);
+  console.log(markdownOutput);
 
   const compareOutputPath = join(BENCHMARK_DIR, "output.md");
-  writeMarkdownOutput(compareOutputPath, markdownTable);
+  writeMarkdownOutput(compareOutputPath, markdownOutput);
   console.log(`\n🔗 Saved output report: ${compareOutputPath}`);
 }
 
@@ -139,6 +156,20 @@ function setupBenchmarks(bench: Bench, repoPaths: Map<string, string>): void {
       });
     });
 
+    // Monorepo app pulling sibling packages via `../`, so git scans from the repo root
+    const monorepoPath = join(reactNativePath, "packages", "rn-tester");
+    const monorepoOptions = getRockFingerprintOptions(
+      monorepoPath,
+      "android",
+      RN_TESTER_ANDROID_ROCK_CONFIG,
+    );
+    bench.add("react-native-sync (monorepo)", () => {
+      calculateFingerprintSync(monorepoPath, monorepoOptions);
+    });
+    bench.add("react-native (monorepo)", async () => {
+      await calculateFingerprint(monorepoPath, monorepoOptions);
+    });
+
     // Skips git entirely, isolating the cost of `gitIgnore`
     bench.add("react-native-sync (no .git)", () => {
       calculateFingerprintSync(reactNativePath, {
@@ -182,6 +213,7 @@ function setupBenchmarks(bench: Bench, repoPaths: Map<string, string>): void {
 function buildResults(bench: Bench): PerformanceResults {
   return {
     timestamp: new Date().toISOString(),
+    environment: getEnvironment(),
     benchmarks: bench.tasks
       .map((task) => {
         if (task.result == null) {
@@ -258,11 +290,14 @@ function buildComparisonTable(
 
     const delta = currentLatency.p50 - baselineLatency.p50;
     const deltaPercent = (delta / baselineLatency.p50) * 100;
+    const isNoise =
+      Math.abs(delta) <= NOISE_MAD_FACTOR * Math.max(baselineLatency.mad, currentLatency.mad) ||
+      Math.abs(deltaPercent) < NOISE_MIN_PERCENT;
     return [
       current.name,
       formatLatency(baselineLatency),
       formatLatency(currentLatency),
-      `${delta > 0 ? "+" : ""}${delta.toFixed(1)} (${deltaPercent > 0 ? "+" : ""}${deltaPercent.toFixed(0)}%)`,
+      `${isNoise ? "~ " : ""}${delta > 0 ? "+" : ""}${delta.toFixed(1)} (${deltaPercent > 0 ? "+" : ""}${deltaPercent.toFixed(0)}%)`,
     ];
   });
 }
@@ -275,10 +310,49 @@ function formatLatency(latency: BenchmarkResult["latency"] | undefined): string 
   return `${latency.p50.toFixed(2)} \u00B1 ${latency.mad?.toFixed(2)}`;
 }
 
-function writeMarkdownOutput(path: string, markdownTable: string) {
-  const markdownOutput = md.joinBlocks([
+function buildComparisonMarkdown(
+  currentResults: PerformanceResults,
+  baselineResults: PerformanceResults,
+): string {
+  return md.joinBlocks([
     md.heading("Performance comparison (vs baseline)", { level: 3 }),
-    markdownTable,
+    buildEnvironmentNote(baselineResults.environment, currentResults.environment),
+    md.table(
+      ["Task name", "Baseline latency (ms)", "Current latency (ms)", "Change (ms)"],
+      buildComparisonTable(currentResults, baselineResults),
+    ),
+    `\`~\` marks changes within noise (≤ ${NOISE_MAD_FACTOR}× the larger MAD, or under ${NOISE_MIN_PERCENT}%).`,
   ]);
+}
+
+function buildEnvironmentNote(
+  baseline: BenchmarkEnvironment | undefined,
+  current: BenchmarkEnvironment | undefined,
+): string {
+  const baselineText = baseline ? formatEnvironment(baseline) : "unknown";
+  const currentText = current ? formatEnvironment(current) : "unknown";
+  if (baselineText === currentText) {
+    return `Environment: ${currentText}`;
+  }
+
+  return `Baseline environment: ${baselineText}\\\nCurrent environment: ${currentText}`;
+}
+
+function getEnvironment(): BenchmarkEnvironment {
+  return {
+    os: `${os.type()} ${os.release()}`,
+    arch: os.arch(),
+    cpu: os.cpus()[0]?.model.trim() ?? "unknown",
+    cpuCount: os.availableParallelism(),
+    node: process.version,
+    uvThreadpoolSize: process.env.UV_THREADPOOL_SIZE ?? "4 (default)",
+  };
+}
+
+function formatEnvironment(env: BenchmarkEnvironment): string {
+  return `${env.os} ${env.arch} · ${env.cpu} × ${env.cpuCount} · Node ${env.node} · UV_THREADPOOL_SIZE=${env.uvThreadpoolSize}`;
+}
+
+function writeMarkdownOutput(path: string, markdownOutput: string) {
   writeFileSync(path, markdownOutput);
 }

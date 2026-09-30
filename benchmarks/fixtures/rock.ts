@@ -42,6 +42,26 @@ export const EXPENSIFY_ROCK_CONFIG: Record<RockPlatform, RockFingerprintConfig> 
 };
 
 /**
+ * RNTester Android app in the React Native monorepo, relative to `packages/rn-tester`.
+ * Its Gradle build compiles these sibling packages from source (see root `settings.gradle.kts`).
+ */
+export const RN_TESTER_ANDROID_ROCK_CONFIG: RockFingerprintConfig = {
+  sourceDir: "android",
+  extraSources: [
+    "../react-native/ReactAndroid",
+    "../react-native/ReactCommon",
+    "../gradle-plugin",
+    "../../build.gradle.kts",
+    "../../settings.gradle.kts",
+    "../../gradle.properties",
+    "../../gradle",
+    "../../yarn.lock",
+  ],
+  ignorePaths: [],
+  env: [],
+};
+
+/**
  * Builds options the way Rock's `nativeFingerprint` does (`@rock-js/tools`).
  *
  * Differences from Rock:
