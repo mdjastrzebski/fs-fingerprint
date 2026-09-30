@@ -2,7 +2,14 @@ import { beforeEach, describe, expect, test } from "bun:test";
 
 import { createRootDir } from "../../test-utils/fs.js";
 import type { ContentHash, FileHash } from "../types.js";
-import { getInputFiles, getInputFilesSync, hashData, mergeHashes } from "../utils.js";
+import {
+  getInputFiles,
+  getInputFilesSync,
+  hashData,
+  mergeHashes,
+  mergePaths,
+  partitionGitIgnores,
+} from "../utils.js";
 
 const baseConfig = {
   basePath: "not-used",
@@ -201,6 +208,54 @@ describe("mergeHashes", () => {
       hash: "8a1f3072c02af07a9daeba4df2230fa541e8479e",
       files,
       content,
+    });
+  });
+});
+
+describe("mergePaths", () => {
+  test("merges, de-duplicates and sorts paths", () => {
+    expect(
+      mergePaths([
+        ["b", "d"],
+        ["a", "b", "c"],
+      ]),
+    ).toEqual(["a", "b", "c", "d"]);
+  });
+});
+
+describe("partitionGitIgnores", () => {
+  const gitIgnores = ["../../root/", ".env.local", "dist/", "ios/Pods/", "node_modules/"];
+
+  test("picks literal paths equal to or inside git-ignored entries", () => {
+    expect(
+      partitionGitIgnores(
+        ["node_modules/pkg-a/", "./ios/Pods", ".env.local", "../../root/file.txt"],
+        gitIgnores,
+      ),
+    ).toEqual({
+      explicitFiles: ["node_modules/pkg-a/", "./ios/Pods", ".env.local", "../../root/file.txt"],
+      remainingGitIgnores: ["dist/"],
+    });
+  });
+
+  test("skips glob patterns", () => {
+    expect(partitionGitIgnores(["**", "node_modules/*-a/", "dist/**"], gitIgnores)).toEqual({
+      explicitFiles: [],
+      remainingGitIgnores: gitIgnores,
+    });
+  });
+
+  test("skips literal paths that only contain git-ignored entries", () => {
+    expect(partitionGitIgnores(["ios/", "node_modules-extra/file.txt"], gitIgnores)).toEqual({
+      explicitFiles: [],
+      remainingGitIgnores: gitIgnores,
+    });
+  });
+
+  test("handles no files", () => {
+    expect(partitionGitIgnores(undefined, gitIgnores)).toEqual({
+      explicitFiles: [],
+      remainingGitIgnores: gitIgnores,
     });
   });
 });

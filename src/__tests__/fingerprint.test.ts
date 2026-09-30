@@ -423,6 +423,69 @@ describe("calculateFingerprint", () => {
     expect(fingerprintSync).toEqual(fingerprint);
   });
 
+  test("includes git-ignored files listed explicitly in files", async () => {
+    writePaths([
+      "src/file-1.txt",
+      ".env.local",
+      "node_modules/pkg-a/index.js",
+      "node_modules/pkg-a/index.md",
+      "node_modules/pkg-b/index.js",
+      "android/app/file-2.txt",
+      "android/build/file-3.txt",
+    ]);
+    writeFile(".gitignore", "node_modules\n.env.local\nandroid/build");
+    execSync("git init", { cwd: basePath });
+
+    const options: FingerprintOptions = {
+      files: ["**", "node_modules/pkg-a/", ".env.local", "android/"],
+      ignores: ["**/*.md"],
+    };
+
+    const fingerprint = await calculateFingerprint(basePath, options);
+    expect(fingerprint.files.map((file) => file.path)).toEqual([
+      ".env.local",
+      ".gitignore",
+      "android/app/file-2.txt",
+      "node_modules/pkg-a/index.js",
+      "src/file-1.txt",
+    ]);
+
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test('includes git-ignored files listed explicitly outside of "basePath"', async () => {
+    writePaths(["pkg/a/file-1.txt", "node_modules/pkg-a/index.js", "node_modules/pkg-b/index.js"]);
+    writeFile(".gitignore", "node_modules");
+    execSync("git init", { cwd: basePath });
+
+    const options: FingerprintOptions = { files: ["**", "../../node_modules/pkg-a/"] };
+
+    const packagePath = path.join(basePath, "pkg/a");
+    const fingerprint = await calculateFingerprint(packagePath, options);
+    expect(fingerprint.files.map((file) => file.path)).toEqual([
+      "../../node_modules/pkg-a/index.js",
+      "file-1.txt",
+    ]);
+
+    const fingerprintSync = calculateFingerprintSync(packagePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
+  test("does not include git-ignored files matched only by glob patterns", async () => {
+    writePaths(["src/file-1.txt", "node_modules/pkg-a/index.js"]);
+    writeFile(".gitignore", "node_modules");
+    execSync("git init", { cwd: basePath });
+
+    const options: FingerprintOptions = { files: ["src/", "node_modules/pkg-*/"] };
+
+    const fingerprint = await calculateFingerprint(basePath, options);
+    expect(fingerprint.files.map((file) => file.path)).toEqual(["src/file-1.txt"]);
+
+    const fingerprintSync = calculateFingerprintSync(basePath, options);
+    expect(fingerprintSync).toEqual(fingerprint);
+  });
+
   test("follows symlinks", async () => {
     writePaths(["file1.txt", "dir-1/"]);
     fs.symlinkSync(

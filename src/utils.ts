@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { glob, globSync } from "tinyglobby";
+import * as nodePath from "node:path";
+import { glob, globSync, isDynamicPattern } from "tinyglobby";
 
 import { DEFAULT_HASH_ALGORITHM, NULL_HASH } from "./constants.js";
 import type { Config, ContentHash, FileHash, Fingerprint } from "./types.js";
@@ -82,6 +83,61 @@ export function getInputFilesSync(
 
   paths.sort();
   return paths;
+}
+
+/** Merges path lists from several globs into one sorted, de-duplicated list. */
+export function mergePaths(pathLists: string[][]): string[] {
+  if (pathLists.length === 1) {
+    return pathLists[0] ?? [];
+  }
+
+  return [...new Set(pathLists.flat())].sort();
+}
+
+export interface PartitionedGitIgnores {
+  /** Literal `files` entries that are git-ignored or inside a git-ignored directory. */
+  explicitFiles: string[];
+  /** Git ignores that do not contain any of `explicitFiles`. */
+  remainingGitIgnores: string[];
+}
+
+/**
+ * Finds literal (non-glob) `files` entries that git ignores, so they can be included anyway.
+ * Git ignores nested inside such entries still apply to them.
+ */
+export function partitionGitIgnores(
+  files: readonly string[] | undefined,
+  gitIgnores: readonly string[],
+): PartitionedGitIgnores {
+  const explicitFiles: string[] = [];
+  const bypassedIgnores = new Set<string>();
+  for (const pattern of files ?? []) {
+    if (isDynamicPattern(pattern)) {
+      continue;
+    }
+
+    const path = normalizeLiteralPath(pattern);
+    const containingIgnores = gitIgnores.filter((ignore) => isPathInside(path, ignore));
+    if (containingIgnores.length > 0) {
+      explicitFiles.push(pattern);
+      containingIgnores.forEach((ignore) => bypassedIgnores.add(ignore));
+    }
+  }
+
+  return {
+    explicitFiles,
+    remainingGitIgnores: gitIgnores.filter((ignore) => !bypassedIgnores.has(ignore)),
+  };
+}
+
+function normalizeLiteralPath(path: string): string {
+  const normalized = nodePath.posix.normalize(path);
+  return normalized.endsWith("/") ? normalized.slice(0, -1) : normalized;
+}
+
+/** Whether `path` equals the ignored file, or is the ignored directory (`dir/`) or inside it. */
+function isPathInside(path: string, ignore: string): boolean {
+  return ignore.endsWith("/") ? `${path}/`.startsWith(ignore) : path === ignore;
 }
 
 function getGlobOptions(basePath: string, files: readonly string[], ignores?: readonly string[]) {

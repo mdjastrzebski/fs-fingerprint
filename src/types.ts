@@ -30,7 +30,8 @@ export interface FingerprintOptions {
    *
    * When enabled, git errors (e.g. not a git repo, git not installed)
    * are silently caught and the fingerprint proceeds without git ignores.
-   * Set to `false` to hash git-ignored files too.
+   * Literal (non-glob) paths in `files`, e.g. `node_modules/some-pkg/`, are included
+   * even when git ignores them. Set to `false` to hash all git-ignored files too.
    */
   gitIgnore?: boolean;
 }

@@ -5,7 +5,14 @@ import { getGitIgnoredPaths } from "./git.js";
 import { calculateContentHash } from "./inputs/content.js";
 import { calculateFileHash, calculateFileHashSync } from "./inputs/file.js";
 import type { Config, Fingerprint, FingerprintOptions } from "./types.js";
-import { getInputFiles, getInputFilesSync, mergeHashes } from "./utils.js";
+import {
+  getInputFiles,
+  type GetInputFilesOptions,
+  getInputFilesSync,
+  mergeHashes,
+  mergePaths,
+  partitionGitIgnores,
+} from "./utils.js";
 
 /**
  * Calculates a deterministic fingerprint hash from filesystem state and content inputs.
@@ -27,14 +34,14 @@ export async function calculateFingerprint(
   }
   assertBasePathDirectory(basePath, stats);
 
-  const { hashAlgorithm, files, contentInputs } = options ?? {};
+  const { hashAlgorithm, contentInputs } = options ?? {};
   const config: Config = {
     basePath,
     hashAlgorithm,
   };
 
-  const ignores = resolveIgnores(basePath, options);
-  const inputFiles = await getInputFiles(basePath, { files, ignores });
+  const globs = resolveGlobs(basePath, options);
+  const inputFiles = mergePaths(await Promise.all(globs.map((g) => getInputFiles(basePath, g))));
   const fileHashes = await Promise.all(inputFiles.map((path) => calculateFileHash(path, config)));
 
   const contentHashes = contentInputs?.map((input) => calculateContentHash(input, config)) ?? [];
@@ -61,14 +68,14 @@ export function calculateFingerprintSync(
   }
   assertBasePathDirectory(basePath, stats);
 
-  const { hashAlgorithm, files, contentInputs } = options ?? {};
+  const { hashAlgorithm, contentInputs } = options ?? {};
   const config: Config = {
     basePath,
     hashAlgorithm,
   };
 
-  const ignores = resolveIgnores(basePath, options);
-  const inputFiles = getInputFilesSync(basePath, { files, ignores });
+  const globs = resolveGlobs(basePath, options);
+  const inputFiles = mergePaths(globs.map((g) => getInputFilesSync(basePath, g)));
   const fileHashes = inputFiles.map((path) => calculateFileHashSync(path, config));
 
   const contentHashes = contentInputs?.map((input) => calculateContentHash(input, config)) ?? [];
@@ -96,21 +103,29 @@ function assertBasePathDirectory(basePath: string, stats: Stats): void {
   }
 }
 
-function resolveIgnores(
-  basePath: string,
-  options?: FingerprintOptions,
-): readonly string[] | undefined {
-  if (options?.gitIgnore === false) {
-    return options?.ignores;
+/**
+ * Returns the globs to run. Literal `files` entries that git ignores get a second glob,
+ * so they are included without lifting the same git ignores for the other patterns.
+ */
+function resolveGlobs(basePath: string, options?: FingerprintOptions): GetInputFilesOptions[] {
+  const { files, ignores = [] } = options ?? {};
+  const gitIgnores = options?.gitIgnore === false ? [] : getGitIgnoresSafe(basePath, files);
+  const mainGlob = { files, ignores: [...gitIgnores, ...ignores] };
+
+  const { explicitFiles, remainingGitIgnores } = partitionGitIgnores(files, gitIgnores);
+  if (explicitFiles.length === 0) {
+    return [mainGlob];
   }
 
-  const hasOutsidePaths = options?.files?.some((pattern) => pattern.startsWith("..")) ?? false;
-  let gitIgnores: string[] = [];
+  return [mainGlob, { files: explicitFiles, ignores: [...remainingGitIgnores, ...ignores] }];
+}
+
+function getGitIgnoresSafe(basePath: string, files?: readonly string[]): string[] {
+  const hasOutsidePaths = files?.some((pattern) => pattern.startsWith("..")) ?? false;
   try {
-    gitIgnores = getGitIgnoredPaths(basePath, { entireRepo: hasOutsidePaths });
+    return getGitIgnoredPaths(basePath, { entireRepo: hasOutsidePaths });
   } catch {
     // Silently fall back to no git ignores (e.g. not a git repo, git not installed)
+    return [];
   }
-
-  return options?.ignores ? [...gitIgnores, ...options.ignores] : gitIgnores;
 }

@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - `calculateFingerprint` and `calculateFingerprintSync` now throw when `basePath` is empty, doesn't exist, isn't a directory, or can't be accessed. Previously these cases silently returned an empty fingerprint (or, for `""`, fingerprinted the current directory), which could hide a mistyped path. If you fingerprint a directory that may not exist yet, check for it before calling. ([#41](https://github.com/mdjastrzebski/fs-fingerprint/issues/41))
 
-- `gitIgnore` now defaults to `true`, so git-ignored paths (e.g. `node_modules/.cache`, `.turbo`, `.next`) are excluded unless you pass `gitIgnore: false`. Outside a git repo, or when `git` is not installed, nothing changes: git errors are still ignored silently. Fingerprints of git repos with ignored files inside the matched paths will change.
+- `gitIgnore` now defaults to `true`, so git-ignored paths (e.g. `node_modules/.cache`, `.turbo`, `.next`) are excluded unless you pass `gitIgnore: false`. Literal (non-glob) paths in `files`, such as `node_modules/react-native/`, are still included even when git ignores them. Outside a git repo, or when `git` is not installed, nothing changes: git errors are still ignored silently. Fingerprints of git repos with ignored files inside the matched paths will change.
 
 - Public types are now exported by name. The internal `Config` type is no longer exported. ([#41](https://github.com/mdjastrzebski/fs-fingerprint/issues/41))
 
