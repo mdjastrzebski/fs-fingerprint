@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import * as nodePath from "node:path";
 import { escapePath } from "tinyglobby";
 
@@ -20,11 +20,11 @@ export function getGitIgnoredPaths(
   const cwd = entireRepo ? getGitRootPath(basePath) : nodePath.resolve(basePath);
 
   try {
-    const output = execSync("git ls-files -z --others --ignored --exclude-standard --directory", {
-      cwd,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-    });
+    const output = execFileSync(
+      "git",
+      ["ls-files", "-z", "--others", "--ignored", "--exclude-standard", "--directory"],
+      { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+    );
 
     let result = output.split("\0").filter(Boolean);
     if (entireRepo) {
@@ -43,7 +43,7 @@ export function getGitIgnoredPaths(
 
 function getGitRootPath(path: string): string {
   try {
-    const output = execSync("git rev-parse --show-cdup", {
+    const output = execFileSync("git", ["rev-parse", "--show-cdup"], {
       cwd: path,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
