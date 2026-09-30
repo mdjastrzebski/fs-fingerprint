@@ -560,21 +560,19 @@ describe("calculateFingerprint", () => {
 
   test("includes both entries for duplicate content keys", async () => {
     const options: FingerprintOptions = {
-      contentInputs: [
-        textContent("same-key", "value-1"),
-        textContent("same-key", "value-2"),
-      ],
+      contentInputs: [textContent("same-key", "value-1"), textContent("same-key", "value-2")],
     };
 
     const fingerprint = await calculateFingerprint(basePath, options);
 
     // Both entries are included (no deduplication)
     expect(fingerprint.content).toHaveLength(2);
-    expect(fingerprint.content[0]!.key).toBe("same-key");
-    expect(fingerprint.content[1]!.key).toBe("same-key");
+    const [first, second] = fingerprint.content;
+    expect(first?.key).toBe("same-key");
+    expect(second?.key).toBe("same-key");
 
     // Different content produces different hashes
-    expect(fingerprint.content[0]!.hash).not.toBe(fingerprint.content[1]!.hash);
+    expect(first?.hash).not.toBe(second?.hash);
 
     const fingerprintSync = calculateFingerprintSync(basePath, options);
     expect(fingerprintSync).toEqual(fingerprint);
